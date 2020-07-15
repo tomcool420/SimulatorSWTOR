@@ -1,0 +1,10 @@
+.vscode
+.idea
+build
+**/__pycache__
+*.pyc
+*.swp
+.vs
+.DS_Store
+/CMakeLists.txt.user
+.conan
