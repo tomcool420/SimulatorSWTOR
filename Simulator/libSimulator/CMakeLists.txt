@@ -1,0 +1,1 @@
+add_static_library()

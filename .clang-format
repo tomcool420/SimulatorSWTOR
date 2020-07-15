@@ -1,0 +1,17 @@
+Language:        Cpp
+BasedOnStyle:  LLVM
+IncludeCategories:
+  - Regex:           '.*"stdafx.*\.h"'
+    Priority:        -1
+  - Regex:           '<.*\.h>'
+    Priority:        4
+  - Regex:           '<'
+    Priority:        4
+  - Regex:           '"\.\.'
+    Priority:        3
+  - Regex:           '"'
+    Priority:        2
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+ColumnLimit:     120

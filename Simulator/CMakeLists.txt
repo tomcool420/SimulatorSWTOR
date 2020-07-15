@@ -1,0 +1,2 @@
+add_subdirectory(libSimulator)
+add_subdirectory(Simulator)
