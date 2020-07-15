@@ -37,7 +37,7 @@ function(add_static_library)
   endif()
 
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test)
-    add_test_project(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test NAME "${dirname}Test" EXTRA_SOURCE
+    add_test(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test NAME "${dirname}Test" EXTRA_SOURCE
                      ${STATIC_LIB_ARGS_TEST_EXTRA_SOURCE})
     set(SIM_CURRENT_TEST
         ${SIM_CURRENT_TEST}
