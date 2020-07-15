@@ -95,5 +95,6 @@ set(SIM_PROJECT SimulatorSWTOR)
 
 include(add_static_library)
 include(add_exe)
+include(add_test)
 
 add_subdirectory(Simulator)
