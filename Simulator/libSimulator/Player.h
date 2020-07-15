@@ -1,5 +1,5 @@
 #pragma once
-using WeaponDamage = std::pair<double, double>;
+#include "types.h"
 class Player {
   public:
     Player(WeaponDamage weaponDamage, WeaponDamage offhandDamage, double mastery, double power, double ftpower,

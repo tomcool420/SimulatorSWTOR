@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/operators.hpp>
-#include <iostream>
 #include <gsl/gsl>
+#include <iostream>
 
 namespace Simulator {
 template <class T, class Category> class UnitBase : public boost::multiplicative<T, double> {
@@ -101,5 +101,6 @@ struct PowerCategory {};
 DEFINE_UNIT(Power, PowerCategory, 1.0);
 struct ForceTechDamageCategory {};
 DEFINE_UNIT(FTPower, ForceTechDamageCategory, 1.0);
-
+struct AccuracyRatingCategory {};
+DEFINE_UNIT(AccuracyRating, AccuracyRatingCategory, 1.0);
 } // namespace Simulator
