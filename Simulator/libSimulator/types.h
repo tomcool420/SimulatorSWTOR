@@ -3,6 +3,7 @@
 
 namespace Simulator {
 using WeaponDamage = std::pair<double, double>;
+enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
 
 struct RawStats {
     Mastery master{0.0};
@@ -13,6 +14,10 @@ struct RawStats {
     AccuracyRating accuracyRating{0.0};
     WeaponDamage weaponDamageMH{0.0, 0.0};
     WeaponDamage weaponDamageOH{0.0, 0.0};
+    DamageType weaponDamageTypeMH{DamageType::Energy};
+    DamageType weaponDamageTypeOH{DamageType::Energy};
+    bool hasOffhand{false};
+    double armorPen{0.0};
 };
 struct StatChanges {
     double masteryMultiplierBonus{0.0};
@@ -25,6 +30,7 @@ struct StatChanges {
     double flatCriticalBonus{0.0};
     double flatCriticalMultiplierBonus{0.0};
     double powerMultiplier{0.0};
+    double armorPen{0.0};
 };
 struct FinalStats {
     double meleeRangeCritChance;
@@ -35,9 +41,16 @@ struct FinalStats {
     double meleeRangeBonusDamage;
     double forceTechBonusDamage;
     double bonusHealing;
+    double accuracy{1.1};
     WeaponDamage weaponDamageMH{0.0, 0.0};
     WeaponDamage weaponDamageOH{0.0, 0.0};
+    DamageType weaponDamageTypeMH{DamageType::Energy};
+    DamageType weaponDamageTypeOH{DamageType::Energy};
+    double multiplier{0.0};
+    bool hasOffhand{false};
+    double armorPen{0.0};
 };
+
 StatChanges operator+(const StatChanges &a, const StatChanges &b);
 void operator+=(StatChanges &a, const StatChanges &b);
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &finalStats);

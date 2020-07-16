@@ -1,8 +1,8 @@
 #pragma once
 #include "TimedStatusEffect.h"
 namespace Simulator {
+class Target;
 class Debuff : public TimedStatusEffect {
-  private:
-    double _tickRate;
+    virtual void onAbilityHit(const DamageHits &hits, const Second &time, Target & target){}
 };
 } // namespace Simulator
