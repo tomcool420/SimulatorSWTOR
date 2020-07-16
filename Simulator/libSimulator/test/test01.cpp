@@ -62,68 +62,48 @@ TEST(StatBuff, apply) {
 std::vector<AbilityBuffPtr> getVanguardSheetBuffs() {
     std::vector<AbilityBuffPtr> ret;
     ret.push_back(std::make_unique<RawSheetBuff>("High Friction Bolts",
-                   std::vector<uint64_t>{
-                       2021194429628416 // high Impact Bolt
-                   },
-                   0.0,
-                   0.0,
-                   0.0,
-                   0.3));
+                                                 std::vector<uint64_t>{
+                                                     2021194429628416 // high Impact Bolt
+                                                 },
+                                                 0.0, 0.0, 0.0, 0.3));
     ret.push_back(std::make_unique<RawSheetBuff>("Riot Augs",
-                   std::vector<uint64_t>{
-                       801367882989568,  // stockstrike
-                       2021194429628416, // high Impact Bolt
-                       3393260387041280, // tactical surge
-                       3393354876321792, // cell burst
-                       3393277566910464, // assault plastique
-                   },
-                   0.1,
-                   0.0,
-                   0.0,
-                   0.0));
-    
+                                                 std::vector<uint64_t>{
+                                                     801367882989568,  // stockstrike
+                                                     2021194429628416, // high Impact Bolt
+                                                     3393260387041280, // tactical surge
+                                                     3393354876321792, // cell burst
+                                                     3393277566910464, // assault plastique
+                                                 },
+                                                 0.1, 0.0, 0.0, 0.0));
+
     ret.push_back(std::make_unique<RawSheetBuff>("Havoc Training",
-                   std::vector<uint64_t>{
-                       801367882989568,  // stockstrike
-                       2021194429628416, // high Impact Bolt
-                       3393260387041280, // tactical surge
-                       3393354876321792, // cell burst
-                       3393277566910464, // assault plastique
-                   },
-                   0.0,
-                   0.0,
-                   0.1,
-                   0.0));
+                                                 std::vector<uint64_t>{
+                                                     801367882989568,  // stockstrike
+                                                     2021194429628416, // high Impact Bolt
+                                                     3393260387041280, // tactical surge
+                                                     3393354876321792, // cell burst
+                                                     3393277566910464, // assault plastique
+                                                 },
+                                                 0.0, 0.0, 0.1, 0.0));
 
     ret.push_back(std::make_unique<RawSheetBuff>("Focused Impact",
-                   std::vector<uint64_t>{
-                       2021194429628416, // high Impact Bolt
-                   },
-                   0.0,
-                   0.0,
-                   0.0,
-                   0.6));
+                                                 std::vector<uint64_t>{
+                                                     2021194429628416, // high Impact Bolt
+                                                 },
+                                                 0.0, 0.0, 0.0, 0.6));
 
     ret.push_back(std::make_unique<RawSheetBuff>("Focused Impact",
-                   std::vector<uint64_t>{
-                       801367882989568, // stockstrike
-                   },
-                   0.1,
-                   0.0,
-                   0.0,
-                   0.0));
-    
+                                                 std::vector<uint64_t>{
+                                                     801367882989568, // stockstrike
+                                                 },
+                                                 0.1, 0.0, 0.0, 0.0));
+
     ret.push_back(std::make_unique<DamageTypeBuff>("High Energy Gas Cell",
-                   std::vector<DamageType>{
-                       DamageType::Kinetic, // stockstrike
-                        DamageType::Energy, // stockstrike
-                        DamageType::Weapon
-                   },
-                   0.07,
-                   0.0,
-                   0.0,
-                   0.0));
-    
+                                                   std::vector<DamageType>{DamageType::Kinetic, // stockstrike
+                                                                           DamageType::Energy,  // stockstrike
+                                                                           DamageType::Weapon},
+                                                   0.07, 0.0, 0.0, 0.0));
+
     return ret;
 }
 TEST(AbilityDamageCalculation, Tech) {
@@ -136,7 +116,7 @@ TEST(AbilityDamageCalculation, Tech) {
     rs.alacrityRating = AlacrityRating(1293);
     rs.accuracyRating = AccuracyRating(1652);
     rs.forceTechPower = FTPower(7008);
-    rs.weaponDamageMH={1573.0,2359.0};
+    rs.weaponDamageMH = {1573.0, 2359.0};
     auto stats = getFinalStats(rs, sb);
     {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
@@ -174,10 +154,9 @@ TEST(AbilityDamageCalculation, Tech) {
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
                                  fg.second / hits[0].dmg.second)
                   << std::endl;
-        ASSERT_NEAR(fg.first / hits[0].dmg.first, 1.2/1.27, 1e-3); // High Energy Cell is not in the
-        ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.2/1.27, 1e-3);
+        ASSERT_NEAR(fg.first / hits[0].dmg.first, 1.2 / 1.27, 1e-3); // High Energy Cell is not in the
+        ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.2 / 1.27, 1e-3);
     }
-//
     {
         Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
         auto aStats = stats;
@@ -191,10 +170,10 @@ TEST(AbilityDamageCalculation, Tech) {
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
                                  fg.second / hits[0].dmg.second)
                   << std::endl;
-        ASSERT_NEAR(fg.first / hits[0].dmg.first, 1.1/1.17, 1e-3);
-        ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.1/1.17, 1e-3);
+        ASSERT_NEAR(fg.first / hits[0].dmg.first, 1.1 / 1.17, 1e-3);
+        ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.1 / 1.17, 1e-3);
     }
-    
+
     {
         Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false);
         auto aStats = stats;
@@ -211,5 +190,4 @@ TEST(AbilityDamageCalculation, Tech) {
         ASSERT_NEAR(fg.first / hits[0].dmg.first, 1.0, 1e-3);
         ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.0, 1e-3);
     }
-    
 }

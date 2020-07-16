@@ -2,11 +2,11 @@
 #include "types.h"
 #include <cstdint>
 #include <vector>
+
 namespace Simulator {
 class Target;
 using AbilityId = uint64_t;
 using AbilityIds = std::vector<AbilityId>;
-enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
 class Ability {
   public:
     Ability(AbilityId iid, double coeff, double ShxMin, double ShxMax, double Am, DamageType dt, bool dot, bool aoe)
@@ -33,6 +33,5 @@ struct DamageHit {
 using DamageHits = std::vector<DamageHit>;
 // this is ignoring misses and crits
 DamageHits calculateDamageRange(const Ability &ability, const FinalStats &stats);
-DamageHits adjustForHitsAndCrits(const DamageHits & hits, const FinalStats &stats, const Target &t);
+DamageHits adjustForHitsAndCrits(const DamageHits &hits, const FinalStats &stats, const Target &t);
 } // namespace Simulator
-
