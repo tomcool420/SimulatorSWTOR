@@ -103,4 +103,7 @@ struct ForceTechDamageCategory {};
 DEFINE_UNIT(FTPower, ForceTechDamageCategory, 1.0);
 struct AccuracyRatingCategory {};
 DEFINE_UNIT(AccuracyRating, AccuracyRatingCategory, 1.0);
+struct TimeCategory{};
+DEFINE_UNIT(Second,TimeCategory,1.0);
+DEFINE_UNIT(Minute,TimeCategory,60.0);
 } // namespace Simulator

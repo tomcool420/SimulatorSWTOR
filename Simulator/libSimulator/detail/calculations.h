@@ -9,4 +9,5 @@ namespace Simulator::detail {
 [[nodiscard]] double getFTBonusDamage(FTPower ftbonus);
 [[nodiscard]] double getBonusDamage(Mastery mastery);
 [[nodiscard]] double getBonusDamage(Power power);
+[[nodiscard]] double getDamageReduction(double armor);
 } // namespace Simulator::detail

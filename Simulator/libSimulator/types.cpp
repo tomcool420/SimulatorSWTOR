@@ -43,6 +43,9 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
     ret.meleeRangeBonusDamage = bonusDamage;
     double ftBonusDamage = detail::getFTBonusDamage(rawStats.forceTechPower) * (1.0+statChanges.bonusDamageMultiplier);
     ret.forceTechBonusDamage = bonusDamage + ftBonusDamage;
+    ret.weaponDamageMH=rawStats.weaponDamageMH;
+    ret.weaponDamageOH=rawStats.weaponDamageOH;
+    ret.hasOffhand=rawStats.hasOffhand;
     return ret;
 }
 } // namespace Simulator
