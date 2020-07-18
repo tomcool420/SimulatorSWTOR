@@ -1,3 +1,4 @@
+#include "helpers.h"
 #include "../Ability.h"
 #include "../AbilityBuff.h"
 #include "../StatBuff.h"
@@ -31,14 +32,7 @@ TEST(StatBuff, basic) {
     twoPiece.apply(sum);
     ASSERT_DOUBLE_EQ(sum.masteryMultiplierBonus, 0.07);
 }
-StatChanges getDefaultStatsBuffs() {
-    StatChanges sb;
-    sb.masteryMultiplierBonus = 0.07;      // Set bonus + force valor;
-    sb.flatCriticalBonus = 0.06;           // companion + lucky shots;
-    sb.flatCriticalMultiplierBonus = 0.01; // companion
-    sb.bonusDamageMultiplier = 0.05;       // force might
-    return sb;
-}
+
 TEST(StatBuff, apply) {
     StatChanges sb = getDefaultStatsBuffs();
 
@@ -59,8 +53,8 @@ TEST(StatBuff, apply) {
     EXPECT_NEAR(stats.meleeRangeCritMultiplier, 0.65023, 1e-5);
     EXPECT_NEAR(stats.alacrity, 0.122116, 1e-5);
 }
-std::vector<AbilityBuffPtr> getVanguardSheetBuffs() {
-    std::vector<AbilityBuffPtr> ret;
+std::vector<BuffPtr> getVanguardSheetBuffs() {
+    std::vector<BuffPtr> ret;
     ret.push_back(std::make_unique<RawSheetBuff>("High Friction Bolts",
                                                  std::vector<uint64_t>{
                                                      2021194429628416 // high Impact Bolt
@@ -121,7 +115,7 @@ TEST(AbilityDamageCalculation, Tech) {
     {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
         auto hits = calculateDamageRange(stockStrike, stats);
-        DamageRange fg{16220, 16784};
+        std::pair<double,double> fg{16220, 16784};
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
                                  fg.second / hits[0].dmg.second)
@@ -132,7 +126,7 @@ TEST(AbilityDamageCalculation, Tech) {
     {
         Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
         auto hits = calculateDamageRange(tacticalSurge, stats);
-        DamageRange fg{14429, 14945};
+        std::pair<double,double> fg{14429, 14945};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
@@ -140,16 +134,19 @@ TEST(AbilityDamageCalculation, Tech) {
                   << std::endl;
     }
 
-    Target t;
+    Target t(1e6);
     auto tacticsBuffs = getVanguardSheetBuffs();
     {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
-        auto aStats = stats;
+        
+        auto sc = sb;
         for (auto &&b : tacticsBuffs) {
-            b->apply(stockStrike, aStats, t);
+            b->apply(stockStrike, sc, t);
         }
+        auto aStats = getFinalStats(rs, sc);
+
         auto hits = calculateDamageRange(stockStrike, aStats);
-        DamageRange fg{16220, 16784};
+        std::pair<double,double> fg{16220, 16784};
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
                                  fg.second / hits[0].dmg.second)
@@ -159,12 +156,13 @@ TEST(AbilityDamageCalculation, Tech) {
     }
     {
         Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
-        auto aStats = stats;
+        auto sc = sb;
         for (auto &&b : tacticsBuffs) {
-            b->apply(tacticalSurge, aStats, t);
+            b->apply(tacticalSurge, sc, t);
         }
+        auto aStats = getFinalStats(rs, sc);
         auto hits = calculateDamageRange(tacticalSurge, aStats);
-        DamageRange fg{14429, 14945};
+        std::pair<double,double> fg{14429, 14945};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
@@ -176,12 +174,13 @@ TEST(AbilityDamageCalculation, Tech) {
 
     {
         Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false);
-        auto aStats = stats;
+        auto sc = sb;
         for (auto &&b : tacticsBuffs) {
-            b->apply(highImpactBolt, aStats, t);
+            b->apply(highImpactBolt, sc, t);
         }
+        auto aStats = getFinalStats(rs, sc);
         auto hits = calculateDamageRange(highImpactBolt, aStats);
-        DamageRange fg{16402, 17607};
+        std::pair<double,double> fg{16402, 17607};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,

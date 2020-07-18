@@ -2,6 +2,10 @@
 #include "detail/units.h"
 
 namespace Simulator {
+class Player;
+class Target;
+class Ability;
+
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
 
@@ -22,15 +26,26 @@ struct RawStats {
 struct StatChanges {
     double masteryMultiplierBonus{0.0};
     Mastery masteryBonus{0.0};
+    
     CriticalRating criticalRatingBonus{0.0};
-    AlacrityRating alacrityRatingBonus{0.0};
+    double flatMeleeRangeCritChance{0.0};
+    double flatForceTechCritChance{0.0};
+    double flatMeleeRangeCriticalMultiplierBonus{0.0};
+    double flatForceTechCriticalMultiplierBonus{0.0};
+
     Power powerBonus;
-    double bonusDamageMultiplier{0.0};
-    double flatAlacrityBonus{0.0};
-    double flatCriticalBonus{0.0};
-    double flatCriticalMultiplierBonus{0.0};
     double powerMultiplier{0.0};
+
+    double bonusDamageMultiplier{0.0};
+    
+    AlacrityRating alacrityRatingBonus{0.0};
+    double flatAlacrityBonus{0.0};
+
     double armorPen{0.0};
+    
+
+    double multiplier{0.0};
+    
 };
 struct FinalStats {
     double meleeRangeCritChance;
@@ -54,5 +69,5 @@ struct FinalStats {
 StatChanges operator+(const StatChanges &a, const StatChanges &b);
 void operator+=(StatChanges &a, const StatChanges &b);
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &finalStats);
-
+FinalStats getFinalStats(const Ability & ability, const Player & playerw, const Target &target);
 } // namespace Simulator

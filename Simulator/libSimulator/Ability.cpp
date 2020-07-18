@@ -5,8 +5,8 @@
 #include <random>
 
 namespace Simulator {
-DamageHits calculateDamageRange(const Ability &ability, const FinalStats &stats) {
-    DamageHits ret;
+DamageRanges calculateDamageRange(const Ability &ability, const FinalStats &stats) {
+    DamageRanges ret;
 
     switch (ability.damageType) {
     case DamageType::Weapon: {
@@ -43,16 +43,18 @@ DamageHits calculateDamageRange(const Ability &ability, const FinalStats &stats)
 std::random_device rd;
 std::mt19937 gen(rd());
 
-DamageHits adjustForHitsAndCrits(const DamageHits &hits, const FinalStats &stats, const Target &t) {
-    DamageHits ret(hits);
+DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &stats, const Target &t) {
+    DamageHits ret;
     std::uniform_real_distribution<> distrib(0.0, 1.0);
 
-    for (auto &&hit : ret) {
+    for (auto &&range : ranges) {
+        DamageHit hit{range.id, range.dt, range.dmg.first + (range.dmg.second - range.dmg.first) * distrib(gen),
+                      range.offhand};
         double accuracy = stats.accuracy - t.getDefenseChance() - (hit.offhand ? 0.3 : 0.0);
         if (accuracy < 1.0 && distrib(gen) > accuracy) {
             hit.miss = true;
-            hit.dmg.first = 0.0;
-            hit.dmg.second = 0.0;
+            hit.dmg = 0.0;
+            ret.push_back(hit);
             continue;
         }
 
@@ -74,9 +76,9 @@ DamageHits adjustForHitsAndCrits(const DamageHits &hits, const FinalStats &stats
             } else {
                 critMultiplier += stats.forceTechCritMultiplier;
             }
-            hit.dmg.first *= (1 + critMultiplier);
-            hit.dmg.second *= (1 + critMultiplier);
+            hit.dmg *= (1 + critMultiplier);
         }
+        ret.push_back(hit);
     }
     return ret;
 }
@@ -89,14 +91,11 @@ DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, 
         if (hit.miss)
             continue;
         if (hit.dt == DamageType::Internal) {
-            hit.dmg.first *= (1.0 - t.getInternalDR());
-            hit.dmg.second *= (1.0 - t.getInternalDR());
+            hit.dmg *= (1.0 - t.getInternalDR());
         } else if (hit.dt == DamageType::Elemental) {
-            hit.dmg.first *= (1.0 - t.getElementalDR());
-            hit.dmg.second *= (1.0 - t.getElementalDR());
+            hit.dmg *= (1.0 - t.getElementalDR());
         } else {
-            hit.dmg.first *= (1.0 - dr);
-            hit.dmg.second *= (1.0 - dr);
+            hit.dmg *= (1.0 - dr);
         }
     }
     return ret;

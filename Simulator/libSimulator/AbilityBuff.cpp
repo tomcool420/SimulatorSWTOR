@@ -1,20 +1,25 @@
 #include "AbilityBuff.h"
 
 namespace Simulator {
-void AbilityBuff::apply(const Ability &aId, FinalStats &fstats, const Target &target) {}
-void RawSheetBuff::apply(const Ability &aId, FinalStats &fstats, const Target &target) {
+RawSheetBuff::RawSheetBuff(const std::string &buffName, const AbilityIds &ids, double rawDamageMultipler, double flatCritBonus,
+                           double flatCritMultiplier, double ap):_ids(ids),_name(buffName){
+    _statChanges.multiplier += rawDamageMultipler;
+    _statChanges.flatMeleeRangeCritChance += flatCritBonus;
+    _statChanges.flatMeleeRangeCriticalMultiplierBonus+=flatCritMultiplier;
+    _statChanges.flatForceTechCritChance += flatCritBonus;
+    _statChanges.flatForceTechCriticalMultiplierBonus+=flatCritMultiplier;
+    _statChanges.armorPen += ap;
+}
+void RawSheetBuff::apply(const Ability &aId, StatChanges &fstats, const Target &/*target*/) const {
     if (_ids.empty() || std::find(_ids.begin(), _ids.end(), aId.id) != _ids.end()) {
-        fstats.multiplier += _rawMultiplier;
-        fstats.meleeRangeCritChance += _flatCritBonus;
-        fstats.forceTechCritChance += _flatCritBonus;
-        fstats.armorPen += _armorPen;
+        fstats+=_statChanges;
     }
 }
-void DamageTypeBuff::apply(const Ability &aId, FinalStats &fstats, const Target &target) {
+void DamageTypeBuff::apply(const Ability &aId, StatChanges &fstats, const Target &/*target*/) const {
     if (_types.empty() || std::find(_types.begin(), _types.end(), aId.damageType) != _types.end()) {
         fstats.multiplier += _rawMultiplier;
-        fstats.meleeRangeCritChance += _flatCritBonus;
-        fstats.forceTechCritChance += _flatCritBonus;
+        fstats.flatMeleeRangeCritChance += _flatCritBonus;
+        fstats.flatForceTechCritChance += _flatCritBonus;
         fstats.armorPen += _armorPen;
     }
 }

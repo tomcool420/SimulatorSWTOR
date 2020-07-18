@@ -10,7 +10,7 @@ class DOT : public Debuff, public Ability {
     DOT(AbilityId iid, double coeff, double ShxMin, double ShxMax, double Am, DamageType dt, bool dot, bool aoe,
         int ticks, Second tickRate, bool hasInitialTick)
         : Debuff(), Ability(iid, coeff, ShxMin, ShxMax, Am, dt, dot, aoe), _nticks(ticks), _defaultTickRate(tickRate),
-          _tickRate(_tickRate) {}
+          _tickRate(tickRate),_hasInitialTick(hasInitialTick) {}
 
     DamageHits apply(const Target &t, const FinalStats &s, const Second &time) {
         _tickRate = _defaultTickRate / (1 + s.alacrity);
@@ -32,7 +32,9 @@ class DOT : public Debuff, public Ability {
             return std::nullopt;
         return _lastTickTime + _tickRate;
     }
-
+    void setPlayer(PlayerPtr player) {_player= player;}
+    const PlayerPtr & getPlayer() const {return _player;}
+    virtual ~DOT() = default;
   private:
     int _tickCount{0};
     int _nticks;
@@ -40,5 +42,7 @@ class DOT : public Debuff, public Ability {
     Second _tickRate;
     Second _lastTickTime;
     bool _hasInitialTick{true};
+    PlayerPtr _player{nullptr};
 };
+using DOTPtr = std::unique_ptr<DOT>;
 } // namespace Simulator
