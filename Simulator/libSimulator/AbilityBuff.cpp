@@ -11,12 +11,12 @@ RawSheetBuff::RawSheetBuff(const std::string &buffName, const AbilityIds &ids, d
     _statChanges.armorPen += ap;
 }
 void RawSheetBuff::apply(const Ability &aId, StatChanges &fstats, const Target &/*target*/) const {
-    if (_ids.empty() || std::find(_ids.begin(), _ids.end(), aId.id) != _ids.end()) {
+    if (_ids.empty() || std::find(_ids.begin(), _ids.end(), aId.getId()) != _ids.end()) {
         fstats+=_statChanges;
     }
 }
 void DamageTypeBuff::apply(const Ability &aId, StatChanges &fstats, const Target &/*target*/) const {
-    if (_types.empty() || std::find(_types.begin(), _types.end(), aId.damageType) != _types.end()) {
+    if (_types.empty() || std::find(_types.begin(), _types.end(), aId.getCoefficients().damageType) != _types.end()) {
         fstats.multiplier += _rawMultiplier;
         fstats.flatMeleeRangeCritChance += _flatCritBonus;
         fstats.flatForceTechCritChance += _flatCritBonus;

@@ -23,7 +23,7 @@ namespace Simulator::detail {
 [[nodiscard]] double getBonusDamage(Power power){
     return power.getValue()*0.23;
 }
-[[nodiscard]] double getDamageReduction(double armor){
-    return (armor/(armor+349.0*75+800));
+[[nodiscard]] double getDamageReduction(Armor armor){
+    return (armor.getValue()/(armor.getValue()+349.0*75+800));
 }
 } // namespace Simulator::detail

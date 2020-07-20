@@ -34,5 +34,22 @@ class DamageTypeBuff : public Buff {
     std::string _name;
 };
 
+template <class T>
+class OnAbilityHitBuff : public Buff{
+    public:
+    OnAbilityHitBuff(const std::string &buffName,T && call):_name(buffName),_lambda(std::forward<T>(call)){}
+    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, Target &source, Target &target){
+        return _lambda(hits,time,source,target);
+    }
+    
+private:
+    std::string _name;
+    T _lambda;
+};
+
+template<class Lambda>
+OnAbilityHitBuff<Lambda> * MakeOnAbilityHitBuff(std::string name, Lambda &&t) {
+    return new OnAbilityHitBuff<Lambda>(name,std::forward<Lambda>(t));
+}
 
 } // namespace Simulator

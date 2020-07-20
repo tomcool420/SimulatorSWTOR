@@ -1,6 +1,5 @@
 #include "types.h"
 #include "detail/calculations.h"
-#include "Player.h"
 #include "Target.h"
 
 namespace Simulator {
@@ -65,10 +64,11 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
     return ret;
 }
 
-FinalStats getFinalStats(const Ability & ability, const Player & player, const Target &target){
-    auto && rs = player.getRawStats();
-    auto && sc = player.getCurrentPlayerStats(ability, target);
-    return getFinalStats(rs, sc);
+FinalStats getFinalStats(const Ability & ability, const Target & source, const Target &target){
+    auto && rs = source.getRawStats();
+    auto scb = source.getStatChangesFromBuffs(ability, target);
+    auto scd = source.getStatChangesFromDebuff(ability, source);
+    return getFinalStats(rs, scb+scd);
 }
 
 } // namespace Simulator

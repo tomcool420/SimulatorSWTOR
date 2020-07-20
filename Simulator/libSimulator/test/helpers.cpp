@@ -1,51 +1,73 @@
 #include "helpers.h"
-
+#include "../types.h"
+#include "../constants.h"
+#include "../ConditionalApplyDebuff.h"
 namespace Simulator {
+AbilityPtr getAbility(AbilityId id){
+    switch(id){
+        case vanguard_stockstrike:
+            return std::make_shared<Ability>(vanguard_stockstrike, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
+        case tactics_tactical_surge:
+            return std::make_shared<Ability>(tactics_tactical_surge, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
+        case trooper_high_impact_bolt:
+            return std::make_shared<Ability>(trooper_high_impact_bolt, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false);
+        case tactics_gut:{
+            auto abl = std::make_shared<Ability>(tactics_gut,0.95,0.075,0.115,0.0,DamageType::Kinetic,false,false);
+            auto gut_dot = std::make_unique<DOT>(tactics_gut_dot, 0.25, 0.025, 0.025, 0, DamageType::Internal, true, false,
+                                                 7, Second(3), true);
+            auto conditionalGutDot = std::make_shared<ConditionalApplyDebuff>(std::move(gut_dot));
+            abl->addOnHitAction(conditionalGutDot);
+            return abl;
+        }
+        default:
+            return nullptr;
+    }
+}
 std::vector<BuffPtr> getTacticsSheetBuffs() {
     std::vector<BuffPtr> ret;
     ret.push_back(std::make_unique<RawSheetBuff>("High Friction Bolts",
                                                  std::vector<uint64_t>{
-                                                     2021194429628416 // high Impact Bolt
+                                                     trooper_high_impact_bolt // high Impact Bolt
                                                  },
                                                  0.0, 0.0, 0.0, 0.3));
     ret.push_back(std::make_unique<RawSheetBuff>("Serrated Blades",
                                                  std::vector<uint64_t>{
-                                                     2029878853501184 // Gut Dot
+                                                     tactics_gut_dot // Gut Dot
                                                  },
                                                  0.15, 0.0, 0.0, 0.0));
     ret.push_back(std::make_unique<RawSheetBuff>("Critical Recharge", std::vector<uint64_t>{}, 0.0, 0.02, 0.0, 0.0));
     ret.push_back(std::make_unique<RawSheetBuff>("Riot Augs",
                                                  std::vector<uint64_t>{
-                                                     801367882989568,  // stockstrike
-                                                     2021194429628416, // high Impact Bolt
-                                                     3393260387041280, // tactical surge
-                                                     3393354876321792, // cell burst
-                                                     3393277566910464, // assault plastique
-                                                     2029878853501184, // Gut Dot
+                                                     vanguard_stockstrike,      // stockstrike
+                                                     trooper_high_impact_bolt,  // high Impact Bolt
+                                                     tactics_tactical_surge,    // tactical surge
+                                                     tactics_cell_burst,        // cell burst
+                                                     tactics_assault_plastique, // assault plastique
+                                                     tactics_gut_dot,           // Gut Dot
                                                  },
                                                  0.1, 0.0, 0.0, 0.0));
 
     ret.push_back(std::make_unique<RawSheetBuff>("Havoc Training",
                                                  std::vector<uint64_t>{
-                                                     801367882989568,  // stockstrike
-                                                     2021194429628416, // high Impact Bolt
-                                                     3393260387041280, // tactical surge
-                                                     3393354876321792, // cell burst
-                                                     3393277566910464, // assault plastique
-        2029878853501184, // Gut Dot
+                                                     vanguard_stockstrike,      // stockstrike
+                                                     trooper_high_impact_bolt,  // high Impact Bolt
+                                                     tactics_tactical_surge,    // tactical surge
+                                                     tactics_cell_burst,        // cell burst
+                                                     tactics_assault_plastique, // assault plastique
+                                                     tactics_gut_dot,           // Gut Dot
 
                                                  },
                                                  0.0, 0.0, 0.1, 0.0));
 
     ret.push_back(std::make_unique<RawSheetBuff>("Focused Impact",
                                                  std::vector<uint64_t>{
-                                                     2021194429628416, // high Impact Bolt
+                                                     trooper_high_impact_bolt, // high Impact Bolt
                                                  },
                                                  0.0, 0.0, 0.0, 0.6));
 
     ret.push_back(std::make_unique<RawSheetBuff>("Focused Impact",
                                                  std::vector<uint64_t>{
-                                                     801367882989568, // stockstrike
+                                                     vanguard_stockstrike, // stockstrike
                                                  },
                                                  0.1, 0.0, 0.0, 0.0));
 
@@ -58,20 +80,20 @@ std::vector<BuffPtr> getTacticsSheetBuffs() {
     return ret;
 }
 
-BuffPtr getDefaultStatsBuffPtr(){
-    StatChanges sb = getDefaultStatsBuffs();
-    return std::make_unique<RawSheetBuff>("Class Buffs",std::vector<AbilityId>{},sb);
+BuffPtr getDefaultStatsBuffPtr(bool twopiece, bool masteryBuffs) {
+    StatChanges sb = getDefaultStatsBuffs(twopiece,masteryBuffs);
+    return std::make_unique<RawSheetBuff>("Class Buffs", std::vector<AbilityId>{}, sb);
 }
 
-StatChanges getDefaultStatsBuffs(bool twoPiece ) {
+StatChanges getDefaultStatsBuffs(bool twoPiece, bool masteryBuffs) {
     StatChanges sb;
-    sb.masteryMultiplierBonus = 0.05 + (twoPiece ? 0.02:0.00);       // Set bonus + force valor;
-    sb.flatMeleeRangeCritChance = 0.06;           // companion + lucky shots;
-    sb.flatForceTechCritChance = 0.06;           // companion + lucky shots;
-    sb.flatMeleeRangeCriticalMultiplierBonus = 0.01; // companion
-    sb.flatForceTechCriticalMultiplierBonus = 0.01; // companion
+    sb.masteryMultiplierBonus = masteryBuffs ? 0.05 + (twoPiece ? 0.02 : 0.00) : 0.0; // Set bonus + force valor;
+    sb.flatMeleeRangeCritChance = 0.06;                                               // companion + lucky shots;
+    sb.flatForceTechCritChance = 0.06;                                                // companion + lucky shots;
+    sb.flatMeleeRangeCriticalMultiplierBonus = 0.01;                                  // companion
+    sb.flatForceTechCriticalMultiplierBonus = 0.01;                                   // companion
 
-    sb.bonusDamageMultiplier = 0.05;       // force might
+    sb.bonusDamageMultiplier = 0.05; // force might
     return sb;
 }
 
