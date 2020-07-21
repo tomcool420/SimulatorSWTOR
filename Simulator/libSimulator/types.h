@@ -1,6 +1,6 @@
 #pragma once
-#include "detail/units.h"
 #include "constants.h"
+#include "detail/units.h"
 
 namespace Simulator {
 class Target;
@@ -70,7 +70,7 @@ struct FinalStats {
 StatChanges operator+(const StatChanges &a, const StatChanges &b);
 void operator+=(StatChanges &a, const StatChanges &b);
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &finalStats);
-FinalStats getFinalStats(const Ability &ability, const Target &player, const Target &target);
+FinalStats getFinalStats(const Ability &ability, const TargetPtr &player, const TargetPtr &target);
 
 using AbilityId = uint64_t;
 using AbilityIds = std::vector<AbilityId>;

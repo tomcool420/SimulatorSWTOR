@@ -3,27 +3,27 @@
 namespace Simulator {
 class TimedStatusEffect {
   public:
-    TimedStatusEffect(Second startTime, Second duration) noexcept
-        : _startTime(startTime), _endTime(startTime + duration){};
+    TimedStatusEffect(Second startTime, Second duration) noexcept : _startTime(startTime), _duration(duration){};
     TimedStatusEffect() noexcept : _indeterminate(true){};
-    [[nodiscard]] Second getEndTime() const { return _endTime; }
+    [[nodiscard]] Second getEndTime() const { return _startTime + _duration; }
     [[nodiscard]] Second getStartTime() const { return _startTime; }
-    void setStartTime(Second startTime) {_startTime = startTime;}
-    void setEndTime(Second endTime) {
-        _endTime=endTime;
-        _indeterminate=false;
+    void setDuration(const Second &duration) {
+        _duration = duration;
+        _indeterminate = false;
     }
+    void setStartTime(Second startTime) { _startTime = startTime; }
     [[nodiscard]] bool isIndeterminate() const { return _indeterminate; }
     [[nodiscard]] virtual std::optional<Second> getNextEventTime() const {
-        if(_indeterminate){
+        if (_indeterminate) {
             return std::nullopt;
         }
-        return _endTime;
+        return _startTime + _duration;
     };
     virtual ~TimedStatusEffect() = default;
+
   private:
     Second _startTime{0.0};
-    Second _endTime{0.0};
+    Second _duration{0.0};
     bool _indeterminate{false};
 };
 } // namespace Simulator

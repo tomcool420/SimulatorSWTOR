@@ -15,7 +15,7 @@
 namespace Simulator {
 using TargetId = boost::uuids::uuid;
 
-class Target {
+class Target : public std::enable_shared_from_this<Target>{
     enum class EventClass { Dot, Buff, Debuff };
     struct Event {
         Second Time{0.0};
@@ -23,15 +23,16 @@ class Target {
         AbilityId aId;
         TargetId pId;
     };
-
-  public:
+private:
     Target(RawStats rs)
     : _rawStats(rs), _health(rs.hp){};
+  public:
+    static std::shared_ptr<Target> New(const RawStats & rs) { return std::shared_ptr<Target>( new Target(rs));}
     TargetId getId() const { return _tag; }
 
     bool isExecutable() const { return _health / _rawStats.hp < 0.3; }
     void applyDamage(const Ability &abl, const FinalStats &stats, const Second &sec);
-    void applyDamageHit(const DamageHits &hits, Target &target, const Second &time);
+    void applyDamageHit(const DamageHits &hits, const TargetPtr &target, const Second &time);
     double getDefenseChance() const { return _defenseChance; };
     Armor getArmor() const { return _rawStats.armor * (1 - 0.2 * _sundered); }
     // future proofing
@@ -42,7 +43,7 @@ class Target {
     std::optional<Second> getNextEventTime();
     void applyEventsAtTime(const Second &time);
     void logHits() const;
-    void addDebuff(DebuffPtr /*debuff*/, TargetPtr /*player*/, const Second &/*time*/) {}
+    void addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time);
     
     using DebuffMap = std::map<AbilityId, std::map<TargetId, DebuffPtr>>;
     DebuffMap &getDebuffs() { return _debuffs; }
@@ -50,8 +51,8 @@ class Target {
     BuffMap & getBuffs() {return _buffs;}
 
     const RawStats & getRawStats() const {return _rawStats;}
-    StatChanges getStatChangesFromBuffs(const Ability &abl, const Target &target) const;
-    StatChanges getStatChangesFromDebuff(const Ability &abl, const Target & source) const;
+    StatChanges getStatChangesFromBuffs(const Ability &abl, const  TargetPtr &target) const;
+    StatChanges getStatChangesFromDebuff(const Ability &abl, const  TargetPtr & source) const;
     bool isBleeding() const;
 
     void addBuff(BuffPtr buff){
@@ -68,6 +69,8 @@ class Target {
         return dynamic_cast<T *>(ptr);
     }
     void removeDebuff(const AbilityId &aid, const TargetId &pid);
+    HealthPoints getCurrentHealth() const {return _health;}
+    HealthPoints getMaxHealth() const {return _rawStats.hp;}
   private:
     RawStats _rawStats;
     double _defenseChance{0.1};
@@ -84,9 +87,9 @@ class Target {
 };
 
 template<class T>
-void addBuffs(Target & t, T v){
+void addBuffs(const TargetPtr & t, T v){
     for(auto && buff : v){
-        t.addBuff(std::move(buff));
+        t->addBuff(std::move(buff));
     }
 }
 } // namespace Simulator

@@ -1,6 +1,6 @@
 #pragma once
-#include <spdlog/fmt/fmt.h>
 #include <iostream>
+#include <spdlog/fmt/fmt.h>
 namespace Simulator {
 #define CHECK(condition, ...)                                                                                          \
     {                                                                                                                  \
@@ -9,12 +9,13 @@ namespace Simulator {
         }                                                                                                              \
     }
 
-#define SIMULATOR_SET_MACRO(name,type,default)\
-public:\
-void set##name(type arg){_##name = arg;}\
-const  type & get##name() const {return _##name;}\
-private:\
-type _##name{default};
+#define SIMULATOR_SET_MACRO(name, type, default)                                                                       \
+  public:                                                                                                              \
+    void set##name(type arg) { _##name = arg; }                                                                        \
+    const type &get##name() const { return _##name; }                                                                  \
+                                                                                                                       \
+  private:                                                                                                             \
+    type _##name{default};
 
 inline std::string getCheckString() { return ""; }
 template <class... A> std::string getCheckString(A... a) { return fmt::format(a...); }

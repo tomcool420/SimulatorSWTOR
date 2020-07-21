@@ -12,9 +12,11 @@ struct AbilityCoefficients {
     double StandardHealthPercentMin{0.0};
     double StandardHealthPercentMax{0.0};
     double AmountModifierPercent{0.0};
-    DamageType damageType{false};
+    DamageType damageType{DamageType::Weapon};
     bool isDamageOverTime{false};
     bool isAreaOfEffect{false};
+    bool respectsGCD{true};
+    double multiplier{0.00};
 };
 
 class Ability {
@@ -33,8 +35,10 @@ class Ability {
 
     const AbilityId &getId() const { return _id; };
     const AbilityCoefficients getCoefficients() const { return _coefficients; }
-    void addOnHitAction(const OnHitActionPtr & oha);
-    void onAbilityHitTarget(const DamageHits &hits,const TargetPtr &source, const TargetPtr &target, const Second &time);
+    void addOnHitAction(const OnHitActionPtr &oha);
+    void onAbilityHitTarget(const DamageHits &hits, const TargetPtr &source, const TargetPtr &target,
+                            const Second &time);
+
   private:
     AbilityId _id;
     AbilityCoefficients _coefficients;
@@ -43,14 +47,13 @@ class Ability {
 using AbilityPtr = std::shared_ptr<Ability>;
 
 [[nodiscard]] DamageRanges calculateDamageRange(const Ability &ability, const FinalStats &stats);
-[[nodiscard]] DamageHits adjustForHitsAndCrits(const DamageRanges &hits, const FinalStats &stats, const Target &t);
-[[nodiscard]] DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, const Target &t);
+[[nodiscard]] DamageHits adjustForHitsAndCrits(const DamageRanges &hits, const FinalStats &stats, const TargetPtr &t);
+[[nodiscard]] DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, const TargetPtr &t);
 
-//This does the first three
-[[nodiscard]] DamageHits getHits(const Ability & ability, const FinalStats & stats, const Target &t);
+// This does the first three
+[[nodiscard]] DamageHits getHits(const Ability &ability, const FinalStats &stats, const TargetPtr &t);
 
-
-DamageHits adjustDamageForPlayerBuffs(const DamageHits &hits, Target &player, Target &t);
+DamageHits adjustDamageForPlayerBuffs(const DamageHits &hits, const TargetPtr &player, const TargetPtr &t);
 double getRandomValue(double min, double max);
-void applyDamageToTarget(DamageHits hits, Target & source, Target & target,const Second& time);
+void applyDamageToTarget(DamageHits hits, const TargetPtr &source, const TargetPtr &target, const Second &time);
 } // namespace Simulator

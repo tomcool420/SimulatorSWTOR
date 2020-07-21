@@ -5,9 +5,9 @@
 
 namespace Simulator {
 class ConditionalApplyDebuff : public OnHitAction {
-public:
-    explicit ConditionalApplyDebuff(DebuffPtr debuff) : OnHitAction(),  _debuff(std::move(debuff)){}
-    void doOnHit(const DamageHits &hits, const TargetPtr &player,const TargetPtr &target, const Second &time) final {
+  public:
+    explicit ConditionalApplyDebuff(DebuffPtr debuff) : OnHitAction(), _debuff(std::move(debuff)) {}
+    void doOnHit(const DamageHits &hits, const TargetPtr &player, const TargetPtr &target, const Second &time) final {
         bool anyHit =
             std::find_if(hits.begin(), hits.end(), [](const DamageHit &hit) { return !hit.miss; }) != hits.end();
         if (anyHit) {

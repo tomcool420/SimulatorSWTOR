@@ -3,11 +3,11 @@
 #include "utility.h"
 
 namespace Simulator {
-DamageHits DOT::tick(Target &t, const Second &time) {
+DamageHits DOT::tick(const TargetPtr &t, const Second &time) {
     _lastTickTime = time;
     ++_tickCount;
     CHECK(getSource());
-    auto fs = getFinalStats(_ability, *getSource(), t);
+    auto fs = getFinalStats(_ability, getSource(), t);
     auto hits = getHits(_ability, fs, t);
     if(_doubleTickChance && getRandomValue(0.0, 1.0)<*_doubleTickChance){
         auto newHits = getHits(_ability, fs, t);
@@ -18,7 +18,7 @@ DamageHits DOT::tick(Target &t, const Second &time) {
 
 Debuff *DOT::clone() const { return new DOT(*this); }
 
-DebuffEvents DOT::resolveEventsUpToTime(const Second & time, Target &t){
+DebuffEvents DOT::resolveEventsUpToTime(const Second & time, const TargetPtr &t){
     DebuffEvents ret;
     while(_lastTickTime+_tickRate<time){
         ret.push_back({DebuffEventType::Tick,_lastTickTime+_tickRate,tick(t,time)});

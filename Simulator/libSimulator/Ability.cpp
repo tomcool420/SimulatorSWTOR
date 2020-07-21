@@ -2,22 +2,22 @@
 #include "Target.h"
 #include "constants.h"
 #include "detail/calculations.h"
-#include <random>
 #include "utility.h"
+#include <random>
 namespace Simulator {
 DamageRanges calculateDamageRange(const Ability &iAbility, const FinalStats &stats) {
     DamageRanges ret;
-    const auto & ability = iAbility.getCoefficients();
+    const auto &ability = iAbility.getCoefficients();
     switch (ability.damageType) {
     case DamageType::Weapon: {
         double min = (stats.meleeRangeBonusDamage * ability.coefficient +
                       stats.weaponDamageMH.first * (1.0 + ability.AmountModifierPercent) +
                       ability.StandardHealthPercentMin * StandardHealth) *
-                     (1.0 + stats.multiplier);
+                     (1.0 + stats.multiplier + ability.multiplier);
         double max = (stats.meleeRangeBonusDamage * ability.coefficient +
                       stats.weaponDamageMH.second * (1.0 + ability.AmountModifierPercent) +
                       ability.StandardHealthPercentMax * StandardHealth) *
-                     (1.0 + stats.multiplier);
+                     (1.0 + stats.multiplier + ability.multiplier);
         ret.push_back({iAbility.getId(), stats.weaponDamageTypeMH, {min, max}, false});
         if (!stats.hasOffhand)
             break;
@@ -31,10 +31,10 @@ DamageRanges calculateDamageRange(const Ability &iAbility, const FinalStats &sta
     case DamageType::Elemental: {
         double min =
             (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMin * StandardHealth) *
-            (1.0 + stats.multiplier);
+            (1.0 + stats.multiplier + ability.multiplier);
         double max =
             (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMax * StandardHealth) *
-            (1.0 + stats.multiplier);
+            (1.0 + stats.multiplier + ability.multiplier);
         ret.push_back({iAbility.getId(), ability.damageType, {min, max}, false});
     }
     }
@@ -42,18 +42,18 @@ DamageRanges calculateDamageRange(const Ability &iAbility, const FinalStats &sta
 }
 std::random_device rd;
 std::mt19937 gen(rd());
-double getRandomValue(double min, double max){
+double getRandomValue(double min, double max) {
     std::uniform_real_distribution<> distrib(min, max);
     return distrib(gen);
 }
-DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &stats, const Target &t) {
+DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &stats, const TargetPtr &t) {
     DamageHits ret;
     std::uniform_real_distribution<> distrib(0.0, 1.0);
 
     for (auto &&range : ranges) {
         DamageHit hit{range.id, range.dt, range.dmg.first + (range.dmg.second - range.dmg.first) * distrib(gen),
                       range.offhand};
-        double accuracy = stats.accuracy - t.getDefenseChance() - (hit.offhand ? 0.3 : 0.0);
+        double accuracy = stats.accuracy - t->getDefenseChance() - (hit.offhand ? 0.3 : 0.0);
         if (accuracy < 1.0 && distrib(gen) > accuracy) {
             hit.miss = true;
             hit.dmg = 0.0;
@@ -85,23 +85,23 @@ DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &s
     }
     return ret;
 }
-DamageHits getHits(const Ability & ability, const FinalStats & stats, const Target &t){
+DamageHits getHits(const Ability &ability, const FinalStats &stats, const TargetPtr &t) {
     auto damageRange = calculateDamageRange(ability, stats);
     auto damageHits = adjustForHitsAndCrits(damageRange, stats, t);
     return adjustForDefensives(damageHits, stats, t);
 }
 
-DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, const Target &t) {
+DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, const TargetPtr &t) {
     DamageHits ret(hits);
-    Armor armor = t.getArmor() * (1 - std::min(1.0, stats.armorPen));
+    Armor armor = t->getArmor() * (1 - std::min(1.0, stats.armorPen));
     auto dr = detail::getDamageReduction(armor);
     for (auto &&hit : ret) {
         if (hit.miss)
             continue;
         if (hit.dt == DamageType::Internal) {
-            hit.dmg *= (1.0 - t.getInternalDR());
+            hit.dmg *= (1.0 - t->getInternalDR());
         } else if (hit.dt == DamageType::Elemental) {
-            hit.dmg *= (1.0 - t.getElementalDR());
+            hit.dmg *= (1.0 - t->getElementalDR());
         } else {
             hit.dmg *= (1.0 - dr);
         }
@@ -109,36 +109,35 @@ DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, 
     return ret;
 }
 
-
-void Ability::onAbilityHitTarget(const DamageHits &hits,const  TargetPtr &source, const TargetPtr &target, const Second &time){
-    for(auto && oha : _onHitActions){
+void Ability::onAbilityHitTarget(const DamageHits &hits, const TargetPtr &source, const TargetPtr &target,
+                                 const Second &time) {
+    for (auto &&oha : _onHitActions) {
         oha->doOnHit(hits, source, target, time);
     }
 }
-void Ability::addOnHitAction(const OnHitActionPtr & oha){
+void Ability::addOnHitAction(const OnHitActionPtr &oha) {
     CHECK(oha);
     _onHitActions.push_back(oha);
-    
 }
 
-void applyDamageToTarget(DamageHits hits, Target & source, Target & target,const Second& time){
+void applyDamageToTarget(DamageHits hits, const TargetPtr &source, const TargetPtr &target, const Second &time) {
     DamageHits extraHits;
     DamageHits currentHits = hits;
     DamageHits finalHits;
-    while(currentHits.size()){
-        for(auto && [aid,buff] : source.getBuffs()){
+    while (currentHits.size()) {
+        for (auto &&[aid, buff] : source->getBuffs()) {
             auto th = buff->onAbilityHit(currentHits, time, source, target);
-            extraHits.insert(extraHits.end(), th.begin(),th.end());
+            extraHits.insert(extraHits.end(), th.begin(), th.end());
         }
-        for(auto && [aid, iDebuffs] : target.getDebuffs()){
-            for(auto && [pid, debuff] : iDebuffs){
+        for (auto &&[aid, iDebuffs] : target->getDebuffs()) {
+            for (auto &&[pid, debuff] : iDebuffs) {
                 auto th = debuff->onAbilityHit(currentHits, time, source, target);
-                extraHits.insert(extraHits.end(), th.begin(),th.end());
+                extraHits.insert(extraHits.end(), th.begin(), th.end());
             }
         }
-        finalHits.insert(finalHits.begin(), currentHits.begin(),currentHits.end());
+        finalHits.insert(finalHits.begin(), currentHits.begin(), currentHits.end());
         currentHits = std::move(extraHits);
     }
-    target.applyDamageHit(finalHits, target, time);
+    target->applyDamageHit(finalHits, target, time);
 }
 } // namespace Simulator

@@ -8,9 +8,11 @@ class RawSheetBuff : public Buff {
   public:
     RawSheetBuff(const std::string &buffName, const AbilityIds &ids, double rawDamageMultipler, double flatCritBonus,
                  double flatCritMultiplier, double ap);
-    RawSheetBuff(const std::string &buffName, const AbilityIds &ids, const StatChanges &changes):_ids(ids),_statChanges(changes),_name(buffName){}
-    void apply(const Ability &ability, StatChanges &fstats, const Target &target) const final;
+    RawSheetBuff(const std::string &buffName, const AbilityIds &ids, const StatChanges &changes)
+        : _ids(ids), _statChanges(changes), _name(buffName) {}
+    void apply(const Ability &ability, StatChanges &fstats, const TargetPtr &target) const final;
     virtual ~RawSheetBuff() = default;
+
   private:
     AbilityIds _ids;
     StatChanges _statChanges;
@@ -21,9 +23,9 @@ class DamageTypeBuff : public Buff {
   public:
     DamageTypeBuff(const std::string &buffName, const std::vector<DamageType> &damageTypes, double rawDamageMultipler,
                    double flatCritBonus, double flatCritMultiplier, double ap)
-        :  _types(damageTypes), _rawMultiplier(rawDamageMultipler), _flatCritBonus(flatCritBonus),
+        : _types(damageTypes), _rawMultiplier(rawDamageMultipler), _flatCritBonus(flatCritBonus),
           _flatCritMultiplier(flatCritMultiplier), _armorPen(ap), _name(buffName) {}
-    void apply(const Ability &ability, StatChanges &fstats, const Target &target) const final;
+    void apply(const Ability &ability, StatChanges &fstats, const TargetPtr &target) const final;
 
   private:
     std::vector<DamageType> _types;
@@ -34,22 +36,21 @@ class DamageTypeBuff : public Buff {
     std::string _name;
 };
 
-template <class T>
-class OnAbilityHitBuff : public Buff{
-    public:
-    OnAbilityHitBuff(const std::string &buffName,T && call):_name(buffName),_lambda(std::forward<T>(call)){}
-    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, Target &source, Target &target){
-        return _lambda(hits,time,source,target);
+template <class T> class OnAbilityHitBuff : public Buff {
+  public:
+    OnAbilityHitBuff(const std::string &buffName, T &&call) : _name(buffName), _lambda(std::forward<T>(call)) {}
+    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &source,
+                                          const TargetPtr &target) {
+        return _lambda(hits, time, source, target);
     }
-    
-private:
+
+  private:
     std::string _name;
     T _lambda;
 };
 
-template<class Lambda>
-OnAbilityHitBuff<Lambda> * MakeOnAbilityHitBuff(std::string name, Lambda &&t) {
-    return new OnAbilityHitBuff<Lambda>(name,std::forward<Lambda>(t));
+template <class Lambda> OnAbilityHitBuff<Lambda> *MakeOnAbilityHitBuff(std::string name, Lambda &&t) {
+    return new OnAbilityHitBuff<Lambda>(name, std::forward<Lambda>(t));
 }
 
 } // namespace Simulator

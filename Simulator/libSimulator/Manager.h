@@ -6,10 +6,11 @@
 namespace Simulator {
 
 class Manager {
-public:
-    void addTarget(const TargetPtr & target);
-    const TargetPtr & getTarget(const TargetId &pid) const;
-    void runEventsUntilTime(const Second & time);
+  public:
+    void addTarget(const TargetPtr &target);
+    const TargetPtr &getTarget(const TargetId &pid) const;
+    void runEventsUntilTime(const Second &time);
+
   private:
     std::map<TargetId, TargetPtr> _targets;
 };

@@ -134,7 +134,7 @@ TEST(AbilityDamageCalculation, Tech) {
                   << std::endl;
     }
 
-    Target t(rs);
+    TargetPtr t = Target::New(rs);
     auto tacticsBuffs = getVanguardSheetBuffs();
     {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
@@ -202,25 +202,38 @@ TEST(AbilityDamageCalculation, VitalShot) {
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {1376.0, 2556.0};
     rs.hasOffhand = true;
-    Target t(rs); // create a dummy with 1 mil HP;
+    auto t = Target::New(rs); // create a dummy with 1 mil HP;
 
     auto statBuffs = getDefaultStatsBuffPtr(false, false);
-    auto player = std::make_shared<Target>(rs);
+    auto player = Target::New(rs);
     // player->setBuffs(std::move(statBuffs));
     auto vitalShot = std::make_unique<DOT>(2115340112756736, 0.3075, 0.03075, 0.03075, 0, DamageType::Internal, true,
                                            false, 9, Second(3), true);
     vitalShot->setSource(player);
     StatChanges sc;
     statBuffs->apply(vitalShot->getAbility(), sc, t);
-    
+
     auto gStats = getFinalStats(rs, sc);
 
     auto damageRange = calculateDamageRange(vitalShot->getAbility(), gStats);
-    for(auto &&dr:damageRange){
-        std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second)
-                << std::endl;
+    for (auto &&dr : damageRange) {
+        std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
         ASSERT_NEAR(dr.dmg.first, 1176.22137, 1e-3);
     }
-    
-    
+    AbilityCoefficients coeffs;
+    coeffs.coefficient = 0.27;
+    coeffs.StandardHealthPercentMax = 0.027;
+    coeffs.StandardHealthPercentMin = 0.027;
+    coeffs.damageType = DamageType::Internal;
+    coeffs.isDamageOverTime = true;
+    coeffs.isAreaOfEffect = true;
+    coeffs.multiplier = 0.12;
+    auto shrapBomb = std::make_unique<DOT>(807698664783872, coeffs, 9, Second(3), true);
+    gStats = getFinalStats(rs, sc);
+    auto damageRangeSB = calculateDamageRange(shrapBomb->getAbility(), gStats);
+    for (auto &&dr : damageRangeSB) {
+        std::cout << fmt::format("Damage range for shrapBomb is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+        ASSERT_NEAR(dr.dmg.first, 1084.4187, 1e-3);
+        ASSERT_NEAR(dr.dmg.first / 1.05 * 1.12, 1156.7133, 1e-3);
+    }
 }

@@ -1,26 +1,64 @@
 #include "helpers.h"
-#include "../types.h"
-#include "../constants.h"
+#include "../Ability.h"
 #include "../ConditionalApplyDebuff.h"
+#include "../constants.h"
+#include "../types.h"
+
 namespace Simulator {
-AbilityPtr getAbility(AbilityId id){
-    switch(id){
-        case vanguard_stockstrike:
-            return std::make_shared<Ability>(vanguard_stockstrike, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
-        case tactics_tactical_surge:
-            return std::make_shared<Ability>(tactics_tactical_surge, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
-        case trooper_high_impact_bolt:
-            return std::make_shared<Ability>(trooper_high_impact_bolt, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false);
-        case tactics_gut:{
-            auto abl = std::make_shared<Ability>(tactics_gut,0.95,0.075,0.115,0.0,DamageType::Kinetic,false,false);
-            auto gut_dot = std::make_unique<DOT>(tactics_gut_dot, 0.25, 0.025, 0.025, 0, DamageType::Internal, true, false,
-                                                 7, Second(3), true);
-            auto conditionalGutDot = std::make_shared<ConditionalApplyDebuff>(std::move(gut_dot));
-            abl->addOnHitAction(conditionalGutDot);
-            return abl;
-        }
-        default:
-            return nullptr;
+AbilityPtr getAbility(AbilityId id) {
+    switch (id) {
+    case vanguard_stockstrike:
+        return std::make_shared<Ability>(vanguard_stockstrike, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false,
+                                         false);
+    case tactics_tactical_surge:
+        return std::make_shared<Ability>(tactics_tactical_surge, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false,
+                                         false);
+    case trooper_high_impact_bolt:
+        return std::make_shared<Ability>(trooper_high_impact_bolt, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false,
+                                         false);
+    case tactics_gut: {
+        auto abl = std::make_shared<Ability>(tactics_gut, 0.95, 0.075, 0.115, 0.0, DamageType::Kinetic, false, false);
+        auto gut_dot = std::make_unique<DOT>(tactics_gut_dot, 0.25, 0.025, 0.025, 0, DamageType::Internal, true, false,
+                                             7, Second(3), true);
+        auto conditionalGutDot = std::make_shared<ConditionalApplyDebuff>(std::move(gut_dot));
+        abl->addOnHitAction(conditionalGutDot);
+        return abl;
+    }
+    case dirty_fighting_hemorraghing_blast: {
+        AbilityCoefficients coeffs;
+        coeffs.coefficient = 0.17;
+        coeffs.StandardHealthPercentMax = 0.017;
+        coeffs.StandardHealthPercentMin = 0.017;
+        coeffs.AmountModifierPercent = -0.89;
+        coeffs.damageType = DamageType::Weapon;
+        auto abl = std::make_shared<Ability>(dirty_fighting_hemorraghing_blast, coeffs);
+        auto HemoDebuff = std::unique_ptr<Debuff>(MakeOnAbilityHitDebuff(
+            "Hemo Blast", dirty_fighting_hemorraghing_blast,
+            [=](DamageHits &hits, const Second &, const TargetPtr &source, const TargetPtr &target,
+                const Debuff &debuff) -> DamageHits {
+                int procCount = 0;
+                for (auto &&hit : hits) {
+                    if (hit.dt == DamageType::Internal && source->getId() == debuff.getSource()->getId()) {
+                        ++procCount;
+                    }
+                }
+                if (procCount == 0)
+                    return {};
+                DamageHits ret;
+                auto fs = getFinalStats(*abl, source, target);
+                for (int ii = 0; ii < procCount; ++ii) {
+                    auto newHits = getHits(*abl, fs, target);
+                    ret.insert(ret.end(), newHits.begin(), newHits.end());
+                }
+                return ret;
+            }));
+        HemoDebuff->setDuration(Second(15));
+        auto conditionalHemoDebuff = std::make_shared<ConditionalApplyDebuff>(std::move(HemoDebuff));
+        abl->addOnHitAction(conditionalHemoDebuff);
+        return abl;
+    }
+    default:
+        return nullptr;
     }
 }
 std::vector<BuffPtr> getTacticsSheetBuffs() {
@@ -81,7 +119,7 @@ std::vector<BuffPtr> getTacticsSheetBuffs() {
 }
 
 BuffPtr getDefaultStatsBuffPtr(bool twopiece, bool masteryBuffs) {
-    StatChanges sb = getDefaultStatsBuffs(twopiece,masteryBuffs);
+    StatChanges sb = getDefaultStatsBuffs(twopiece, masteryBuffs);
     return std::make_unique<RawSheetBuff>("Class Buffs", std::vector<AbilityId>{}, sb);
 }
 
