@@ -28,7 +28,12 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const FinalStats &fs, const Se
     auto &dotMap = _debuffs[id];
     dot->setSource(source);
     dot->apply(fs, time);
-    dotMap.insert_or_assign(source->getId(), std::move(dot));
+    auto it = std::find(dotMap.begin(), dotMap.end(), source->getId());
+    if (it != dotMap.end()) {
+        it->second.refresh(time)
+    } else {
+        dotMap.insert_or_assign(source->getId(), std::move(dot));
+    }
 }
 
 DOT *Target::refreshDOT(const AbilityId &ablId, const TargetId &pId, const Second &time) {
@@ -44,10 +49,17 @@ void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
     auto &debuffMap = _debuffs[id];
     if (debuffMap.size() && debuff->getUnique())
         debuffMap.clear();
-    debuff->setSource(player);
-    FinalStats fs;
-    debuff->apply(fs, time);
-    debuffMap.insert_or_assign(player->getId(), std::move(debuff));
+
+    auto it = std::find(debuffMap.begin(), debuffMap.end(), debuffMap->getId());
+
+    if (it != debuffMap.end()) {
+        it->second.refresh(time)
+    } else {
+        debuff->setSource(player);
+        FinalStats fs;
+        debuff->apply(fs, time);
+        debuffMap.insert_or_assign(player->getId(), std::move(debuff));
+    }
 }
 
 void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/, const Second &time) {
