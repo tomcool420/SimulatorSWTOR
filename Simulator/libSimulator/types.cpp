@@ -67,7 +67,7 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
 FinalStats getFinalStats(const Ability & ability, const  TargetPtr & source, const  TargetPtr &target){
     auto && rs = source->getRawStats();
     auto scb = source->getStatChangesFromBuffs(ability, target);
-    auto scd = source->getStatChangesFromDebuff(ability, source);
+    auto scd = target->getStatChangesFromDebuff(ability, source);
     return getFinalStats(rs, scb+scd);
 }
 

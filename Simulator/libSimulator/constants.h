@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 namespace Simulator {
 constexpr double StandardHealth{11745};
@@ -13,7 +14,13 @@ constexpr uint64_t tactics_assault_plastique{3393277566910464};
 constexpr uint64_t tactics_gut{2029878853500928};
 
 constexpr uint64_t dirty_fighting_hemorraghing_blast{3404620575539200};
-
+constexpr uint64_t dirty_fighting_shrap_bomb{807698664783872};
+constexpr uint64_t gunslinger_vital_shot{2115340112756736};
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};
+
+
+constexpr uint64_t debuff_assailable{807698664784260};
+constexpr uint64_t debuff_marked{2115340112757234};
+
 } // namespace Simulator

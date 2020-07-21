@@ -5,6 +5,7 @@
 
 namespace Simulator {
 AbilityPtr getAbility(AbilityId id);
+DebuffPtr getDebuff(AbilityId id);
 std::vector<BuffPtr> getTacticsSheetBuffs();
 StatChanges getDefaultStatsBuffs(bool twoPiece = true, bool mastery = true);
 RawStats getDefaultStats();

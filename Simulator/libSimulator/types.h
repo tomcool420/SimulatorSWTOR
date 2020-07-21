@@ -1,15 +1,16 @@
 #pragma once
 #include "constants.h"
 #include "detail/units.h"
+#include <vector>
 
 namespace Simulator {
 class Target;
 class Ability;
 using TargetPtr = std::shared_ptr<Target>;
-
+using TargetPtrs = std::vector<TargetPtr>;
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
-
+using DamageTypes = std::vector<DamageType>;
 struct RawStats {
     Mastery master{0.0};
     AlacrityRating alacrityRating{0.0};

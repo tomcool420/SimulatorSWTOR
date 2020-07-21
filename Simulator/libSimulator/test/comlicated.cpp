@@ -117,9 +117,9 @@ TEST(calculations, complicated) {
 TEST(Calculations, HemoBlast) {
     auto rs = getDefaultStats();
     auto buffs = getTacticsSheetBuffs();
-    RawStats s;
     rs.hasOffhand = true;
     rs.weaponDamageOH = {1573, 2359};
+    RawStats s;
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);
     auto player = Target::New(rs);
@@ -153,4 +153,44 @@ TEST(Calculations, HemoBlast) {
         }
     }
     target->logHits();
+}
+
+
+TEST(Calculations, CausedDebuffs){
+    RawStats rs;
+    rs.master = Mastery(3063);
+    rs.power = Power(1304);
+    rs.criticalRating = CriticalRating(1012);
+    rs.alacrityRating = AlacrityRating(73);
+    rs.accuracyRating = AccuracyRating(264);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {1376.0, 2556.0};
+    rs.hasOffhand = true;
+    auto buffs = getTacticsSheetBuffs();
+    RawStats s;
+    s.hp = HealthPoints(2e6);
+    auto target = Target::New(s);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false));
+    
+    std::vector<std::pair<Second,AbilityId>> actions{{Second(0.0),gunslinger_vital_shot}
+                                                    ,{Second(1.5),dirty_fighting_shrap_bomb}
+    };
+    int actionCounter = 0;
+    auto ine = target->getNextEventTime();
+    while(actionCounter<actions.size() || ine.has_value()){
+        if(actionCounter<actions.size() && (!ine || *ine>actions[actionCounter].first)){
+            auto ability = getAbility(actions[actionCounter].second);
+            CHECK(ability);
+            auto fs = getFinalStats(*ability, player, target);
+            auto hits = getHits(*ability, fs, target);
+            target->applyDamageHit(hits, target, actions[actionCounter].first);
+            ability->onAbilityHitTarget(hits, player, target, actions[actionCounter].first);
+            ++actionCounter;
+        }else{
+            target->applyEventsAtTime(*ine+Second(0.0001));
+        }
+        ine = target->getNextEventTime();
+    }
 }

@@ -3,8 +3,35 @@
 #include "../ConditionalApplyDebuff.h"
 #include "../constants.h"
 #include "../types.h"
+#include "../AbilityDebuff.h"
 
 namespace Simulator {
+
+DOTPtr getDot(AbilityId id){
+    switch (id) {
+        case dirty_fighting_shrap_bomb:{
+            AbilityCoefficients coeffs;
+            coeffs.coefficient = 0.27;
+            coeffs.StandardHealthPercentMax = 0.027;
+            coeffs.StandardHealthPercentMin = 0.027;
+            coeffs.damageType = DamageType::Internal;
+            coeffs.isDamageOverTime = true;
+            coeffs.isAreaOfEffect = true;
+            coeffs.multiplier = 0.05; //bombastic (40)
+            auto sb= std::make_unique<DOT>(dirty_fighting_shrap_bomb, coeffs, 8, Second(3), false);
+            sb->setDoubleTickChance(0.1); //gushing wounds (64)
+            return sb;
+        }
+        case gunslinger_vital_shot:{
+            auto vs = std::make_unique<DOT>(gunslinger_vital_shot, 0.3075, 0.03075, 0.03075, 0, DamageType::Internal, true,
+                                                   false, 8, Second(3), false);
+            vs->setDoubleTickChance(0.1); //Mortal Wound (32)
+            return vs;
+        }
+        default:
+            return nullptr;
+    }
+}
 AbilityPtr getAbility(AbilityId id) {
     switch (id) {
     case vanguard_stockstrike:
@@ -57,9 +84,53 @@ AbilityPtr getAbility(AbilityId id) {
         abl->addOnHitAction(conditionalHemoDebuff);
         return abl;
     }
+        case dirty_fighting_shrap_bomb:{
+            auto sb= getDot(dirty_fighting_shrap_bomb);
+            CHECK(sb);
+            auto abl = std::make_shared<Ability>(dirty_fighting_shrap_bomb,sb->getAbility().getCoefficients());
+            auto cSB = std::make_shared<ConditionalApplyDebuff>(std::move(sb));
+            auto assailable = getDebuff(debuff_assailable);
+            CHECK(assailable);
+            auto cAss = std::make_shared<ConditionalApplyDebuff>(std::move(assailable));
+            abl->addOnHitAction(cSB);
+            abl->addOnHitAction(cAss);
+            return abl;
+        }
+        case gunslinger_vital_shot:{
+            auto vs = getDot(gunslinger_vital_shot);
+            CHECK(vs);
+            auto abl = std::make_shared<Ability>(gunslinger_vital_shot,vs->getAbility().getCoefficients());
+            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(vs)));
+            auto marked = getDebuff(debuff_marked);
+            CHECK(marked);
+            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(marked)));
+            return abl;
+        }
     default:
         return nullptr;
     }
+}
+
+DebuffPtr getDebuff(AbilityId id){
+    switch (id) {
+        case debuff_assailable:{
+            StatChanges sc;
+            sc.multiplier=0.07;
+            auto ass= std::make_unique<RawSheetDebuff>("Assailable",debuff_assailable,DamageTypes{DamageType::Internal,DamageType::Elemental},sc);
+            ass->setDuration(Second{45});
+            return ass;
+        }
+        case debuff_marked:{
+            StatChanges sc;
+            sc.multiplier=0.05;
+            auto marked=  std::make_unique<RawSheetDebuff>("Marked",debuff_assailable,DamageTypes{DamageType::Weapon},sc);
+            marked->setDuration(Second{45});
+            return marked;
+        }
+        default:
+            break;
+    }
+    return nullptr;
 }
 std::vector<BuffPtr> getTacticsSheetBuffs() {
     std::vector<BuffPtr> ret;
