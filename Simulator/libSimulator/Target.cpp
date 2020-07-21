@@ -1,4 +1,5 @@
 #include "Target.h"
+#include "detail/log.h"
 #include "utility.h"
 namespace Simulator {
 std::optional<Second> Target::getNextEventTime() {
@@ -33,10 +34,11 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const FinalStats &fs, const Se
 DOT *Target::refreshDOT(const AbilityId &ablId, const TargetId &pId, const Second &time) {
     auto dot = getDebuff<DOT>(ablId, pId);
     dot->refresh(time);
-    std::cout << fmt::format("Refreshing dot with id {} at time {}", ablId, time.getValue()) << std::endl;
+    SIM_INFO("Refreshing debuff with id {} f at time {}", ablId, time.getValue())
     return dot;
 }
 void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
+    SIM_INFO("Applying debuff with id {} f at time {}", debuff->getId(), time.getValue())
     CHECK(debuff);
     auto id = debuff->getId();
     auto &debuffMap = _debuffs[id];
@@ -49,6 +51,10 @@ void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
 }
 
 void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/, const Second &time) {
+    for (auto &&hit : hits) {
+        SIM_INFO("Time : {}, abl: {}, damage: {}, crit: {}, miss: {}, offhand: {}, type: {}", time.getValue(), hit.id,
+                 hit.dmg, hit.crit, hit.miss, hit.offhand, static_cast<int>(hit.dt));
+    }
     _hits.emplace_back(time, hits);
     int sum = 0;
     for (auto hit : hits) {
@@ -82,6 +88,8 @@ void Target::applyEventsAtTime(const Second &time) {
                 if (devent.type == DebuffEventType::Tick) {
                     applyDamageToTarget(devent.hits, (debuff->getSource()), shared_from_this(), time);
                 } else if (devent.type == DebuffEventType::Remove) {
+                    SIM_INFO("Removing Debuff with id {} at time {}", event.aId, time.getValue())
+
                     removeDebuff(event.aId, event.pId);
                 }
             }
@@ -99,8 +107,13 @@ StatChanges Target::getStatChangesFromBuffs(const Ability &abl, const TargetPtr 
 }
 
 StatChanges Target::getStatChangesFromDebuff(const Ability &abl, const TargetPtr &source) const {
-
-    return StatChanges();
+    StatChanges sc;
+    for (auto &&[aid, debuffMap] : _debuffs) {
+        for (auto &&[pid, debuff] : debuffMap) {
+            debuff->modifyStats(abl, sc, shared_from_this());
+        }
+    }
+    return sc;
 }
 
 bool Target::isBleeding() const {
@@ -117,6 +130,7 @@ void Target::removeDebuff(const AbilityId &aid, const TargetId &pid) {
     CHECK(dotMapIt != _debuffs.end());
     auto dotIt = dotMapIt->second.find(pid);
     CHECK(dotIt != dotMapIt->second.end());
+
     if (dotMapIt->second.size() == 1) {
         _debuffs.erase(dotMapIt);
     } else {
