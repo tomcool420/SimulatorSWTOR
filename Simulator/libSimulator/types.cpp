@@ -31,6 +31,8 @@ void operator+=(StatChanges &a, const StatChanges &b) {
     ADD_SC(armorPen);
 
     ADD_SC(multiplier);
+    
+    ADD_SC(castTime);
 }
 
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChanges) {

@@ -44,6 +44,8 @@ class Target : public std::enable_shared_from_this<Target> {
     std::optional<Second> getNextEventTime();
     void applyEventsAtTime(const Second &time);
     void logHits() const;
+    const std::vector<std::pair<Second, DamageHits>> & getHits()const {return _hits;}
+    void clearHits() {_hits.clear();}
     void addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time);
 
     using DebuffMap = std::map<AbilityId, std::map<TargetId, DebuffPtr>>;

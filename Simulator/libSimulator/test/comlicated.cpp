@@ -1,4 +1,4 @@
-#include "helpers.h"
+#include "../detail/helpers.h"
 #include "../Ability.h"
 #include "../AbilityBuff.h"
 #include "../DOT.h"
@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <spdlog/fmt/fmt.h>
 #include "../detail/log.h"
-
+#include "../Rotation.h"
 using namespace Simulator;
 
 TEST(calculations, complicated) {
@@ -158,7 +158,114 @@ TEST(Calculations, HemoBlast) {
     target->logHits();
 }
 
+int countHits(AbilityId id,const std::vector<std::pair<Second, DamageHits>> &allHits){
+    int cnt{0};
+    for(auto && hits : allHits){
+        for(const auto & hit : hits.second){
+            if(hit.id==id){
+                ++cnt;
+            }
+        }
+    }
+    return cnt;
+}
+TEST(Calculations,Rotation){
+    RawStats rs;
+    rs.master = Mastery(3063);
+    rs.power = Power(1304);
+    rs.criticalRating = CriticalRating(1012);
+    rs.alacrityRating = AlacrityRating(2331);
+    rs.accuracyRating = AccuracyRating(264);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {1376.0, 2556.0};
+    rs.hasOffhand = false;
+    RawStats s;
+    s.hp = HealthPoints(2e6);
+    auto target = Target::New(s);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false));
+    detail::LogDisabler d;
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 3);
+        ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 6);
 
+    }
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast,dirty_fighting_dirty_blast};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 6);
+        ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 7);
+    }
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast,dirty_fighting_wounding_shots};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 3);
+        ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 10);
+        ASSERT_EQ(countHits(dirty_fighting_wounding_shots, hits), 8);
+    }
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast,dirty_fighting_hemorraghing_blast,dirty_fighting_wounding_shots};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 3);
+        ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 10);
+        ASSERT_EQ(countHits(dirty_fighting_wounding_shots, hits), 8);
+        ASSERT_EQ(countHits(dirty_fighting_hemorraghing_blast, hits), 16);
+    }
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast,dirty_fighting_hemorraghing_blast,dirty_fighting_wounding_shots,dirty_fighting_dirty_blast};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 6);
+        ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 13);
+        ASSERT_EQ(countHits(dirty_fighting_wounding_shots, hits), 8);
+        ASSERT_EQ(countHits(dirty_fighting_hemorraghing_blast, hits), 20);
+    }
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {tactics_tactical_surge,tactics_tactical_surge,tactics_tactical_surge,trooper_high_impact_bolt};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.setRepeats(3);
+        rot.doRotation();
+        auto && hits = target->getHits();
+        ASSERT_EQ(countHits(tactics_tactical_surge, hits), 9);
+        ASSERT_EQ(countHits(trooper_high_impact_bolt, hits), 3);
+    }
+}
 TEST(Calculations, CausedDebuffs){
     RawStats rs;
     rs.master = Mastery(3063);
@@ -170,7 +277,6 @@ TEST(Calculations, CausedDebuffs){
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {1376.0, 2556.0};
     rs.hasOffhand = true;
-    auto buffs = getTacticsSheetBuffs();
     RawStats s;
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);

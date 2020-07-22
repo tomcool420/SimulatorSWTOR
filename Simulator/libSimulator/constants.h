@@ -17,6 +17,8 @@ constexpr uint64_t dirty_fighting_hemorraghing_blast{3404620575539200};
 constexpr uint64_t dirty_fighting_shrap_bomb{807698664783872};
 constexpr uint64_t gunslinger_vital_shot{2115340112756736};
 constexpr uint64_t dirty_fighting_dirty_blast{3404611985604608};
+constexpr uint64_t dirty_fighting_wounding_shots{807711549685760};
+constexpr uint64_t dirty_fighting_exploited_weakness{4308285989585170};
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};
 

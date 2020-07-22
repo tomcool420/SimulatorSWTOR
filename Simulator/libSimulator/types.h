@@ -5,9 +5,10 @@
 
 namespace Simulator {
 class Target;
-class Ability;
 using TargetPtr = std::shared_ptr<Target>;
 using TargetPtrs = std::vector<TargetPtr>;
+class Ability;
+using AbilityPtr = std::shared_ptr<Ability>;
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
 using DamageTypes = std::vector<DamageType>;
@@ -48,6 +49,8 @@ struct StatChanges {
     double armorPen{0.0};
 
     double multiplier{0.0};
+    
+    Second castTime{0.0};
 };
 using AllStatChanges = std::vector<StatChanges>;
 

@@ -1,4 +1,4 @@
-#include "helpers.h"
+#include "../detail/helpers.h"
 #include "../Ability.h"
 #include "../AbilityBuff.h"
 #include "../StatBuff.h"
