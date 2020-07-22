@@ -7,7 +7,7 @@ DamageHits DOT::tick(const TargetPtr &t, const Second &time) {
     _lastTickTime = time;
     ++_tickCount;
     CHECK(getSource());
-    auto fs = getFinalStats(_ability, getSource(), t);
+    auto fs = getAllFinalStats(_ability, getSource(), t);
     auto hits = getHits(_ability, fs, t);
     if(_doubleTickChance && getRandomValue(0.0, 1.0)<*_doubleTickChance){
         auto newHits = getHits(_ability, fs, t);

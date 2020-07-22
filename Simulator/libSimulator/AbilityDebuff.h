@@ -11,7 +11,7 @@ class RawSheetDebuff : public Debuff {
         : Debuff(id), _types(dts), _statChanges(sc), _name(buffName) {}
     RawSheetDebuff(const std::string &buffName, const AbilityId id, const StatChanges &sc)
         : Debuff(id), _statChanges(sc), _name(buffName) {}
-    void modifyStats(const Ability & /*ability*/, StatChanges & /*fstats*/,
+    void modifyStats(const Ability & /*ability*/, AllStatChanges & /*fstats*/,
                           const std::shared_ptr<const Target> & /*target*/) const final;
 
     virtual ~RawSheetDebuff() = default;

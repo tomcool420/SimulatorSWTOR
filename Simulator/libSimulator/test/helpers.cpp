@@ -32,6 +32,13 @@ DOTPtr getDot(AbilityId id){
             return nullptr;
     }
 }
+AbilityPtr createDotAbility(AbilityId id){
+    auto vs = getDot(id);
+    CHECK(vs);
+    auto abl = std::make_shared<Ability>(id,vs->getAbility().getInfo());
+    abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(vs)));
+    return abl;
+}
 AbilityPtr getAbility(AbilityId id) {
     switch (id) {
     case vanguard_stockstrike:
@@ -52,13 +59,10 @@ AbilityPtr getAbility(AbilityId id) {
         return abl;
     }
     case dirty_fighting_hemorraghing_blast: {
-        AbilityCoefficients coeffs;
-        coeffs.coefficient = 0.17;
-        coeffs.StandardHealthPercentMax = 0.017;
-        coeffs.StandardHealthPercentMin = 0.017;
-        coeffs.AmountModifierPercent = -0.89;
-        coeffs.damageType = DamageType::Weapon;
-        auto abl = std::make_shared<Ability>(dirty_fighting_hemorraghing_blast, coeffs);
+        AbilityCoefficients coeffsMH{0.17,0.017,0.017,-0.89};
+        AbilityCoefficients coeffsOH{0.0,0.0,0.0,-0.89};
+        coeffsOH.isOffhandHit=true;
+        auto abl = std::make_shared<Ability>(dirty_fighting_hemorraghing_blast,AbilityInfo{{coeffsMH,coeffsOH}});
         auto HemoDebuff = std::unique_ptr<Debuff>(MakeOnAbilityHitDebuff(
             "Hemo Blast", dirty_fighting_hemorraghing_blast,
             [=](DamageHits &hits, const Second &, const TargetPtr &source, const TargetPtr &target,
@@ -72,7 +76,7 @@ AbilityPtr getAbility(AbilityId id) {
                 if (procCount == 0)
                     return {};
                 DamageHits ret;
-                auto fs = getFinalStats(*abl, source, target);
+                auto fs = getAllFinalStats(*abl, source, target);
                 for (int ii = 0; ii < procCount; ++ii) {
                     auto newHits = getHits(*abl, fs, target);
                     ret.insert(ret.end(), newHits.begin(), newHits.end());
@@ -85,26 +89,27 @@ AbilityPtr getAbility(AbilityId id) {
         return abl;
     }
         case dirty_fighting_shrap_bomb:{
-            auto sb= getDot(dirty_fighting_shrap_bomb);
-            CHECK(sb);
-            auto abl = std::make_shared<Ability>(dirty_fighting_shrap_bomb,sb->getAbility().getCoefficients());
-            auto cSB = std::make_shared<ConditionalApplyDebuff>(std::move(sb));
+            auto abl = createDotAbility(dirty_fighting_shrap_bomb);
             auto assailable = getDebuff(debuff_assailable);
             CHECK(assailable);
             auto cAss = std::make_shared<ConditionalApplyDebuff>(std::move(assailable));
-            abl->addOnHitAction(cSB);
             abl->addOnHitAction(cAss);
             return abl;
         }
         case gunslinger_vital_shot:{
-            auto vs = getDot(gunslinger_vital_shot);
-            CHECK(vs);
-            auto abl = std::make_shared<Ability>(gunslinger_vital_shot,vs->getAbility().getCoefficients());
-            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(vs)));
+            auto abl = createDotAbility(gunslinger_vital_shot);
             auto marked = getDebuff(debuff_marked);
             CHECK(marked);
             abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(marked)));
             return abl;
+        }
+        case dirty_fighting_dirty_blast:{
+            AbilityCoefficients coeffsMH{1.12,0.112,0.112,-0.25};
+            AbilityCoefficients coeffOH{0.0,0.0,0.0,-0.25};
+            coeffOH.isOffhandHit=true;
+            AbilityCoefficients coeffInternalHit{0.5,0.05,0.05,0.0,DamageType::Internal,true};
+            AbilityInfo info{{coeffsMH,coeffOH,coeffInternalHit}};
+            return std::make_shared<Ability>(dirty_fighting_dirty_blast,std::move(info));
         }
     default:
         return nullptr;

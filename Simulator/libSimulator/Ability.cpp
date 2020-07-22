@@ -5,39 +5,42 @@
 #include "utility.h"
 #include <random>
 namespace Simulator {
-DamageRanges calculateDamageRange(const Ability &iAbility, const FinalStats &stats) {
+DamageRanges calculateDamageRange(const Ability &iAbility, const AllFinalStats &astats) {
     DamageRanges ret;
-    const auto &ability = iAbility.getCoefficients();
-    switch (ability.damageType) {
-    case DamageType::Weapon: {
-        double min = (stats.meleeRangeBonusDamage * ability.coefficient +
-                      stats.weaponDamageMH.first * (1.0 + ability.AmountModifierPercent) +
-                      ability.StandardHealthPercentMin * StandardHealth) *
-                     (1.0 + stats.multiplier + ability.multiplier);
-        double max = (stats.meleeRangeBonusDamage * ability.coefficient +
-                      stats.weaponDamageMH.second * (1.0 + ability.AmountModifierPercent) +
-                      ability.StandardHealthPercentMax * StandardHealth) *
-                     (1.0 + stats.multiplier + ability.multiplier);
-        ret.push_back({iAbility.getId(), stats.weaponDamageTypeMH, {min, max}, false});
-        if (!stats.hasOffhand)
-            break;
-        min = (stats.weaponDamageOH.first * (1 + ability.AmountModifierPercent)) * (1.0 + stats.multiplier);
-        max = (stats.weaponDamageOH.second * (1 + ability.AmountModifierPercent)) * (1.0 + stats.multiplier);
-        ret.push_back({iAbility.getId(), stats.weaponDamageTypeOH, {min, max}, true});
-    } break;
-    case DamageType::Energy:
-    case DamageType::Kinetic:
-    case DamageType::Internal:
-    case DamageType::Elemental: {
-        double min =
-            (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMin * StandardHealth) *
-            (1.0 + stats.multiplier + ability.multiplier);
-        double max =
-            (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMax * StandardHealth) *
-            (1.0 + stats.multiplier + ability.multiplier);
-        ret.push_back({iAbility.getId(), ability.damageType, {min, max}, false});
+    auto && coefficients = iAbility.getCoefficients();
+    CHECK(astats.size()==coefficients.size());
+    for(int ii = 0; ii< astats.size();++ii){
+        const auto &ability = coefficients[ii];
+        const auto & stats = astats[ii];
+         switch (ability.damageType) {
+         case DamageType::Weapon: {
+             auto weapDamage = ability.isOffhandHit ? stats.weaponDamageOH : stats.weaponDamageMH;
+             
+             double min = (stats.meleeRangeBonusDamage * ability.coefficient +
+                           weapDamage.first * (1.0 + ability.AmountModifierPercent) +
+                           ability.StandardHealthPercentMin * StandardHealth) *
+                          (1.0 + stats.multiplier + ability.multiplier);
+             double max = (stats.meleeRangeBonusDamage * ability.coefficient +
+                           weapDamage.second * (1.0 + ability.AmountModifierPercent) +
+                           ability.StandardHealthPercentMax * StandardHealth) *
+                          (1.0 + stats.multiplier + ability.multiplier);
+             ret.push_back({iAbility.getId(), stats.weaponDamageTypeMH, {min, max}, ability.isOffhandHit});
+         } break;
+         case DamageType::Energy:
+         case DamageType::Kinetic:
+         case DamageType::Internal:
+         case DamageType::Elemental: {
+             double min =
+                 (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMin * StandardHealth) *
+                 (1.0 + stats.multiplier + ability.multiplier);
+             double max =
+                 (stats.forceTechBonusDamage * ability.coefficient + ability.StandardHealthPercentMax * StandardHealth) *
+                 (1.0 + stats.multiplier + ability.multiplier);
+             ret.push_back({iAbility.getId(), ability.damageType, {min, max}, false});
+         }
+         }
     }
-    }
+ 
     return ret;
 }
 std::random_device rd;
@@ -46,13 +49,17 @@ double getRandomValue(double min, double max) {
     std::uniform_real_distribution<> distrib(min, max);
     return distrib(gen);
 }
-DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &stats, const TargetPtr &t) {
+DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const AllFinalStats &astats, const TargetPtr &t) {
     DamageHits ret;
     std::uniform_real_distribution<> distrib(0.0, 1.0);
-
-    for (auto &&range : ranges) {
+    CHECK(astats.size()==ranges.size());
+    
+    for (int ii = 0; ii< astats.size();++ii) {
+        auto && range = ranges[ii];
+        auto && stats = astats[ii];
         DamageHit hit{range.id, range.dt, range.dmg.first + (range.dmg.second - range.dmg.first) * distrib(gen),
                       range.offhand};
+        
         double accuracy = stats.accuracy - t->getDefenseChance() - (hit.offhand ? 0.3 : 0.0);
         if (accuracy < 1.0 && distrib(gen) > accuracy) {
             hit.miss = true;
@@ -85,17 +92,19 @@ DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const FinalStats &s
     }
     return ret;
 }
-DamageHits getHits(const Ability &ability, const FinalStats &stats, const TargetPtr &t) {
+DamageHits getHits(const Ability &ability, const AllFinalStats &stats, const TargetPtr &t) {
     auto damageRange = calculateDamageRange(ability, stats);
     auto damageHits = adjustForHitsAndCrits(damageRange, stats, t);
     return adjustForDefensives(damageHits, stats, t);
 }
 
-DamageHits adjustForDefensives(const DamageHits &hits, const FinalStats &stats, const TargetPtr &t) {
+DamageHits adjustForDefensives(const DamageHits &hits, const AllFinalStats &stats, const TargetPtr &t) {
     DamageHits ret(hits);
-    Armor armor = t->getArmor() * (1 - std::min(1.0, stats.armorPen));
-    auto dr = detail::getDamageReduction(armor);
-    for (auto &&hit : ret) {
+    CHECK(hits.size()==stats.size());
+    for(int ii = 0; ii< stats.size();++ii){
+        Armor armor = t->getArmor() * (1 - std::min(1.0, stats[ii].armorPen));
+        auto dr = detail::getDamageReduction(armor);
+        auto & hit = ret[ii];
         if (hit.miss)
             continue;
         if (hit.dt == DamageType::Internal) {

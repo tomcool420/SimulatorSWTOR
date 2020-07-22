@@ -10,7 +10,7 @@ class RawSheetBuff : public Buff {
                  double flatCritMultiplier, double ap);
     RawSheetBuff(const std::string &buffName, const AbilityIds &ids, const StatChanges &changes)
         : _ids(ids), _statChanges(changes), _name(buffName) {}
-    void apply(const Ability &ability, StatChanges &fstats, const TargetPtr &target) const final;
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const final;
     virtual ~RawSheetBuff() = default;
 
   private:
@@ -22,17 +22,14 @@ class RawSheetBuff : public Buff {
 class DamageTypeBuff : public Buff {
   public:
     DamageTypeBuff(const std::string &buffName, const std::vector<DamageType> &damageTypes, double rawDamageMultipler,
-                   double flatCritBonus, double flatCritMultiplier, double ap)
-        : _types(damageTypes), _rawMultiplier(rawDamageMultipler), _flatCritBonus(flatCritBonus),
-          _flatCritMultiplier(flatCritMultiplier), _armorPen(ap), _name(buffName) {}
-    void apply(const Ability &ability, StatChanges &fstats, const TargetPtr &target) const final;
+                   double flatCritBonus, double flatCritMultiplier, double ap);
+    DamageTypeBuff(const std::string &buffName, const std::vector<DamageType> &damageTypes, StatChanges &changes)
+        : _types(damageTypes), _statChanges(changes), _name(buffName) {}
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const final;
 
   private:
     std::vector<DamageType> _types;
-    double _rawMultiplier;
-    double _flatCritBonus;
-    double _flatCritMultiplier;
-    double _armorPen;
+    StatChanges _statChanges;
     std::string _name;
 };
 

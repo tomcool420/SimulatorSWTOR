@@ -49,6 +49,8 @@ struct StatChanges {
 
     double multiplier{0.0};
 };
+using AllStatChanges = std::vector<StatChanges>;
+
 struct FinalStats {
     double meleeRangeCritChance;
     double forceTechCritChance;
@@ -67,11 +69,11 @@ struct FinalStats {
     bool hasOffhand{false};
     double armorPen{0.0};
 };
-
+using AllFinalStats = std::vector<FinalStats>;
 StatChanges operator+(const StatChanges &a, const StatChanges &b);
 void operator+=(StatChanges &a, const StatChanges &b);
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &finalStats);
-FinalStats getFinalStats(const Ability &ability, const TargetPtr &player, const TargetPtr &target);
+AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &player, const TargetPtr &target);
 
 using AbilityId = uint64_t;
 using AbilityIds = std::vector<AbilityId>;

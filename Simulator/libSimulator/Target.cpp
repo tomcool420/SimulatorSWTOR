@@ -1,6 +1,7 @@
 #include "Target.h"
 #include "detail/log.h"
 #include "utility.h"
+#include "detail/names.h"
 namespace Simulator {
 std::optional<Second> Target::getNextEventTime() {
     std::vector<Event> events;
@@ -22,15 +23,16 @@ std::optional<Second> Target::getNextEventTime() {
     return std::nullopt;
 }
 
-void Target::addDOT(DOTPtr dot, TargetPtr source, const FinalStats &fs, const Second &time) {
+void Target::addDOT(DOTPtr dot, TargetPtr source, const AllFinalStats &fs, const Second &time) {
     CHECK(dot);
     auto id = dot->getId();
     auto &dotMap = _debuffs[id];
     dot->setSource(source);
-    dot->apply(fs, time);
-    auto it = std::find(dotMap.begin(), dotMap.end(), source->getId());
+    CHECK(fs.size()==1);
+    dot->apply(fs[0], time);
+    auto it = dotMap.find( source->getId());
     if (it != dotMap.end()) {
-        it->second.refresh(time)
+        it->second->refresh(time);
     } else {
         dotMap.insert_or_assign(source->getId(), std::move(dot));
     }
@@ -39,24 +41,28 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const FinalStats &fs, const Se
 DOT *Target::refreshDOT(const AbilityId &ablId, const TargetId &pId, const Second &time) {
     auto dot = getDebuff<DOT>(ablId, pId);
     dot->refresh(time);
-    SIM_INFO("Refreshing debuff with id {} f at time {}", ablId, time.getValue())
+        SIM_INFO("Time : {}, abl: [{} {}], refreshing debuff",time.getValue(),detail::getAbilityName(dot->getId()), dot->getId());
     return dot;
 }
 void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
-    SIM_INFO("Applying debuff with id {} f at time {}", debuff->getId(), time.getValue())
+    SIM_INFO("Time : {}, abl: [{} {}], applying debuff",time.getValue(),detail::getAbilityName(debuff->getId()), debuff->getId());
     CHECK(debuff);
     auto id = debuff->getId();
     auto &debuffMap = _debuffs[id];
     if (debuffMap.size() && debuff->getUnique())
         debuffMap.clear();
 
-    auto it = std::find(debuffMap.begin(), debuffMap.end(), debuffMap->getId());
+    auto it = debuffMap.find( player->getId());
 
     if (it != debuffMap.end()) {
-        it->second.refresh(time)
+        it->second->refresh(time);
     } else {
         debuff->setSource(player);
         FinalStats fs;
+        if(auto dot = dynamic_cast<DOT *>(debuff.get())){
+            auto stats = getAllFinalStats(dot->getAbility(), player, shared_from_this());\
+            fs = stats[0];
+        }
         debuff->apply(fs, time);
         debuffMap.insert_or_assign(player->getId(), std::move(debuff));
     }
@@ -64,7 +70,7 @@ void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
 
 void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/, const Second &time) {
     for (auto &&hit : hits) {
-        SIM_INFO("Time : {}, abl: {}, damage: {}, crit: {}, miss: {}, offhand: {}, type: {}", time.getValue(), hit.id,
+        SIM_INFO("Time : {}, abl: [{} {}], damage: {}, crit: {}, miss: {}, offhand: {}, type: {}", time.getValue(), detail::getAbilityName(hit.id), hit.id,
                  hit.dmg, hit.crit, hit.miss, hit.offhand, static_cast<int>(hit.dt));
     }
     _hits.emplace_back(time, hits);
@@ -100,8 +106,7 @@ void Target::applyEventsAtTime(const Second &time) {
                 if (devent.type == DebuffEventType::Tick) {
                     applyDamageToTarget(devent.hits, (debuff->getSource()), shared_from_this(), time);
                 } else if (devent.type == DebuffEventType::Remove) {
-                    SIM_INFO("Removing Debuff with id {} at time {}", event.aId, time.getValue())
-
+    SIM_INFO("Time : {}, abl: [{} {}], removing debuff",time.getValue(),detail::getAbilityName(event.aId), event.aId);
                     removeDebuff(event.aId, event.pId);
                 }
             }
@@ -110,16 +115,16 @@ void Target::applyEventsAtTime(const Second &time) {
     }
 }
 
-StatChanges Target::getStatChangesFromBuffs(const Ability &abl, const TargetPtr &target) const {
-    StatChanges sc;
+AllStatChanges Target::getStatChangesFromBuffs(const Ability &abl, const TargetPtr &target) const {
+    AllStatChanges sc(abl.getCoefficients().size());
     for (auto &&[aid, buff] : _buffs) {
         buff->apply(abl, sc, target);
     }
     return sc;
 }
 
-StatChanges Target::getStatChangesFromDebuff(const Ability &abl, const TargetPtr &source) const {
-    StatChanges sc;
+AllStatChanges Target::getStatChangesFromDebuff(const Ability &abl, const TargetPtr &) const {
+    AllStatChanges sc(abl.getCoefficients().size());
     for (auto &&[aid, debuffMap] : _debuffs) {
         for (auto &&[pid, debuff] : debuffMap) {
             debuff->modifyStats(abl, sc, shared_from_this());

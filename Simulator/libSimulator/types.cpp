@@ -1,6 +1,6 @@
 #include "types.h"
-#include "detail/calculations.h"
 #include "Target.h"
+#include "detail/calculations.h"
 
 namespace Simulator {
 StatChanges operator+(const StatChanges &a, const StatChanges &b) {
@@ -13,13 +13,13 @@ void operator+=(StatChanges &a, const StatChanges &b) {
 #define ADD_SC(value) a.value += b.value;
     ADD_SC(masteryMultiplierBonus);
     ADD_SC(masteryBonus);
-    
+
     ADD_SC(criticalRatingBonus);
     ADD_SC(flatMeleeRangeCritChance);
     ADD_SC(flatForceTechCritChance);
     ADD_SC(flatMeleeRangeCriticalMultiplierBonus);
     ADD_SC(flatForceTechCriticalMultiplierBonus);
-    
+
     ADD_SC(powerBonus);
     ADD_SC(powerMultiplier);
 
@@ -29,7 +29,7 @@ void operator+=(StatChanges &a, const StatChanges &b) {
     ADD_SC(flatAlacrityBonus);
 
     ADD_SC(armorPen);
-    
+
     ADD_SC(multiplier);
 }
 
@@ -41,8 +41,10 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
     ret.forceTechCritChance = critChance + statChanges.flatMeleeRangeCritChance;
     ret.meleeRangeCritChance = critChance + statChanges.flatForceTechCritChance;
 
-    ret.meleeRangeCritMultiplier = 0.5 + detail::getCriticalMultiplier(cr) + statChanges.flatMeleeRangeCriticalMultiplierBonus;
-    ret.forceTechCritMultiplier =  0.5 + detail::getCriticalMultiplier(cr) + statChanges.flatForceTechCriticalMultiplierBonus;
+    ret.meleeRangeCritMultiplier =
+        0.5 + detail::getCriticalMultiplier(cr) + statChanges.flatMeleeRangeCriticalMultiplierBonus;
+    ret.forceTechCritMultiplier =
+        0.5 + detail::getCriticalMultiplier(cr) + statChanges.flatForceTechCriticalMultiplierBonus;
 
     AlacrityRating ar = rawStats.alacrityRating + statChanges.alacrityRatingBonus;
     ret.alacrity = detail::getAlacrity(ar) + statChanges.flatAlacrityBonus;
@@ -60,15 +62,20 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
     ret.armorPen = rawStats.armorPen + statChanges.armorPen;
     ret.weaponDamageTypeMH = rawStats.weaponDamageTypeMH;
     ret.weaponDamageTypeOH = rawStats.weaponDamageTypeOH;
-    ret.multiplier= statChanges.multiplier;
+    ret.multiplier = statChanges.multiplier;
     return ret;
 }
 
-FinalStats getFinalStats(const Ability & ability, const  TargetPtr & source, const  TargetPtr &target){
-    auto && rs = source->getRawStats();
+AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &source, const TargetPtr &target) {
+    auto &&rs = source->getRawStats();
     auto scb = source->getStatChangesFromBuffs(ability, target);
     auto scd = target->getStatChangesFromDebuff(ability, source);
-    return getFinalStats(rs, scb+scd);
+    CHECK(scb.size() == scd.size());
+    AllFinalStats ret(scb.size());
+    for (int ii = 0; ii < scb.size(); ++ii) {
+        ret[ii] = getFinalStats(rs, scb[ii] + scd[ii]);
+    }
+    return ret;
 }
 
 } // namespace Simulator

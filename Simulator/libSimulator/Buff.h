@@ -13,7 +13,7 @@ class Buff : public TimedStatusEffect {
         return {};
     }
     virtual void onAbilityEnd(const Ability & /*ability*/, const Second & /*time*/, const TargetPtr & /*player*/) {}
-    virtual void apply(const Ability & /*ability*/, StatChanges & /*fstats*/, const TargetPtr & /*target*/) const {}
+    virtual void apply(const Ability & /*ability*/, AllStatChanges & /*fstats*/, const TargetPtr & /*target*/) const {}
     virtual ~Buff() = default;
     AbilityId getId() const { return _id; }
 

@@ -114,7 +114,7 @@ TEST(AbilityDamageCalculation, Tech) {
     auto stats = getFinalStats(rs, sb);
     {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
-        auto hits = calculateDamageRange(stockStrike, stats);
+        auto hits = calculateDamageRange(stockStrike, {stats});
         std::pair<double, double> fg{16220, 16784};
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
@@ -125,7 +125,7 @@ TEST(AbilityDamageCalculation, Tech) {
     }
     {
         Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
-        auto hits = calculateDamageRange(tacticalSurge, stats);
+        auto hits = calculateDamageRange(tacticalSurge, {stats});
         std::pair<double, double> fg{14429, 14945};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
@@ -140,12 +140,13 @@ TEST(AbilityDamageCalculation, Tech) {
         Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
 
         auto sc = sb;
+        AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
-            b->apply(stockStrike, sc, t);
+            b->apply(stockStrike, asc, t);
         }
-        auto aStats = getFinalStats(rs, sc);
+        auto aStats = getFinalStats(rs, asc[0]);
 
-        auto hits = calculateDamageRange(stockStrike, aStats);
+        auto hits = calculateDamageRange(stockStrike, {aStats});
         std::pair<double, double> fg{16220, 16784};
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
@@ -157,11 +158,12 @@ TEST(AbilityDamageCalculation, Tech) {
     {
         Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
         auto sc = sb;
+        AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
-            b->apply(tacticalSurge, sc, t);
+            b->apply(tacticalSurge, asc, t);
         }
-        auto aStats = getFinalStats(rs, sc);
-        auto hits = calculateDamageRange(tacticalSurge, aStats);
+        auto aStats = getFinalStats(rs, asc[0]);
+        auto hits = calculateDamageRange(tacticalSurge, {aStats});
         std::pair<double, double> fg{14429, 14945};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
@@ -173,13 +175,14 @@ TEST(AbilityDamageCalculation, Tech) {
     }
 
     {
-        Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false);
+        Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false,false);
         auto sc = sb;
+        AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
-            b->apply(highImpactBolt, sc, t);
+            b->apply(highImpactBolt, asc, t);
         }
-        auto aStats = getFinalStats(rs, sc);
-        auto hits = calculateDamageRange(highImpactBolt, aStats);
+        auto aStats = getFinalStats(rs, asc[0]);
+        auto hits = calculateDamageRange(highImpactBolt, {aStats});
         std::pair<double, double> fg{16402, 17607};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
@@ -195,9 +198,9 @@ TEST(AbilityDamageCalculation, VitalShot) {
     RawStats rs;
     rs.master = Mastery(3063);
     rs.power = Power(1304);
-    rs.criticalRating = CriticalRating(1012);
-    rs.alacrityRating = AlacrityRating(73);
-    rs.accuracyRating = AccuracyRating(264);
+    rs.criticalRating = CriticalRating(903);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(0);
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {1376.0, 2556.0};
@@ -206,34 +209,26 @@ TEST(AbilityDamageCalculation, VitalShot) {
 
     auto statBuffs = getDefaultStatsBuffPtr(false, false);
     auto player = Target::New(rs);
-    // player->setBuffs(std::move(statBuffs));
-    auto vitalShot = std::make_unique<DOT>(2115340112756736, 0.3075, 0.03075, 0.03075, 0, DamageType::Internal, true,
-                                           false, 9, Second(3), true);
+    auto vitalShot = getDot(gunslinger_vital_shot);
     vitalShot->setSource(player);
     StatChanges sc;
-    statBuffs->apply(vitalShot->getAbility(), sc, t);
+    AllStatChanges asc{sc};
 
-    auto gStats = getFinalStats(rs, sc);
+    statBuffs->apply(vitalShot->getAbility(), asc, t);
 
-    auto damageRange = calculateDamageRange(vitalShot->getAbility(), gStats);
+    auto gStats = getFinalStats(rs, asc[0]);
+
+    auto damageRange = calculateDamageRange(vitalShot->getAbility(), {gStats});
     for (auto &&dr : damageRange) {
         std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
-        ASSERT_NEAR(dr.dmg.first, 1176.22137, 1e-3);
+        ASSERT_NEAR(dr.dmg.first, 1176.221, 1e-3);
     }
-    AbilityCoefficients coeffs;
-    coeffs.coefficient = 0.27;
-    coeffs.StandardHealthPercentMax = 0.027;
-    coeffs.StandardHealthPercentMin = 0.027;
-    coeffs.damageType = DamageType::Internal;
-    coeffs.isDamageOverTime = true;
-    coeffs.isAreaOfEffect = true;
-    coeffs.multiplier = 0.12;
-    auto shrapBomb = std::make_unique<DOT>(807698664783872, coeffs, 9, Second(3), true);
-    gStats = getFinalStats(rs, sc);
-    auto damageRangeSB = calculateDamageRange(shrapBomb->getAbility(), gStats);
+    auto shrapBomb = getDot(dirty_fighting_shrap_bomb);
+    gStats = getFinalStats(rs, asc[0]);
+    auto damageRangeSB = calculateDamageRange(shrapBomb->getAbility(), {gStats});
     for (auto &&dr : damageRangeSB) {
         std::cout << fmt::format("Damage range for shrapBomb is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
-        ASSERT_NEAR(dr.dmg.first, 1084.4187, 1e-3);
+        ASSERT_NEAR(dr.dmg.first, 1084.41873, 1e-3);
         ASSERT_NEAR(dr.dmg.first / 1.05 * 1.12, 1156.7133, 1e-3);
     }
 }

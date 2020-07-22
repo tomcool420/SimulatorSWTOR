@@ -22,19 +22,20 @@ TEST(calculations, complicated) {
     gutBleeding->setBleeding(true);
     gutBleeding->setSource(player);
     auto sc = sb;
+    AllStatChanges asc{sc};
     for (auto &&b : buffs) {
-        b->apply(gutBleeding->getAbility(), sc, t);
+        b->apply(gutBleeding->getAbility(), asc, t);
     }
 
     auto gStats = getFinalStats(rs, sc);
     buffs.push_back(getDefaultStatsBuffPtr());
     addBuffs(player, std::move(buffs));
 
-    auto damageRange = calculateDamageRange(gutBleeding->getAbility(), gStats);
+    auto damageRange = calculateDamageRange(gutBleeding->getAbility(), {gStats});
     std::vector<DamageHits> allhits;
     int hitCount = 10000;
     for (int ii = 0; ii < hitCount; ++ii) {
-        allhits.push_back(adjustForHitsAndCrits(damageRange, gStats, t));
+        allhits.push_back(adjustForHitsAndCrits(damageRange, {gStats}, t));
     }
     double minNorm = 1e20;
     double maxNorm = 0;
@@ -82,13 +83,13 @@ TEST(calculations, complicated) {
 
     auto checkTriumph = [&](bool expected) {
         auto hib = getAbility(trooper_high_impact_bolt);
-        auto fsHiB = getFinalStats(*hib, player, t);
+        auto fsHiB = getAllFinalStats(*hib, player, t);
         auto dmg = getHits(*hib, fsHiB, t);
         applyDamageToTarget(dmg, player, t, Second(0.0));
         ASSERT_EQ(checkTriumphLastHit, expected);
     };
     checkTriumph(false);
-    t->addDOT(std::move(gutBleeding), player, gStats, Second(0.0));
+    t->addDOT(std::move(gutBleeding), player, {gStats}, Second(0.0));
     checkTriumph(true);
 
     EXPECT_ANY_THROW(t->getDebuff<DOT>(tactics_gut_dot + 1, player->getId()));
@@ -129,12 +130,12 @@ TEST(Calculations, HemoBlast) {
     gutBleeding->setSource(player);
     buffs.push_back(getDefaultStatsBuffPtr());
     addBuffs(player, std::move(buffs));
-    auto dotStats = getFinalStats(gutBleeding->getAbility(), player, target);
+    auto dotStats = getAllFinalStats(gutBleeding->getAbility(), player, target);
     target->addDOT(std::move(gutBleeding), player, dotStats, Second(0.0));
 
     {
         auto hemoBlast = getAbility(dirty_fighting_hemorraghing_blast);
-        auto fs = getFinalStats(*hemoBlast, player, target);
+        auto fs = getAllFinalStats(*hemoBlast, player, target);
         auto hits = getHits(*hemoBlast, fs, target);
         target->applyDamageHit(hits, target, Second{1.5});
         hemoBlast->onAbilityHitTarget(hits, player, target, Second{1.5});
@@ -161,7 +162,7 @@ TEST(Calculations, CausedDebuffs){
     rs.master = Mastery(3063);
     rs.power = Power(1304);
     rs.criticalRating = CriticalRating(1012);
-    rs.alacrityRating = AlacrityRating(73);
+    rs.alacrityRating = AlacrityRating(2331);
     rs.accuracyRating = AccuracyRating(264);
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
@@ -174,8 +175,12 @@ TEST(Calculations, CausedDebuffs){
     auto player = Target::New(rs);
     player->addBuff(getDefaultStatsBuffPtr(false, false));
     
-    std::vector<std::pair<Second,AbilityId>> actions{{Second(0.0),gunslinger_vital_shot}
+    std::vector<std::pair<Second,AbilityId>> actions{
+        {Second(0.0),gunslinger_vital_shot}
                                                     ,{Second(1.5),dirty_fighting_shrap_bomb}
+                                                    ,{Second(3.0),dirty_fighting_dirty_blast}
+                                                    ,{Second(4.5),dirty_fighting_hemorraghing_blast}
+                                                    ,{Second(6.0),dirty_fighting_dirty_blast}
     };
     int actionCounter = 0;
     auto ine = target->getNextEventTime();
@@ -183,9 +188,9 @@ TEST(Calculations, CausedDebuffs){
         if(actionCounter<actions.size() && (!ine || *ine>actions[actionCounter].first)){
             auto ability = getAbility(actions[actionCounter].second);
             CHECK(ability);
-            auto fs = getFinalStats(*ability, player, target);
+            auto fs = getAllFinalStats(*ability, player, target);
             auto hits = getHits(*ability, fs, target);
-            target->applyDamageHit(hits, target, actions[actionCounter].first);
+            applyDamageToTarget(hits, player, target, actions[actionCounter].first);
             ability->onAbilityHitTarget(hits, player, target, actions[actionCounter].first);
             ++actionCounter;
         }else{
