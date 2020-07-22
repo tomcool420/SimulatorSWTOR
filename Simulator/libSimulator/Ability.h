@@ -19,8 +19,12 @@ struct AbilityCoefficients {
     bool isOffhandHit{false};
 };
 using AllAbilityCoefficient = std::vector<AbilityCoefficients>;
+enum class AbilityCastType{Instant,Cast,Channeled,OffGCD};
 struct AbilityInfo {
     AllAbilityCoefficient coefficients;
+    AbilityCastType type{AbilityCastType::Instant};
+    Second time{Second(1.5)};
+    int nTicks{1};
 };
 
 class Ability {
@@ -51,7 +55,6 @@ class Ability {
     AbilityInfo _info;
     OnHitActionPtrs _onHitActions;
 };
-using AbilityPtr = std::shared_ptr<Ability>;
 
 [[nodiscard]] DamageRanges calculateDamageRange(const Ability &ability, const AllFinalStats &stats);
 [[nodiscard]] DamageHits adjustForHitsAndCrits(const DamageRanges &hits, const AllFinalStats &stats, const TargetPtr &t);

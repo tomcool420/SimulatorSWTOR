@@ -23,6 +23,10 @@ std::string getAbilityName(const AbilityId &id) {
             return "Shrap Bomb";
         case dirty_fighting_dirty_blast:
             return "Dirty Blast";
+        case dirty_fighting_wounding_shots:
+            return "Wounding Shots";
+        case dirty_fighting_exploited_weakness:
+            return "Exploited Weakness (Dirty Blast)";
         case gunslinger_vital_shot:
             return "Vital Shot";
         case debuff_marked:
