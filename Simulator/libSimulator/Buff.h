@@ -3,9 +3,14 @@
 #include "TimedStatusEffect.h"
 
 namespace Simulator {
+uint64_t getNextFreeId() ;
+
 class Target;
 class Buff : public TimedStatusEffect {
   public:
+    Buff(){
+        _id = getNextFreeId();
+    }
     virtual void onAbilityUsed(const Ability & /*ability*/, const Second & /*time*/, const TargetPtr & /*player*/,
                                const TargetPtr & /*target*/) {}
     virtual DamageHits onAbilityHit(DamageHits & /*hits*/, const Second & /*time*/, const TargetPtr & /*player*/,
@@ -16,9 +21,9 @@ class Buff : public TimedStatusEffect {
     virtual void apply(const Ability & /*ability*/, AllStatChanges & /*fstats*/, const TargetPtr & /*target*/) const {}
     virtual ~Buff() = default;
     AbilityId getId() const { return _id; }
-
+    void setId(AbilityId id) {_id=id;}
   private:
-    AbilityId _id;
+    AbilityId _id{0};
 };
 using BuffPtr = std::unique_ptr<Buff>;
 

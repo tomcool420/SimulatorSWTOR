@@ -24,4 +24,6 @@ constexpr uint64_t tactics_gut_dot{2029878853501184};
 constexpr uint64_t debuff_assailable{807698664784260};
 constexpr uint64_t debuff_marked{2115340112757234};
 
+constexpr uint64_t tactics_high_energy_cell{3963924101726208};
+
 } // namespace Simulator

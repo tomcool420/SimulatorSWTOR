@@ -137,16 +137,15 @@ TEST(AbilityDamageCalculation, Tech) {
     TargetPtr t = Target::New(rs);
     auto tacticsBuffs = getVanguardSheetBuffs();
     {
-        Ability stockStrike(801367882989568, 1.77, 0.158, 0.198, 0.0, DamageType::Kinetic, false, false);
-
+        auto stockStrike = getAbility(vanguard_stockstrike);
         auto sc = sb;
         AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
-            b->apply(stockStrike, asc, t);
+            b->apply(*stockStrike, asc, t);
         }
         auto aStats = getFinalStats(rs, asc[0]);
 
-        auto hits = calculateDamageRange(stockStrike, {aStats});
+        auto hits = calculateDamageRange(*stockStrike, {aStats});
         std::pair<double, double> fg{16220, 16784};
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,
                                  hits[0].dmg.first, hits[0].dmg.second, fg.first / hits[0].dmg.first,
@@ -156,14 +155,14 @@ TEST(AbilityDamageCalculation, Tech) {
         ASSERT_NEAR(fg.second / hits[0].dmg.second, 1.2 / 1.27, 1e-3);
     }
     {
-        Ability tacticalSurge(3393260387041280, 1.72, 0.152, 0.192, 0.0, DamageType::Kinetic, false, false);
+        auto tacticalSurge = getAbility(tactics_tactical_surge);
         auto sc = sb;
         AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
-            b->apply(tacticalSurge, asc, t);
+            b->apply(*tacticalSurge, asc, t);
         }
         auto aStats = getFinalStats(rs, asc[0]);
-        auto hits = calculateDamageRange(tacticalSurge, {aStats});
+        auto hits = calculateDamageRange(*tacticalSurge, {aStats});
         std::pair<double, double> fg{14429, 14945};
 
         std::cout << fmt::format("Damage for ability with id {} is {} - {}, ratio are {}, {}", hits[0].id,

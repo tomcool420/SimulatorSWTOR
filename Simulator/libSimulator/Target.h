@@ -57,7 +57,12 @@ class Target : public std::enable_shared_from_this<Target> {
     bool isBleeding() const;
 
     void addBuff(BuffPtr buff) { _buffs.insert_or_assign(buff->getId(), std::move(buff)); }
-
+    template <class T> T * getBuff(const AbilityId &aid){
+        auto it = _buffs.find(aid);
+        if(it==_buffs.end())
+            return nullptr;
+        return dynamic_cast<T *>(it->second.get());
+    }
     template <class T> T *getDebuff(const AbilityId &aid, const TargetId &tid) {
         auto dotMapIt = _debuffs.find(aid);
         CHECK(dotMapIt != _debuffs.end());

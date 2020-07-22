@@ -7,6 +7,7 @@
 
 namespace Simulator {
 
+
 DOTPtr getDot(AbilityId id){
     switch (id) {
         case dirty_fighting_shrap_bomb:{
@@ -50,6 +51,11 @@ AbilityPtr getAbility(AbilityId id) {
     case trooper_high_impact_bolt:
         return std::make_shared<Ability>(trooper_high_impact_bolt, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false,
                                          false);
+        case tactics_cell_burst:{
+            AbilityCoefficients coeffs{0.84,0.079,0.089,0.0,DamageType::Energy};
+            return std::make_shared<Ability>(tactics_cell_burst, AbilityInfo{{coeffs}});
+        }
+            
     case tactics_gut: {
         auto abl = std::make_shared<Ability>(tactics_gut, 0.95, 0.075, 0.115, 0.0, DamageType::Kinetic, false, false);
         auto gut_dot = std::make_unique<DOT>(tactics_gut_dot, 0.25, 0.025, 0.025, 0, DamageType::Internal, true, false,
@@ -186,10 +192,12 @@ std::vector<BuffPtr> getTacticsSheetBuffs() {
                                                  0.1, 0.0, 0.0, 0.0));
 
     ret.push_back(std::make_unique<DamageTypeBuff>("High Energy Gas Cell",
-                                                   std::vector<DamageType>{DamageType::Kinetic, // stockstrike
-                                                                           DamageType::Energy,  // stockstrike
+                                                   std::vector<DamageType>{
+//                                                                           DamageType::Kinetic, // stockstrike
+//                                                                           DamageType::Energy,  // stockstrike
                                                                            DamageType::Weapon},
                                                    0.07, 0.0, 0.0, 0.0));
+    ret.push_back(std::make_unique<EnergyLodeBuff>());
 
     return ret;
 }
@@ -222,4 +230,6 @@ RawStats getDefaultStats() {
     rs.weaponDamageMH = {1573.0, 2359.0};
     return rs;
 }
+
+
 } // namespace Simulator

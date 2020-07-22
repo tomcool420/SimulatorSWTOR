@@ -7,6 +7,8 @@
 #include "../utility.h"
 #include <gtest/gtest.h>
 #include <spdlog/fmt/fmt.h>
+#include "../detail/log.h"
+
 using namespace Simulator;
 
 TEST(calculations, complicated) {
@@ -198,4 +200,104 @@ TEST(Calculations, CausedDebuffs){
         }
         ine = target->getNextEventTime();
     }
+}
+
+TEST(Calculations, RawCellBurst){
+    RawStats rs;
+    rs.master = Mastery(4814);
+    rs.power = Power(2309);
+    rs.criticalRating = CriticalRating(421);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(3504);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.hasOffhand = false;
+    auto buffs = getTacticsSheetBuffs();
+    RawStats s;
+    s.hp = HealthPoints(2e6);
+    auto target = Target::New(s);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false));
+
+    auto babl = getAbility(tactics_cell_burst);
+    auto validateCellBurstRange = [&](int stacks, double min, double max){
+        auto coefficients = babl->getCoefficients()[0];
+        coefficients.multiplier = 0.1 + 1.05*(stacks-1);
+        auto abl = std::make_shared<Ability>(tactics_cell_burst,AbilityInfo{{coefficients}});
+        auto afs = getAllFinalStats(*abl, player, target);
+        afs[0].forceTechCritChance=0.0;
+        auto dmgRamge = calculateDamageRange(*abl, afs);
+        EXPECT_NEAR(std::round(dmgRamge[0].dmg.first),min,1e-2);
+        EXPECT_NEAR(std::round(dmgRamge[0].dmg.second),max,1e-2);
+    };
+    
+    validateCellBurstRange(1,3252,3381);
+    validateCellBurstRange(2,6356,6609);
+    validateCellBurstRange(3,9460,9836);
+    validateCellBurstRange(4,12564,13063);
+    
+    addBuffs(player, std::move(buffs));
+    
+    auto validateCellBurstRangeUsingBuff = [&](int stacks, double min, double max){
+        auto coefficients = babl->getCoefficients()[0];
+        coefficients.multiplier = 0.0;
+        auto buff = player->getBuff<EnergyLodeBuff>(tactics_high_energy_cell);
+        ASSERT_TRUE(buff);
+        buff->setStacks(stacks);
+        auto abl = std::make_shared<Ability>(tactics_cell_burst,AbilityInfo{{coefficients}});
+        auto afs = getAllFinalStats(*abl, player, target);
+        afs[0].forceTechCritChance=0.0;
+        auto dmgRamge = calculateDamageRange(*abl, afs);
+        EXPECT_NEAR(std::round(dmgRamge[0].dmg.first),min,1e-2);
+        EXPECT_NEAR(std::round(dmgRamge[0].dmg.second),max,1e-2);
+    };
+    validateCellBurstRangeUsingBuff(0,3252,3381);
+    validateCellBurstRangeUsingBuff(1,3252,3381);
+    validateCellBurstRangeUsingBuff(2,6356,6609);
+    validateCellBurstRangeUsingBuff(3,9460,9836);
+    validateCellBurstRangeUsingBuff(4,12564,13063);
+    //three stack 3252-3381
+    //two stack 6356-6609
+    //three stack 9460-9836
+    //four stack 12564-13063
+}
+TEST(Calculations, CellBurst){
+    RawStats rs;
+    rs.master = Mastery(4814);
+    rs.power = Power(2309);
+    rs.criticalRating = CriticalRating(421);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(3504);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.hasOffhand = false;
+    auto buffs = getTacticsSheetBuffs();
+    RawStats s;
+    s.hp = HealthPoints(2e6);
+    auto target = Target::New(s);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false));
+    addBuffs(player, std::move(buffs));
+    std::vector<std::pair<Second,AbilityId>> actions{
+        {Second(0.0),tactics_cell_burst}
+    };
+    int actionCounter = 0;
+    auto ine = target->getNextEventTime();
+    while(actionCounter<actions.size() || ine.has_value()){
+        if(actionCounter<actions.size() && (!ine || *ine>actions[actionCounter].first)){
+            auto ability = getAbility(actions[actionCounter].second);
+            CHECK(ability);
+            auto fs = getAllFinalStats(*ability, player, target);
+            auto hits = getHits(*ability, fs, target);
+            applyDamageToTarget(hits, player, target, actions[actionCounter].first);
+            ability->onAbilityHitTarget(hits, player, target, actions[actionCounter].first);
+            ++actionCounter;
+        }else{
+            target->applyEventsAtTime(*ine+Second(0.0001));
+        }
+        ine = target->getNextEventTime();
+    }
+    
+
+    
 }
