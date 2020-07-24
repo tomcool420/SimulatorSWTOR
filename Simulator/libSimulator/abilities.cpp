@@ -1,7 +1,57 @@
 #include "abilities.h"
 #include "constants.h"
-
+#include "utility.h"
+namespace Simulator{
+void from_json(const nlohmann::json & json, AbilityCoefficients &coeffs){
+    if(json.contains("Coefficient")){
+        coeffs.coefficient= json["Coefficient"].get<double>();
+    }
+    if(json.contains("Amount Modifier Percent")){
+        coeffs.AmountModifierPercent=json["Amount Modifier Percent"].get<double>();
+    }
+    if(json.contains("Standard Health Percent Min")){
+        coeffs.StandardHealthPercentMin=json["Standard Health Percent Min"].get<double>();
+    }
+    if(json.contains("Standard Health Percent Max")){
+        coeffs.StandardHealthPercentMax=json["Standard Health Percent Max"].get<double>();
+    }
+    if(json.contains("Damage Type")){
+        coeffs.damageType=Simulator::DamageType(json["Damage Type"].get<int>()-1);
+    }
+    if(json.contains("Offhand Hit")){
+        coeffs.isOffhandHit=json["Offhand Hit"].get<bool>();
+    }
+    if(json.contains("Area Of Effect")){
+        coeffs.isOffhandHit=json["Area Of Effect"].get<bool>();
+    }
+}
+void from_json(const nlohmann::json & json, AllAbilityCoefficient & allcoeffs){
+    CHECK(json.is_array());
+    for(auto && dat : json){
+        AbilityCoefficients c;
+        from_json(dat, c);
+        allcoeffs.push_back(c);
+    }
+}
+void from_json(const nlohmann::json & json, AbilityInfo & info){
+    if(json.contains("coefficients")){
+        from_json(json["coefficients"], info.coefficients);
+    }
+    if(json.contains("Number of Ticks")){
+        info.nTicks=json["Number of Ticks"].get<int>();
+    }
+    if(json.contains("Time")){
+        info.time=Second(json["Time"].get<double>());
+    }
+    if(json.contains("Initial Tick")){
+        info.extraInitialTick=json["Initial Tick"].get<bool>();
+    }
+}
+}
 namespace Simulator::detail {
+AbilityInfo getAbilityFromJson(const nlohmann::json & json){
+    return json.get<AbilityInfo>();
+}
 AbilityInfo getDefaultAbilityInfo(AbilityId id) {
     switch (id) {
         case dirty_fighting_dirty_blast:{
