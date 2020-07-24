@@ -2,6 +2,8 @@
 #include <boost/operators.hpp>
 #include <gsl/gsl>
 #include <iostream>
+#include <numeric>
+#include <cmath>
 
 namespace Simulator {
 template <class T, class Category> class UnitBase : public boost::multiplicative<T, double> {
