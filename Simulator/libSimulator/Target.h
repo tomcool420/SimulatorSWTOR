@@ -1,37 +1,128 @@
 #pragma once
 #include "Buff.h"
-#include "Debuff.h"
-#include <unordered_map>
 #include "DOT.h"
+#include "Debuff.h"
+#include "constants.h"
+#include "detail/units.h"
+#include "types.h"
+#include "utility.h"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <map>
+#include <optional>
+#include <unordered_map>
 
 namespace Simulator {
-class Target {
-    enum class EventClass {Dot,Buff,Debuff};
-    struct Event{
+using TargetId = boost::uuids::uuid;
+class Target : public std::enable_shared_from_this<Target> {
+  public:
+    enum class EventClass { Dot, Buff, Debuff };
+    struct Event {
         Second Time{0.0};
         EventClass eClass;
         AbilityId aId;
+        TargetId pId;
     };
-  public:
-    bool isExecutable() const { return _health / _maxHealth < 0.3; }
-    Second getNextEvent() const;
-    void applyDamage(const Ability &abl, const FinalStats & stats, const Second &sec);
-    double getDefenseChance() const {return _defenseChance;};
-    double getArmor() const {return _armor*(1-0.2*_isSundered);}
-    // future proofing
-    double getInternalDR() const {return 0.0;};
-    double getElementalDR() const {return 0.0;};
-    
+    enum class TargetEventType {
+        AddBuff,
+        RemoveBuff,
+        RefreshBuff,
+        AddDebuff,
+        RemoveDebuff,
+        RefreshDebuff,
+        Die,
+        Damage
+    };
+    struct TargetEvent {
+        TargetEventType type;
+        Second time;
+        std::optional<DamageHits> damage;
+        std::optional<AbilityId> id;
+    };
+    using TargetEvents = std::vector<TargetEvent>;
+
   private:
-    double _armor;
-    double _defenseChance;
-    double _health{100};
-    double _maxHealth{100};
-    bool _isSundered{true};
-    std::vector<Event> upcomingEvents;
-    std::unordered_map<int, DOT> _dots;
-    std::unordered_map<int, Buff> _buffs;
-    std::unordered_map<int, Debuff> _debuffs;
-    std::vector<std::pair<Second,DamageHits>> _hits;
+    Target(RawStats rs) : _rawStats(rs), _health(rs.hp), _tag(boost::uuids::random_generator()()){};
+
+  public:
+    static std::shared_ptr<Target> New(const RawStats &rs) { return std::shared_ptr<Target>(new Target(rs)); }
+    TargetId getId() const { return _tag; }
+
+    bool isExecutable() const { return _health / _rawStats.hp < 0.3; }
+    void applyDamage(const Ability &abl, const FinalStats &stats, const Second &sec);
+    void applyDamageHit(const DamageHits &hits, const TargetPtr &target, const Second &time);
+    double getDefenseChance() const { return _defenseChance; };
+    Armor getArmor() const { return _rawStats.armor * (1 - 0.2 * _sundered); }
+    // future proofing
+    double getInternalDR() const { return 0.0; };
+    double getElementalDR() const { return 0.0; };
+    void addDOT(DOTPtr dot, TargetPtr player, const AllFinalStats &s, const Second &time);
+    DOT *refreshDOT(const AbilityId &ablId, const TargetId &pId, const Second &time);
+    std::optional<Second> getNextEventTime();
+    void applyEventsAtTime(const Second &time);
+    void logHits() const;
+    const std::vector<std::pair<Second, DamageHits>> &getHits() const { return _hits; }
+    void clearHits() { _hits.clear(); }
+    void addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time);
+
+    using DebuffMap = std::map<AbilityId, std::map<TargetId, DebuffPtr>>;
+    DebuffMap &getDebuffs() { return _debuffs; }
+    using BuffMap = std::map<AbilityId, BuffPtr>;
+    BuffMap &getBuffs() { return _buffs; }
+
+    const RawStats &getRawStats() const { return _rawStats; }
+    AllStatChanges getStatChangesFromBuffs(const Ability &abl, const TargetPtr &target) const;
+    AllStatChanges getStatChangesFromDebuff(const Ability &abl, const TargetPtr &source) const;
+    bool isBleeding() const;
+
+    void addBuff(BuffPtr buff, const Second &time);
+    template <class T> T *getBuff(const AbilityId &aid) {
+        auto it = _buffs.find(aid);
+        if (it == _buffs.end())
+            return nullptr;
+        return dynamic_cast<T *>(it->second.get());
+    }
+    template <class T> T *getDebuff(const AbilityId &aid, const TargetId &tid) {
+        auto dotMapIt = _debuffs.find(aid);
+        if (dotMapIt == _debuffs.end())
+            return nullptr;
+        auto dotIt = dotMapIt->second.find(tid);
+        if (dotIt == dotMapIt->second.end())
+            return nullptr;
+        Debuff *ptr = dotIt->second.get();
+        return dynamic_cast<T *>(ptr);
+    }
+    void removeDebuff(const AbilityId &aid, const TargetId &pid, const Second &time);
+    void removeBuff(const AbilityId &aid, const Second &time);
+
+    HealthPoints getCurrentHealth() const { return _health; }
+    HealthPoints getMaxHealth() const { return _rawStats.hp; }
+
+    const TargetEvents &getEvents() const { return _events; }
+    std::optional<Second> getDeathTime() const { return _deathTime; }
+
+  protected:
+    void addEvent(TargetEvent &&event);
+
+  private:
+    RawStats _rawStats;
+    double _defenseChance{0.1};
+    HealthPoints _health{100};
+    std::vector<Event> _upcomingEvents;
+    BuffMap _buffs;
+    DebuffMap _debuffs;
+    std::vector<std::pair<Second, DamageHits>> _hits;
+    TargetEvents _events;
+    TargetId _tag;
+    std::optional<Second> _deathTime;
+
+    // this needs to be replaced by a generic debuff
+    bool _sundered = true;
 };
+
+template <class T> void addBuffs(const TargetPtr &t, T v, const Second &time) {
+    for (auto &&buff : v) {
+        t->addBuff(std::move(buff), time);
+    }
+}
 } // namespace Simulator

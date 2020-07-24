@@ -90,7 +90,9 @@ endif()
 
 include(${conanfile_path})
 conan_basic_setup(TARGETS)
-
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Qunused-arguments -Wno-missing-braces -Wno-conversion -Wunused-parameter -Wunused-variable -Wunused -Wshadow -Wno-deprecated")
+endif()
 set(SIM_PROJECT SimulatorSWTOR)
 
 include(add_static_library)

@@ -1,17 +1,33 @@
 #pragma once
+#include "types.h"
+#include "detail/units.h"
+#include <optional>
+#include "utility.h"
+
 namespace Simulator {
 class TimedStatusEffect {
   public:
-    TimedStatusEffect(double startTime, double duration) noexcept
-        : _startTime(_startTime), _endTime(_startTime + duration){};
+    TimedStatusEffect(Second startTime, Second duration) noexcept : _startTime(startTime), _duration(duration){};
     TimedStatusEffect() noexcept : _indeterminate(true){};
-    [[nodiscard]] double getEndTime() const { return _endTime; }
-    [[nodiscard]] double getStartTime() const { return _startTime; }
+    [[nodiscard]] Second getEndTime() const { return _startTime + _duration; }
+    [[nodiscard]] Second getStartTime() const { return _startTime; }
+    void setDuration(const Second &duration) {
+        _duration = duration;
+        _indeterminate = false;
+    }
+    void setStartTime(Second startTime) { _startTime = startTime; }
     [[nodiscard]] bool isIndeterminate() const { return _indeterminate; }
+    [[nodiscard]] virtual std::optional<Second> getNextEventTime() const {
+        if (_indeterminate) {
+            return std::nullopt;
+        }
+        return _startTime + _duration;
+    };
+    virtual ~TimedStatusEffect() = default;
 
   private:
-    double _startTime{0.0};
-    double _endTime{0.0};
+    Second _startTime{0.0};
+    Second _duration{0.0};
     bool _indeterminate{false};
 };
 } // namespace Simulator

@@ -2,43 +2,84 @@
 #include "Ability.h"
 #include "Debuff.h"
 #include <optional>
+#include "utility.h"
 
 namespace Simulator {
 class Target;
-class DOT : public Debuff, public Ability {
+class DOT : public Debuff {
   public:
     DOT(AbilityId iid, double coeff, double ShxMin, double ShxMax, double Am, DamageType dt, bool dot, bool aoe,
         int ticks, Second tickRate, bool hasInitialTick)
-        : Debuff(), Ability(iid, coeff, ShxMin, ShxMax, Am, dt, dot, aoe), _nticks(ticks), _defaultTickRate(tickRate),
-          _tickRate(_tickRate) {}
+    : DOT(iid,AbilityCoefficients{coeff, ShxMin, ShxMax, Am, dt, dot, aoe}, ticks, tickRate, hasInitialTick){}
+    
+    DOT(AbilityId iid, AbilityCoefficients coeffs, int ticks, Second tickRate, bool hasInitialTick)
+        : Debuff(iid), _DefaultTickRate(tickRate), _ability(iid, coeffs), _nticks(ticks), _durationTicks(ticks), _defaultNTicks(ticks),
+          _tickRate(tickRate), _hasInitialTick(hasInitialTick),_defaultHasInitialTick(hasInitialTick) {}
+    [[nodiscard]] Debuff *clone() const override;
 
-    DamageHits apply(const Target &t, const FinalStats &s, const Second &time) {
-        _tickRate = _defaultTickRate / (1 + s.alacrity);
-        return refresh(t, s, time);
+    void setDurationTicks(int durationTicks) { _durationTicks = durationTicks; }
+    void apply(const FinalStats &s, const Second &time) override {
+        _tickRate = _DefaultTickRate / (1 + s.alacrity);
+        return refresh(time);
     }
-    DamageHits tick(const Target &t, const FinalStats &s, const Second &time);
-    DamageHits refresh(const Target &t, const FinalStats &s, const Second &time) {
-        _tickCount = 0;
-        if (_hasInitialTick) {
-            return tick(t, s, time);
+    DamageHits tick(const TargetPtr &t, const Second &time, bool extraTick=false);
+    void refresh(const Second &time) override {
+        if(_TickOnRefresh && _refreshCount>0){
+            if(!_defaultHasInitialTick){
+                _hasInitialTick=true;
+                _nticks = _defaultNTicks+1;
+            }
         }
-        _lastTickTime = time;
-        return {};
+        _TickCount = 0;
+        _lastTickTime = Second(-1e6);
+        setStartTime(time);
+        setDuration((_durationTicks - _hasInitialTick) * _tickRate);
+        ++_refreshCount;
     }
-    [[nodiscard]] bool isFinished() const { return _tickCount == _nticks; }
-
-    [[nodiscard]] std::optional<Second> getNextEvent() const {
-        if (_tickCount == _nticks)
+    [[nodiscard]] bool isFinished() const { return _TickCount == _nticks; }
+    [[nodiscard]] const Ability &getAbility() const { return _ability; }
+    [[nodiscard]] std::optional<Second> getNextEventTime() const override {
+        if (_TickCount == _nticks)
             return std::nullopt;
-        return _lastTickTime + _tickRate;
+        return std::max(_lastTickTime + _tickRate, getStartTime() + _tickRate * (!_hasInitialTick));
     }
-
+    [[nodiscard]] DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &t) override;
+    SIMULATOR_SET_MACRO(TickCount,int,0);
+    SIMULATOR_SET_MACRO(DoubleTickChance,std::optional<double>,std::nullopt);
+    SIMULATOR_GET_ONLY_MACRO(DefaultTickRate,Second,Second{0.0});
+    SIMULATOR_SET_MACRO(TickOnRefresh, bool,false);
   private:
-    int _tickCount{0};
+    Ability _ability;
     int _nticks;
-    Second _defaultTickRate;
+    int _durationTicks;
+    const int _defaultNTicks;
     Second _tickRate;
-    Second _lastTickTime;
+    Second _lastTickTime{-1e6};
     bool _hasInitialTick{true};
+    const bool _defaultHasInitialTick{true};
+    int _refreshCount{0};
 };
+
+void tickDot(DOT &dot, const TargetPtr &source, const TargetPtr &target, const Second &time);
+using DOTPtr = std::unique_ptr<DOT>;
+
+template <class T>
+class OnAbilityHitDot : public DOT{
+public:
+    OnAbilityHitDot(AbilityId iid, AbilityCoefficients coeffs, int ticks, Second tickRate, bool hasInitialTick, T && call) :
+    DOT( iid,  coeffs,  ticks,  tickRate,  hasInitialTick),_lambda(std::forward<T>(call)){}
+    
+    Debuff *clone() const override { return new OnAbilityHitDot<T>(*this); }
+    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &source,
+                                          const TargetPtr &target) override {
+        return _lambda(hits, time, source, target, *this);
+    }
+private:
+    T _lambda;
+    
+};
+
+template <class Lambda> OnAbilityHitDot<Lambda> *MakeOnAbilityHitDot(AbilityId iid, AbilityCoefficients coeffs,int ticks, Second tickRate, bool hasInitialTick, Lambda && call) {
+    return new OnAbilityHitDot<Lambda>(iid,coeffs,ticks,tickRate,hasInitialTick, std::forward<Lambda>(call));
+}
 } // namespace Simulator
