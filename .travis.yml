@@ -13,7 +13,7 @@ addons:
       - g++-8
       - cmake
       - python3
-      - ninja
+      - ninja-build
 
 script:
   - ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
