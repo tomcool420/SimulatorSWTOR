@@ -30,4 +30,7 @@ inline void checkFailed(const std::string &condition, const std::string &descrip
     auto errorString = fmt::format("Check Failed: {}. {}", condition, description);
     throw std::runtime_error(errorString);
 }
+
+
+
 } // namespace Simulator

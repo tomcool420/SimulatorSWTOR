@@ -6,6 +6,7 @@ constexpr double StandardHealth{11745};
 constexpr double BossArmor{14535};
 
 // cast abilities
+
 constexpr uint64_t vanguard_stockstrike{801367882989568};
 constexpr uint64_t trooper_high_impact_bolt{2021194429628416};
 constexpr uint64_t tactics_tactical_surge{3393260387041280};
@@ -25,6 +26,8 @@ constexpr uint64_t gunslinger_smugglers_luck{962811408678912};
 constexpr uint64_t gunslinger_entrenched_offsense{4307238017564672};
 constexpr uint64_t gunslinger_hunker_down{2044808159821824};
 constexpr uint64_t gunslinger_illegal_mods{760484089298944};
+
+constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};
 

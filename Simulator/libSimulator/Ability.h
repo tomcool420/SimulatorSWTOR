@@ -27,6 +27,7 @@ struct AbilityInfo {
     AbilityCastType type{AbilityCastType::Instant};
     Second time{Second(1.5)};
     int nTicks{1};
+    bool extraInitialTick{false};
 };
 
 using OnEndAction = std::function<void(const TargetPtr &, const TargetPtr &, const Second &)>;
