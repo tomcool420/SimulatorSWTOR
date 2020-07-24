@@ -15,13 +15,14 @@ addons:
       - python3
       - ninja-build
       - python3-venv
-
 script:
+  - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-8
   - export CXX=/usr/bin/g++-8
   # Check versions of gcc, g++ and cmake
-  - gcc-8 -v && g++-8 -v && cmake --version
+  - gcc -v && g++ -v && cmake --version
   - mkdir build && cd build
   - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
-  - ninja all
+  - ninja -k 100 all
   # Run your build commands next

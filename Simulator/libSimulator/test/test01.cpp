@@ -27,12 +27,12 @@ TEST(StatBuff, basic) {
     StatChanges twoPieceChanges{};
     twoPieceChanges.masteryMultiplierBonus = 0.02;
     StatBuff twoPiece(twoPieceChanges);
-
-    StatChanges sum;
-    forceValor.apply(sum);
-    ASSERT_DOUBLE_EQ(sum.masteryMultiplierBonus, 0.05);
-    twoPiece.apply(sum);
-    ASSERT_DOUBLE_EQ(sum.masteryMultiplierBonus, 0.07);
+    Ability ab(0,AbilityInfo{});
+    AllStatChanges sum;
+    forceValor.apply(ab,sum,nullptr);
+    ASSERT_DOUBLE_EQ(sum[0].masteryMultiplierBonus, 0.05);
+    twoPiece.apply(ab,sum,nullptr);
+    ASSERT_DOUBLE_EQ(sum[0].masteryMultiplierBonus, 0.07);
 }
 
 TEST(StatBuff, apply) {
