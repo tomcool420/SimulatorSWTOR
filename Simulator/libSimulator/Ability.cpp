@@ -137,9 +137,9 @@ void Ability::onAbilityEnd(const TargetPtr &source, const TargetPtr &target, con
 }
 
 void applyDamageToTarget(DamageHits hits, const TargetPtr &source, const TargetPtr &target, const Second &time) {
-    DamageHits extraHits;
     DamageHits currentHits = hits;
     while (currentHits.size()) {
+        DamageHits extraHits;
         for (auto &&[aid, buff] : source->getBuffs()) {
             auto th = buff->onAbilityHit(currentHits, time, source, target);
             extraHits.insert(extraHits.end(), th.begin(), th.end());
