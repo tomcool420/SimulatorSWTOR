@@ -23,6 +23,6 @@ script:
   # Check versions of gcc, g++ and cmake
   - gcc -v && g++ -v && cmake --version
   - mkdir build && cd build
-  - cmake -G Ninja
+  - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release 
   - ninja all
   # Run your build commands next
