@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include "utility.h"
 
 namespace Simulator {
 class Target;
@@ -53,6 +54,7 @@ class Ability {
     const AbilityId &getId() const { return _id; };
     const AllAbilityCoefficient &getCoefficients() const { return _info.coefficients; }
     const AbilityInfo &getInfo() const { return _info; }
+    void setInfo(AbilityInfo info) {_info=std::move(info);}
     void addOnHitAction(const OnHitActionPtr &oha);
     void onAbilityHitTarget(const DamageHits &hits, const TargetPtr &source, const TargetPtr &target,
                             const Second &time);
@@ -61,6 +63,8 @@ class Ability {
     void setStatChanges(AllStatChanges && allStatChanges){_allStatChanges=std::move(allStatChanges);}
     void setStatChanges(const StatChanges & statChanges){_allStatChanges=AllStatChanges(_info.coefficients.size(),statChanges);}
     const AllStatChanges & getStatChanges() const {return _allStatChanges;}
+    SIMULATOR_SET_MACRO(Cooldown,Second,Second(0.0));
+    SIMULATOR_SET_MACRO(CooldownIsAffectedByAlacrity,bool,true);
   private:
     AbilityId _id;
     AbilityInfo _info;

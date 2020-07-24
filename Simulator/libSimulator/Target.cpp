@@ -236,4 +236,18 @@ void Target::addEvent(TargetEvent && event){
     _events.push_back(std::move(event));
 }
 
+void Target::setAbilityCooldown(const AbilityId &id, const Second &time){
+    _abilityCooldownEnd[id]=time;
+}
+
+std::optional<Second> Target::getAbilityCooldownEnd(const AbilityId &id) const{
+    auto it = _abilityCooldownEnd.find(id);
+    if(it==_abilityCooldownEnd.end())
+        return std::nullopt;
+    return it->second;
+}
+
+void Target::finishCooldown(const AbilityId &id, const Second &time){
+    _abilityCooldownEnd[id]=time;
+}
 } // namespace Simulator
