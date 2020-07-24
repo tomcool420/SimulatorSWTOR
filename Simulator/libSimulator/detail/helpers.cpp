@@ -4,8 +4,37 @@
 #include "../ConditionalApplyDebuff.h"
 #include "../constants.h"
 #include "../types.h"
-
+#include "../detail/log.h"
 namespace Simulator {
+class EntrencedOffsenceBuff : public Buff{
+public:
+    EntrencedOffsenceBuff():Buff(){
+        setId(gunslinger_entrenched_offsense);
+        setDuration(Second(15));
+    };
+    [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) {
+        _stacks = std::clamp(static_cast<int>(std::floor((time-getStartTime()).getValue())),0,5);
+        SIM_INFO("Entrenched offence is now at {} stacks ",_stacks);
+        if (time > getEndTime()) {
+            return {{DebuffEventType::Remove}};
+        }
+        return {};
+    }
+    virtual void apply(const Ability & /*ability*/, AllStatChanges & fstats, const TargetPtr & /*target*/) const {
+        for(auto && stats:fstats){
+            stats.multiplier+=0.03*_stacks;
+        }
+    }
+    [[nodiscard]] std::optional<Second> getNextEventTime() const final{
+        if(_stacks<5)
+            return getStartTime()+((_stacks+1)*Second(1.0));
+        return Buff::getNextEventTime();
+    }
+    [[nodiscard]] Buff * clone() const final {return new EntrencedOffsenceBuff(*this);};
+
+private:
+    int _stacks{0};
+};
 auto getWoundingShotsLambda(){
     return [](DamageHits &hits, const Second & time, const TargetPtr &source, const TargetPtr &target,
               DOT &dot) -> DamageHits {
@@ -25,7 +54,8 @@ auto getWoundingShotsLambda(){
 DOTPtr getDot(AbilityId id) {
     switch (id) {
     case dirty_fighting_shrap_bomb: {
-        AbilityCoefficients coeffs{0.27,0.027,0.027,0.0,DamageType::Internal,true,true};
+        AbilityCoefficients coeffs{0.27,0.027,0.027,0.0,DamageType::Internal,true,false};
+        coeffs.isBleedDamage=true;
         coeffs.multiplier = 0.05; // bombastic (40)
         auto sb = std::unique_ptr<DOT>(MakeOnAbilityHitDot(dirty_fighting_shrap_bomb,coeffs,  8, Second(3), false,getWoundingShotsLambda()));
         sb->setDoubleTickChance(0.1); // gushing wounds (64)
@@ -34,13 +64,14 @@ DOTPtr getDot(AbilityId id) {
     case gunslinger_vital_shot: {
         AbilityCoefficients coeffs{0.3075, 0.03075, 0.03075, 0, DamageType::Internal, true,
             false};
-        
+        coeffs.isBleedDamage=true;
         auto vs = std::unique_ptr<DOT>(MakeOnAbilityHitDot(gunslinger_vital_shot,coeffs,  8, Second(3), false,getWoundingShotsLambda()));
         vs->setDoubleTickChance(0.1); // Mortal Wound (32)
         return vs;
     }
         case dirty_fighting_exploited_weakness:{
             AbilityCoefficients coeffs{0.112, 0.0112, 0.0112, 0, DamageType::Internal, true,false};
+            coeffs.isBleedDamage=true;
             auto vs = std::unique_ptr<DOT>(MakeOnAbilityHitDot(dirty_fighting_exploited_weakness,coeffs,  6, Second(3), false,getWoundingShotsLambda()));
             vs->setTickOnRefresh(true);
             return vs;
@@ -84,6 +115,8 @@ AbilityPtr getAbility(AbilityId id) {
         AbilityCoefficients coeffsMH{0.17, 0.017, 0.017, -0.89};
         AbilityCoefficients coeffsOH{0.0, 0.0, 0.0, -0.89};
         coeffsOH.isOffhandHit = true;
+        coeffsOH.multiplier=0.55;
+        coeffsMH.multiplier=0.55;
         auto abl = std::make_shared<Ability>(dirty_fighting_hemorraghing_blast, AbilityInfo{{coeffsMH, coeffsOH}});
         auto HemoDebuff = std::unique_ptr<Debuff>(MakeOnAbilityHitDebuff(
             "Hemo Blast", dirty_fighting_hemorraghing_blast,
@@ -106,12 +139,21 @@ AbilityPtr getAbility(AbilityId id) {
                 return ret;
             }));
         HemoDebuff->setDuration(Second(10));
-        auto conditionalHemoDebuff = std::make_shared<ConditionalApplyDebuff>(std::move(HemoDebuff));
-        abl->addOnHitAction(conditionalHemoDebuff);
+        abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(HemoDebuff)));
+        auto bloodyMayhemDebuff = std::make_unique<BloodyMayhemDebuff>();
+        abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(bloodyMayhemDebuff)));
+
         return abl;
     }
     case dirty_fighting_shrap_bomb: {
-        auto abl = createDotAbility(dirty_fighting_shrap_bomb);
+        auto vs = getDot(id);
+        auto info =vs->getAbility().getInfo();
+        for(auto && i : info.coefficients){
+            i.isAreaOfEffect=true;
+        }
+        auto abl = std::make_shared<Ability>(id, info);
+        abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(vs)));
+        
         auto assailable = getDebuff(debuff_assailable);
         CHECK(assailable);
         auto cAss = std::make_shared<ConditionalApplyDebuff>(std::move(assailable));
@@ -129,7 +171,10 @@ AbilityPtr getAbility(AbilityId id) {
         AbilityCoefficients coeffsMH{1.12, 0.112, 0.112, -0.25};
         AbilityCoefficients coeffOH{0.0, 0.0, 0.0, -0.25};
         coeffOH.isOffhandHit = true;
-        AbilityCoefficients coeffInternalHit{0.5, 0.05, 0.05, 0.0, DamageType::Internal, true};
+        coeffsMH.multiplier=0.1;
+        coeffOH.multiplier=0.1;
+        AbilityCoefficients coeffInternalHit{0.5, 0.05, 0.05, 0.0, DamageType::Internal, false};
+        coeffInternalHit.multiplier=0.1;
         AbilityInfo info{{coeffsMH, coeffOH, coeffInternalHit},AbilityCastType::Cast};
         auto abl =  std::make_shared<Ability>(dirty_fighting_dirty_blast, std::move(info));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(getDot(dirty_fighting_exploited_weakness)));
@@ -140,7 +185,51 @@ AbilityPtr getAbility(AbilityId id) {
         AbilityCoefficients coeffOH{0.0, 0.0, 0.0, -0.67};
         coeffOH.isOffhandHit = true;
         AbilityInfo info{{coeffsMH, coeffOH},AbilityCastType::Channeled,Second(1.0),4};
-        return std::make_shared<Ability>(dirty_fighting_wounding_shots, std::move(info));
+        auto ws =  std::make_shared<Ability>(dirty_fighting_wounding_shots, std::move(info));
+        ws->addOnEndAction([](const TargetPtr &source, const TargetPtr &, const Second & time){
+            if(auto b = source->getBuff<Buff>(gunslinger_smugglers_luck)){
+                source->removeBuff(gunslinger_smugglers_luck, time);
+            }
+        });
+        return ws;
+    }
+    case gunslinger_illegal_mods:{
+        AbilityInfo info{{},AbilityCastType::OffGCD};
+        StatChanges sc;
+        sc.armorPen=0.15;
+        sc.flatForceTechAccuracy=0.3;
+        sc.flatMeleeRangeAccuracy=0.3;
+        auto ass = std::make_unique<RawSheetBuff>("Illegal Mods",AbilityIds{},sc);
+        ass->setDuration(Second{10});
+        ass->setId(gunslinger_illegal_mods);
+        auto abl = std::make_shared<Ability>(gunslinger_illegal_mods,info);
+        abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(std::move(ass),false));
+        return abl;
+    }
+    case gunslinger_quickdraw:{
+        AbilityCoefficients coeffMH{2.51,0.251,0.251,0.67};
+        AbilityCoefficients coeffOH{0.0,0.0,0.0,0.67};
+        coeffOH.isOffhandHit = true;
+        return std::make_shared<Ability>(gunslinger_quickdraw,AbilityInfo{{coeffMH,coeffOH}});
+    }
+    case gunslinger_smugglers_luck:{
+        AbilityInfo info{{},AbilityCastType::OffGCD};
+        StatChanges sc;
+        sc.flatForceTechCritChance+=1.0;
+        sc.flatMeleeRangeCritChance+=1.0;
+        auto ass = std::make_unique<RawSheetBuff>("Smuggler's Luck",AbilityIds{dirty_fighting_wounding_shots},sc);
+        ass->setDuration(Second{20});
+        ass->setId(gunslinger_smugglers_luck);
+        auto abl = std::make_shared<Ability>(gunslinger_smugglers_luck,info);
+        abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(std::move(ass),false));
+        return abl;
+    }
+    case gunslinger_hunker_down:{
+        AbilityInfo info{{},AbilityCastType::OffGCD};
+
+        auto abl = std::make_shared<Ability>(gunslinger_smugglers_luck,info);
+        abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(std::make_unique<EntrencedOffsenceBuff>(),false));
+        return abl;
     }
     default:
         return nullptr;
@@ -155,6 +244,7 @@ DebuffPtr getDebuff(AbilityId id) {
         auto ass = std::make_unique<RawSheetDebuff>("Assailable", debuff_assailable,
                                                     DamageTypes{DamageType::Internal, DamageType::Elemental}, sc);
         ass->setDuration(Second{45});
+        ass->setBlockedByDebuffs({debuff_shattered});
         return ass;
     }
     case debuff_marked: {
@@ -163,12 +253,33 @@ DebuffPtr getDebuff(AbilityId id) {
         auto marked =
             std::make_unique<RawSheetDebuff>("Marked", debuff_marked, DamageTypes{DamageType::Weapon}, sc);
         marked->setDuration(Second{45});
+        marked->setBlockedByDebuffs({debuff_shattered});
         return marked;
     }
+        case test_debuff:{
+            StatChanges sc;
+            auto ass = std::make_unique<RawSheetDebuff>("Test Debuff", test_debuff,DamageTypes{}, sc);
+            ass->setDuration(Second(20));
+            return ass;
+        }
     default:
         break;
     }
     return nullptr;
+}
+
+BuffPtr getBuff(AbilityId id){
+    switch (id) {
+        case test_debuff:{
+            StatChanges sc;
+            auto ass = std::make_unique<RawSheetBuff>("Test Buff",AbilityIds{}, sc);
+            ass->setId(test_buff);
+            ass->setDuration(Second(20));
+            return ass;
+        }
+    default:
+            return nullptr;
+    }
 }
 std::vector<BuffPtr> getTacticsSheetBuffs() {
     std::vector<BuffPtr> ret;
@@ -261,4 +372,24 @@ RawStats getDefaultStats() {
     return rs;
 }
 
+std::map<AbilityId,AbilityLogInformation> getEventInformation(const TargetPtr & target){
+    std::map<AbilityId,AbilityLogInformation> ret;
+    for(auto && event: target->getEvents()){
+        if(event.type!=Target::TargetEventType::Damage)
+            continue;
+        for(auto && hit : *event.damage){
+            auto && info = ret[hit.id];
+            info.id=hit.id;
+            info.totalDamage+=hit.dmg;
+            if(hit.crit)
+                info.critCount+=1;
+            else if(hit.miss)
+                info.missCount+=1;
+            else
+                info.hitCount+=1;
+        }
+    }
+    return ret;
+    
+}
 } // namespace Simulator

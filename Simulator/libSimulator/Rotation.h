@@ -30,18 +30,21 @@ class SetRotation : public Rotation{
     
     SIMULATOR_SET_MACRO(DelayAfterChanneled,Second,Second{0.0})
     SIMULATOR_SET_MACRO(Repeats,int,1);
+    SIMULATOR_SET_MACRO(MinTimeAfterInstant,Second,Second{0.1})
   private:
     AbilityIds _ids;
     AbilityPtr _currentAbility{nullptr};
     int _idCounter{0};
     int _iterationCount{0};
     Second _nextFreeGCD{-1000.0};
+    Second _nextFreeGCDForInstant{-1000.0};
+    Second _abilityStartTime{-1000.0};
+    
     std::optional<Second> _lastEvent;
     int _currentTick{0};
-
-    double currentAbilityPercent{0.0};
     TargetPtr _target{nullptr};
-    
+    double _abilityAlacrityAmount{0.0};
+    Second _abilityCastTickTime{0.0};
 
 
 };
