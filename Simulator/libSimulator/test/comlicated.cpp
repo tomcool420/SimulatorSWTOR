@@ -9,6 +9,9 @@
 #include <spdlog/fmt/fmt.h>
 #include "../detail/log.h"
 #include "../Rotation.h"
+#include "../detail/log.h"
+#include "../AbilityDebuff.h"
+
 using namespace Simulator;
 
 TEST(calculations, complicated) {
@@ -31,7 +34,7 @@ TEST(calculations, complicated) {
 
     auto gStats = getFinalStats(rs, sc);
     buffs.push_back(getDefaultStatsBuffPtr());
-    addBuffs(player, std::move(buffs));
+    addBuffs(player, std::move(buffs),Second(0.0));
 
     auto damageRange = calculateDamageRange(gutBleeding->getAbility(), {gStats});
     std::vector<DamageHits> allhits;
@@ -81,7 +84,7 @@ TEST(calculations, complicated) {
             return {};
         }));
 
-    player->addBuff(std::move(triumph));
+    player->addBuff(std::move(triumph),Second(0.0));
 
     auto checkTriumph = [&](bool expected) {
         auto hib = getAbility(trooper_high_impact_bolt);
@@ -131,7 +134,7 @@ TEST(Calculations, HemoBlast) {
     gutBleeding->setBleeding(true);
     gutBleeding->setSource(player);
     buffs.push_back(getDefaultStatsBuffPtr());
-    addBuffs(player, std::move(buffs));
+    addBuffs(player, std::move(buffs),Second(0.0));
     auto dotStats = getAllFinalStats(gutBleeding->getAbility(), player, target);
     target->addDOT(std::move(gutBleeding), player, dotStats, Second(0.0));
 
@@ -169,7 +172,8 @@ int countHits(AbilityId id,const std::vector<std::pair<Second, DamageHits>> &all
     }
     return cnt;
 }
-TEST(Calculations,Rotation){
+
+TEST(Calculations,RelicProc){
     RawStats rs;
     rs.master = Mastery(3063);
     rs.power = Power(1304);
@@ -181,11 +185,215 @@ TEST(Calculations,Rotation){
     rs.weaponDamageOH = {1376.0, 2556.0};
     rs.hasOffhand = false;
     RawStats s;
+    s.hp = HealthPoints(1e6);
+    auto target = Target::New(s);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+    player->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge,Mastery{2892},Power{0},CriticalRating{0.0}),Second(0.0));
+    player->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge,Mastery{0.0},Power{2892},CriticalRating{0.0}),Second(0.0));
+
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {dirty_fighting_dirty_blast};
+        SetRotation rot(player, std::move(actions));
+        rot.setRepeats(20);
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+    }
+    std::cout<<"Target Health at the end: "<<target->getCurrentHealth().getValue()<<std::endl;
+}
+
+TEST(Calculations,Rotation2WS){
+    RawStats rs;
+    rs.master = Mastery(4953);
+    rs.power = Power(2100);
+    rs.criticalRating = CriticalRating(529);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    rs.hasOffhand = false;
+    RawStats s;
+    s.hp = HealthPoints(1e6);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+//    player->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge,Mastery{2892},Power{0},CriticalRating{0.0}),Second(0.0));
+//    player->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge,Mastery{0.0},Power{2892},CriticalRating{0.0}),Second(0.0));
+    std::vector<int> damages;
+    for(int ii = 0; ii< 1000;++ii){
+        detail::LogDisabler d;
+        auto target = Target::New(s);
+        target->clearHits();
+        std::vector<AbilityId> actions {
+            dirty_fighting_dirty_blast,gunslinger_vital_shot,dirty_fighting_shrap_bomb,dirty_fighting_hemorraghing_blast,dirty_fighting_wounding_shots,
+            dirty_fighting_dirty_blast,dirty_fighting_dirty_blast,dirty_fighting_dirty_blast,dirty_fighting_dirty_blast,dirty_fighting_wounding_shots
+        };
+        SetRotation rot(player, std::move(actions));
+        rot.setRepeats(1);
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        damages.push_back(target->getMaxHealth().getValue()-target->getCurrentHealth().getValue());
+    }
+    std::sort(damages.begin(),damages.end());
+    auto sum = std::accumulate(damages.begin(), damages.end(), 0);
+    SIM_INFO("Over {} iterations, mean damage is {} and range is {} - {}",damages.size(),double(sum)/damages.size(),damages.front(),damages.back());
+}
+
+std::set<double> getDamageHits(const Target::TargetEvents & events, AbilityId id){
+    std::set<double> ret;
+    for(auto && event : events){
+        if(event.type==Target::TargetEventType::Damage){
+            for(auto && hit : *event.damage){
+                if(hit.id == id){
+                    ret.insert(hit.dmg);
+                }
+            }
+        }
+    }
+    std::cout<< fmt::format("Hits for ability [{} {}] are : ",detail::getAbilityName(id), id);
+    for (auto && i : ret){
+        std::cout << i << " ";
+    }
+    std::cout<<std::endl;
+    return ret;
+}
+
+void logParseInformation(const TargetPtr &target,Second duration){
+    auto abilities = getEventInformation(target);
+    std::vector<AbilityLogInformation> informations;
+    for(auto && abl : abilities){
+        informations.push_back(abl.second);
+    }
+    std::sort(informations.begin(),informations.end(),[](const AbilityLogInformation &a,const AbilityLogInformation &b){
+        return a.totalDamage>b.totalDamage;
+    });
+    auto totalDamage = std::accumulate(informations.begin(), informations.end(), 0.0,[](const double & s, const AbilityLogInformation &b){
+        return s+b.totalDamage;
+    });
+    for(auto && abl : informations){
+        int totalHits = abl.hitCount+abl.missCount+abl.critCount;
+        SIM_INFO("[{:<35} {:>19}]: Hits: {:>4}, Normal Hits {:>4} ({:>02.2f}%), Crits: {:>4} ({:6.2f}%), Misses: {:>4} ({:>5.2f}%), DPS: {:>7}, Percentage: {}",
+                 detail::getAbilityName(abl.id),abl.id, totalHits,
+                 abl.hitCount,(double)abl.hitCount/totalHits*100.0,
+                 abl.critCount,(double)abl.critCount/totalHits*100.0,
+                 abl.missCount,(double)abl.missCount/totalHits*100.0,
+                 abl.totalDamage/duration.getValue(),abl.totalDamage/totalDamage*100.0);
+    }
+    
+}
+TEST(Calculations,Rotation2WS_HighStats){
+    RawStats rs;
+    rs.master = Mastery(12138);
+    rs.power = Power(9393);
+    rs.criticalRating = CriticalRating(1879);
+    rs.alacrityRating = AlacrityRating(2331);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    rs.hasOffhand = false;
+    RawStats s;
+    s.hp = HealthPoints(3.25e6);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+    auto ab = std::make_unique<AmplifierBuff>();
+    ab->setPeriodicIntensityBonus(0.022*9+0.0088);
+//    ab->setArmorPenBonus(0.025*9);
+//    ab->setForcecTechWizardryBonus(0.09);
+    player->addBuff(std::move(ab), Second(0.0));
+    auto cb = std::make_unique<ColdBloodedBuff>();
+    player->addBuff(std::move(cb), Second(0.0));
+//    player->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge,Mastery{2892},Power{0},CriticalRating{0.0}),Second(0.0));
+//    player->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge,Mastery{0.0},Power{2892},CriticalRating{0.0}),Second(0.0));
+    std::vector<Second> deathTimes;
+    for(int ii = 0; ii< 10  ;++ii){
+       auto d =  new detail::LogDisabler;
+        auto target = Target::New(s);
+        target->clearHits();
+//        std::vector<AbilityId> actions{dirty_fighting_wounding_shots,dirty_fighting_dirty_blast,gunslinger_quickdraw,gunslinger_quickdraw};
+        std::vector<AbilityId> actions {
+            dirty_fighting_dirty_blast,gunslinger_vital_shot,dirty_fighting_shrap_bomb,dirty_fighting_hemorraghing_blast,dirty_fighting_wounding_shots,
+            dirty_fighting_dirty_blast,dirty_fighting_dirty_blast,dirty_fighting_dirty_blast,gunslinger_quickdraw,dirty_fighting_wounding_shots
+        };
+        SetRotation rot(player, std::move(actions));
+        rot.setRepeats(50);
+        rot.setDelayAfterChanneled(Second(0.2));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.doRotation();
+        deathTimes.push_back(target->getDeathTime().value());
+//    getDamageHits(target->getEvents(), gunslinger_vital_shot);
+//    getDamageHits(target->getEvents(), dirty_fighting_shrap_bomb);
+//    getDamageHits(target->getEvents(), dirty_fighting_bloody_mayhem);
+    delete d;
+//    logParseInformation(target, *(target->getDeathTime())-Second(1.5));
+    }
+    std::sort(deathTimes.begin(),deathTimes.end());
+    auto sum = std::accumulate(deathTimes.begin(), deathTimes.end(), Second(0));
+    Second mean = sum/deathTimes.size();
+    SIM_INFO("Over {} iterations, mean death time is {} and range is {} - {}",deathTimes.size(),sum.getValue()/deathTimes.size(),deathTimes.front(),deathTimes.back());
+    
+    SIM_INFO("Over {} iterations, mean dps is {} and range is {}-{}",deathTimes.size(), s.hp.getValue()/(mean-Second(1.5)).getValue(),s.hp.getValue()/(deathTimes.back()-Second(1.5)).getValue(),s.hp.getValue()/(deathTimes.front()-Second(1.5)).getValue());
+}
+
+TEST(Calculations,DotsEntrenchedOffence){
+    RawStats rs;
+    rs.master = Mastery(12138);
+    rs.power = Power(9393);
+    rs.criticalRating = CriticalRating(1879);
+    rs.alacrityRating = AlacrityRating(2331);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    rs.hasOffhand = false;
+    RawStats s;
+    s.hp = HealthPoints(3.25e6);
+    auto player = Target::New(rs);
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+    auto ab = std::make_unique<AmplifierBuff>();
+    ab->setPeriodicIntensityBonus(0.022*9+0.0088);
+    player->addBuff(std::move(ab), Second(0.0));
+    auto cb = std::make_unique<ColdBloodedBuff>();
+    player->addBuff(std::move(cb), Second(0.0));
+    
+    auto target = Target::New(s);
+    target->addDebuff(std::make_unique<ShatteredDebuff>(), player, Second(0.0));
+    std::vector<AbilityId> actions {
+        gunslinger_hunker_down,
+        gunslinger_vital_shot,
+        dirty_fighting_shrap_bomb
+    };
+    SetRotation rot(player, std::move(actions));
+    rot.setRepeats(1);
+    rot.setDelayAfterChanneled(Second(0.2));
+    rot.setStart(Second(0.0));
+    rot.setTarget(target);
+    rot.doRotation();
+}
+
+TEST(Calculations,Rotation){
+    RawStats rs;
+    rs.master = Mastery(4953);
+    rs.power = Power(2100);
+    rs.criticalRating = CriticalRating(313);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {1376.0, 2556.0};
+    rs.hasOffhand = false;
+    RawStats s;
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);
     auto player = Target::New(rs);
-    player->addBuff(getDefaultStatsBuffPtr(false, false));
-    detail::LogDisabler d;
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+    auto d = new detail::LogDisabler;
     {
         target->clearHits();
         std::vector<AbilityId> actions {dirty_fighting_dirty_blast};
@@ -211,6 +419,7 @@ TEST(Calculations,Rotation){
         ASSERT_EQ(countHits(dirty_fighting_dirty_blast, hits), 6);
         ASSERT_EQ(countHits(dirty_fighting_exploited_weakness, hits), 7);
     }
+
     {
         target->clearHits();
         std::vector<AbilityId> actions {dirty_fighting_dirty_blast,dirty_fighting_wounding_shots};
@@ -265,6 +474,48 @@ TEST(Calculations,Rotation){
         ASSERT_EQ(countHits(tactics_tactical_surge, hits), 9);
         ASSERT_EQ(countHits(trooper_high_impact_bolt, hits), 3);
     }
+
+    {
+        target->clearHits();
+        std::vector<AbilityId> actions {gunslinger_smugglers_luck,tactics_tactical_surge,dirty_fighting_wounding_shots,tactics_tactical_surge,tactics_tactical_surge,trooper_high_impact_bolt};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto && allHits = target->getHits();
+        for(auto && hits : allHits){
+            for(auto && hit : hits.second){
+                if(hit.id==dirty_fighting_wounding_shots && hit.miss==false){
+                    EXPECT_TRUE(hit.crit);
+                }
+            }
+        }
+    }
+    delete d;
+
+    {
+        target->clearHits();
+        target->addDebuff(std::make_unique<ShatteredDebuff>(), player, Second(0.0));
+        std::vector<AbilityId> actions {gunslinger_smugglers_luck,gunslinger_hunker_down,dirty_fighting_shrap_bomb,dirty_fighting_wounding_shots,dirty_fighting_shrap_bomb};
+        SetRotation rot(player, std::move(actions));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setStart(Second(0.0));
+        rot.setTarget(target);
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto && allHits = target->getHits();
+        for(auto && hits : allHits){
+            for(auto && hit : hits.second){
+                if(hit.id==dirty_fighting_wounding_shots && hit.miss==false){
+                    EXPECT_TRUE(hit.crit);
+                }
+            }
+        }
+    }
+    
+
 }
 TEST(Calculations, CausedDebuffs){
     RawStats rs;
@@ -281,7 +532,7 @@ TEST(Calculations, CausedDebuffs){
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);
     auto player = Target::New(rs);
-    player->addBuff(getDefaultStatsBuffPtr(false, false));
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
     
     std::vector<std::pair<Second,AbilityId>> actions{
         {Second(0.0),gunslinger_vital_shot}
@@ -323,7 +574,7 @@ TEST(Calculations, RawCellBurst){
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);
     auto player = Target::New(rs);
-    player->addBuff(getDefaultStatsBuffPtr(false, false));
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
 
     auto babl = getAbility(tactics_cell_burst);
     auto validateCellBurstRange = [&](int stacks, double min, double max){
@@ -342,7 +593,7 @@ TEST(Calculations, RawCellBurst){
     validateCellBurstRange(3,9460,9836);
     validateCellBurstRange(4,12564,13063);
     
-    addBuffs(player, std::move(buffs));
+    addBuffs(player, std::move(buffs),Second{0.0});
     
     auto validateCellBurstRangeUsingBuff = [&](int stacks, double min, double max){
         auto coefficients = babl->getCoefficients()[0];
@@ -382,8 +633,8 @@ TEST(Calculations, CellBurst){
     s.hp = HealthPoints(2e6);
     auto target = Target::New(s);
     auto player = Target::New(rs);
-    player->addBuff(getDefaultStatsBuffPtr(false, false));
-    addBuffs(player, std::move(buffs));
+    player->addBuff(getDefaultStatsBuffPtr(false, false),Second(0.0));
+    addBuffs(player, std::move(buffs),Second{0.0});
     std::vector<std::pair<Second,AbilityId>> actions{
         {Second(0.0),tactics_cell_burst}
     };

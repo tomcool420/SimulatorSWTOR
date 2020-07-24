@@ -5,7 +5,7 @@
 #include "../detail/calculations.h"
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
-
+#include "../AbilityDebuff.h"
 using namespace Simulator;
 TEST(calculations, initial) {
     EXPECT_NEAR(0.071438, detail::getAlacrity(AlacrityRating(1213)), 1e-6);
@@ -230,4 +230,149 @@ TEST(AbilityDamageCalculation, VitalShot) {
         ASSERT_NEAR(dr.dmg.first, 1084.41873, 1e-3);
         ASSERT_NEAR(dr.dmg.first / 1.05 * 1.12, 1156.7133, 1e-3);
     }
+}
+
+
+
+TEST(Amplifier, PeriodicIntensity){
+    RawStats rs;
+    rs.master = Mastery(2250);
+    rs.power = Power(0);
+    rs.criticalRating = CriticalRating(264);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(0);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {1376.0, 2556.0};
+    
+    auto statBuffs = getDefaultStatsBuffPtr(false, false);
+    auto player = Target::New(rs);
+    auto vitalShot = getDot(gunslinger_vital_shot);
+    vitalShot->setSource(player);
+    player->addBuff(std::move(statBuffs),Second(0.0));
+    auto t = Target::New(rs); // create a dummy with 1 mil HP;
+
+    {
+        auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
+        auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
+        for (auto &&dr : damageRange) {
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            ASSERT_NEAR(dr.dmg.first, 1026.8826, 1e-3);
+        }
+    }
+    auto ab = std::make_unique<AmplifierBuff>();
+    ab->setPeriodicIntensityBonus(0.044);
+    auto abId = ab->getId();
+    player->addBuff(std::move(ab),Second(0.0));
+    {
+        auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
+        auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
+        for (auto &&dr : damageRange) {
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            ASSERT_NEAR(dr.dmg.first, 1072.0654, 1e-3);
+        }
+    }
+    
+    auto ass = getDebuff(debuff_assailable);
+    t->addDebuff(std::move(ass), player, Second(0.0));
+    {
+        auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
+        auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
+        for (auto &&dr : damageRange) {
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            ASSERT_NEAR(dr.dmg.first, 1143.947, 1e-3);
+        }
+    }
+    
+    player->removeBuff(abId,Second(0.0));
+    {
+        auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
+        auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
+        for (auto &&dr : damageRange) {
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            ASSERT_NEAR(dr.dmg.first, 1098.764, 1e-3);
+        }
+    }
+
+    
+}
+
+TEST(BaseDamage, HemoBlast){
+    RawStats rs;
+    rs.master = Mastery(4953);
+    rs.power = Power(2100);
+    rs.criticalRating = CriticalRating(313);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    
+    auto statBuffs = getDefaultStatsBuffPtr(false, false);
+    auto player = Target::New(rs);
+    auto abl = getAbility(dirty_fighting_hemorraghing_blast);
+    player->addBuff(std::move(statBuffs),Second(0.0));
+    auto t = Target::New(rs); // create a dummy with 1 mil HP;
+
+    {
+        auto asc = getAllFinalStats(*abl, player, t);
+        auto damageRange = calculateDamageRange(*abl, asc);
+        double min = damageRange[0].dmg.first+damageRange[1].dmg.first;
+        double max = damageRange[0].dmg.second+damageRange[1].dmg.second;
+
+        std::cout << fmt::format("Damage range for hemo blast is : {}-{}",min, max) << std::endl;
+        ASSERT_NEAR(min,1022.23,1e-1);
+        ASSERT_NEAR(max,1283.77,1e-1);
+    }
+}
+
+TEST(BaseDamage, Quickdraw){
+    RawStats rs;
+    rs.master = Mastery(4953);
+    rs.power = Power(2100);
+    rs.criticalRating = CriticalRating(313);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    
+    auto statBuffs = getDefaultStatsBuffPtr(false, false);
+    auto player = Target::New(rs);
+    auto abl = getAbility(gunslinger_quickdraw);
+    player->addBuff(std::move(statBuffs),Second(0.0));
+    auto t = Target::New(rs); // create a dummy with 1 mil HP;
+
+    {
+        auto asc = getAllFinalStats(*abl, player, t);
+        auto damageRange = calculateDamageRange(*abl, asc);
+        double min = damageRange[0].dmg.first+damageRange[1].dmg.first;
+        double max = damageRange[0].dmg.second+damageRange[1].dmg.second;
+
+        std::cout << fmt::format("Damage range for quickdraw is : {}-{}",min, max) << std::endl;
+        ASSERT_NEAR(std::round(min),9819,1e-1);
+        ASSERT_NEAR(std::round(max),12381,1e-1);
+    }
+}
+
+TEST(Debuff, Blocking){
+    RawStats rs;
+    rs.master = Mastery(4953);
+    rs.power = Power(2100);
+    rs.criticalRating = CriticalRating(313);
+    rs.alacrityRating = AlacrityRating(0);
+    rs.accuracyRating = AccuracyRating(1557);
+    rs.forceTechPower = FTPower(7008);
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {413, 767};
+    
+    auto shat = std::make_unique<ShatteredDebuff>();
+    auto ass = getDebuff(debuff_assailable);
+    auto t = Target::New(rs);
+    auto p = Target::New(rs);
+    t->addDebuff(std::move(shat), p, Second(0.0));
+    t->addDebuff(std::move(ass), p, Second(0.0));
+    ASSERT_TRUE(t->getDebuff<Debuff>(debuff_shattered, p->getId()));
+    ASSERT_FALSE(t->getDebuff<Debuff>(debuff_assailable, p->getId()));
+
 }
