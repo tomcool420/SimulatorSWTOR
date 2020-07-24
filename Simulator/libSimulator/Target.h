@@ -14,8 +14,8 @@
 
 namespace Simulator {
 using TargetId = boost::uuids::uuid;
-
 class Target : public std::enable_shared_from_this<Target> {
+  public:
     enum class EventClass { Dot, Buff, Debuff };
     struct Event {
         Second Time{0.0};
@@ -23,9 +23,26 @@ class Target : public std::enable_shared_from_this<Target> {
         AbilityId aId;
         TargetId pId;
     };
+    enum class TargetEventType {
+        AddBuff,
+        RemoveBuff,
+        RefreshBuff,
+        AddDebuff,
+        RemoveDebuff,
+        RefreshDebuff,
+        Die,
+        Damage
+    };
+    struct TargetEvent {
+        TargetEventType type;
+        Second time;
+        std::optional<DamageHits> damage;
+        std::optional<AbilityId> id;
+    };
+    using TargetEvents = std::vector<TargetEvent>;
 
   private:
-    Target(RawStats rs) : _rawStats(rs), _health(rs.hp){};
+    Target(RawStats rs) : _rawStats(rs), _health(rs.hp), _tag(boost::uuids::random_generator()()){};
 
   public:
     static std::shared_ptr<Target> New(const RawStats &rs) { return std::shared_ptr<Target>(new Target(rs)); }
@@ -44,8 +61,8 @@ class Target : public std::enable_shared_from_this<Target> {
     std::optional<Second> getNextEventTime();
     void applyEventsAtTime(const Second &time);
     void logHits() const;
-    const std::vector<std::pair<Second, DamageHits>> & getHits()const {return _hits;}
-    void clearHits() {_hits.clear();}
+    const std::vector<std::pair<Second, DamageHits>> &getHits() const { return _hits; }
+    void clearHits() { _hits.clear(); }
     void addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time);
 
     using DebuffMap = std::map<AbilityId, std::map<TargetId, DebuffPtr>>;
@@ -58,24 +75,34 @@ class Target : public std::enable_shared_from_this<Target> {
     AllStatChanges getStatChangesFromDebuff(const Ability &abl, const TargetPtr &source) const;
     bool isBleeding() const;
 
-    void addBuff(BuffPtr buff) { _buffs.insert_or_assign(buff->getId(), std::move(buff)); }
-    template <class T> T * getBuff(const AbilityId &aid){
+    void addBuff(BuffPtr buff, const Second &time);
+    template <class T> T *getBuff(const AbilityId &aid) {
         auto it = _buffs.find(aid);
-        if(it==_buffs.end())
+        if (it == _buffs.end())
             return nullptr;
         return dynamic_cast<T *>(it->second.get());
     }
     template <class T> T *getDebuff(const AbilityId &aid, const TargetId &tid) {
         auto dotMapIt = _debuffs.find(aid);
-        CHECK(dotMapIt != _debuffs.end());
+        if (dotMapIt == _debuffs.end())
+            return nullptr;
         auto dotIt = dotMapIt->second.find(tid);
-        CHECK(dotIt != dotMapIt->second.end());
+        if (dotIt == dotMapIt->second.end())
+            return nullptr;
         Debuff *ptr = dotIt->second.get();
         return dynamic_cast<T *>(ptr);
     }
-    void removeDebuff(const AbilityId &aid, const TargetId &pid);
+    void removeDebuff(const AbilityId &aid, const TargetId &pid, const Second &time);
+    void removeBuff(const AbilityId &aid, const Second &time);
+
     HealthPoints getCurrentHealth() const { return _health; }
     HealthPoints getMaxHealth() const { return _rawStats.hp; }
+
+    const TargetEvents &getEvents() const { return _events; }
+    std::optional<Second> getDeathTime() const { return _deathTime; }
+
+  protected:
+    void addEvent(TargetEvent &&event);
 
   private:
     RawStats _rawStats;
@@ -85,15 +112,17 @@ class Target : public std::enable_shared_from_this<Target> {
     BuffMap _buffs;
     DebuffMap _debuffs;
     std::vector<std::pair<Second, DamageHits>> _hits;
+    TargetEvents _events;
     TargetId _tag;
+    std::optional<Second> _deathTime;
 
     // this needs to be replaced by a generic debuff
     bool _sundered = true;
 };
 
-template <class T> void addBuffs(const TargetPtr &t, T v) {
+template <class T> void addBuffs(const TargetPtr &t, T v, const Second &time) {
     for (auto &&buff : v) {
-        t->addBuff(std::move(buff));
+        t->addBuff(std::move(buff), time);
     }
 }
 } // namespace Simulator

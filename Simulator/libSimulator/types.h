@@ -51,6 +51,10 @@ struct StatChanges {
     double multiplier{0.0};
     
     Second castTime{0.0};
+    bool armorDebuff{false};
+    double flatMeleeRangeAccuracy{0.0};
+    double flatForceTechAccuracy{0.0};
+
 };
 using AllStatChanges = std::vector<StatChanges>;
 
@@ -71,6 +75,7 @@ struct FinalStats {
     double multiplier{0.0};
     bool hasOffhand{false};
     double armorPen{0.0};
+    bool armorDebuff{false};
 };
 using AllFinalStats = std::vector<FinalStats>;
 StatChanges operator+(const StatChanges &a, const StatChanges &b);
@@ -86,6 +91,7 @@ struct DamageRange {
     DamageType dt;
     std::pair<double, double> dmg;
     bool offhand{false};
+    bool aoe{false};
 };
 using DamageRanges = std::vector<DamageRange>;
 struct DamageHit {
@@ -95,6 +101,7 @@ struct DamageHit {
     bool offhand{false};
     bool crit{false};
     bool miss{false};
+    bool aoe{false};
 };
 using DamageHits = std::vector<DamageHit>;
 

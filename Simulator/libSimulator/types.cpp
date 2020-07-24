@@ -33,6 +33,9 @@ void operator+=(StatChanges &a, const StatChanges &b) {
     ADD_SC(multiplier);
     
     ADD_SC(castTime);
+    ADD_SC(flatMeleeRangeAccuracy);
+    ADD_SC(flatForceTechAccuracy);
+    a.armorDebuff=a.armorDebuff || b.armorDebuff;
 }
 
 FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChanges) {
@@ -65,10 +68,18 @@ FinalStats getFinalStats(const RawStats &rawStats, const StatChanges &statChange
     ret.weaponDamageTypeMH = rawStats.weaponDamageTypeMH;
     ret.weaponDamageTypeOH = rawStats.weaponDamageTypeOH;
     ret.multiplier = statChanges.multiplier;
+    ret.armorDebuff=statChanges.armorDebuff;
     return ret;
 }
 
 AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &source, const TargetPtr &target) {
+    if(ability.getCoefficients().empty()){
+        // if an ability has no coefficients, do the math to check for alacrity
+        AbilityInfo ablInfo = ability.getInfo();
+        ablInfo.coefficients={AbilityCoefficients{}};
+        auto tabl = Ability(ability.getId(), ablInfo);
+        return getAllFinalStats(tabl, source, target);
+    }
     auto &&rs = source->getRawStats();
     auto scb = source->getStatChangesFromBuffs(ability, target);
     auto scd = target->getStatChangesFromDebuff(ability, source);

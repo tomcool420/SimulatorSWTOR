@@ -10,4 +10,5 @@ class OnHitAction {
 };
 using OnHitActionPtr = std::shared_ptr<OnHitAction>;
 using OnHitActionPtrs = std::vector<OnHitActionPtr>;
+
 } // namespace Simulator

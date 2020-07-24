@@ -2,8 +2,13 @@
 #include "detail/log.h"
 #include "utility.h"
 #include "detail/names.h"
+#include <boost/uuid/uuid_io.hpp>
 namespace Simulator {
 std::optional<Second> Target::getNextEventTime() {
+    if(_health<=HealthPoints(0)){
+        _upcomingEvents.clear();
+        return std::nullopt;
+    }
     std::vector<Event> events;
     for (auto &&[aid, debuffInstances] : _debuffs) {
         for (auto &&[pId, debuff] : debuffInstances) {
@@ -12,6 +17,12 @@ std::optional<Second> Target::getNextEventTime() {
             if (nextTime) {
                 events.push_back({*nextTime, EventClass::Debuff, aid, pId});
             }
+        }
+    }
+    for(auto && [aid, buff] : _buffs){
+        CHECK(buff);
+        if(auto ne = buff->getNextEventTime()){
+            events.push_back({*ne,EventClass::Buff,aid,getId()});
         }
     }
 
@@ -37,17 +48,39 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const AllFinalStats &fs, const
         dotMap.insert_or_assign(source->getId(), std::move(dot));
     }
 }
+void Target::addBuff(BuffPtr buff,const Second & time) {
+    addEvent({TargetEventType::AddBuff,time,std::nullopt,buff->getId()});
+    _buffs.insert_or_assign(buff->getId(), std::move(buff));
+}
 
 DOT *Target::refreshDOT(const AbilityId &ablId, const TargetId &pId, const Second &time) {
     auto dot = getDebuff<DOT>(ablId, pId);
     dot->refresh(time);
-        SIM_INFO("Time : {}, abl: [{} {}], refreshing debuff",time.getValue(),detail::getAbilityName(dot->getId()), dot->getId());
+    addEvent({TargetEventType::RefreshDebuff,time,std::nullopt,dot->getId()});
     return dot;
 }
 void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
-    SIM_INFO("Time : {}, abl: [{} {}], applying debuff",time.getValue(),detail::getAbilityName(debuff->getId()), debuff->getId());
     CHECK(debuff);
     auto id = debuff->getId();
+    auto && bi = debuff->getBlockedByDebuffs();
+    bool blocked = false;
+    for(int ii =0; ii< bi.size();++ii){
+        for(auto && it : _debuffs){
+            if(it.first==bi[ii] && !it.second.empty()){
+                blocked=true;
+                SIM_INFO("Debuff [{} {}] application blocked by debuff [{} {}] at time {}",
+                         detail::getAbilityName(debuff->getId()),debuff->getId(),
+                         detail::getAbilityName(it.first),it.first,
+                         time);
+                break;
+            }
+        }
+        if(blocked)
+            break;
+    }
+    if(blocked)
+        return;
+
     auto &debuffMap = _debuffs[id];
     if (debuffMap.size() && debuff->getUnique())
         debuffMap.clear();
@@ -56,6 +89,7 @@ void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
 
     if (it != debuffMap.end()) {
         it->second->refresh(time);
+        addEvent({TargetEventType::RefreshDebuff,time,std::nullopt,it->second->getId()});
     } else {
         debuff->setSource(player);
         FinalStats fs;
@@ -64,16 +98,14 @@ void Target::addDebuff(DebuffPtr debuff, TargetPtr player, const Second &time) {
             fs = stats[0];
         }
         debuff->apply(fs, time);
+        addEvent({TargetEventType::AddDebuff,time,std::nullopt,debuff->getId()});
         debuffMap.insert_or_assign(player->getId(), std::move(debuff));
     }
 }
 
 void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/, const Second &time) {
-    for (auto &&hit : hits) {
-        SIM_INFO("Time : {}, abl: [{} {}], damage: {}, crit: {}, miss: {}, offhand: {}, type: {}", time.getValue(), detail::getAbilityName(hit.id), hit.id,
-                 hit.dmg, hit.crit, hit.miss, hit.offhand, static_cast<int>(hit.dt));
-    }
     _hits.emplace_back(time, hits);
+    addEvent({TargetEventType::Damage,time,hits,std::nullopt});
     int sum = 0;
     for (auto hit : hits) {
         if (hit.miss)
@@ -81,6 +113,9 @@ void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/
         sum += std::round(hit.dmg);
     }
     _health -= HealthPoints(sum);
+    if(_health<=HealthPoints(0.0)){
+        addEvent({TargetEventType::Die,time,std::nullopt,std::nullopt});
+    }
 }
 
 void Target::logHits() const {
@@ -95,7 +130,8 @@ void Target::logHits() const {
 }
 
 void Target::applyEventsAtTime(const Second &time) {
-    for (auto &&event : _upcomingEvents) {
+    for(int ii = 0;ii< _upcomingEvents.size();++ii){
+        auto && event = _upcomingEvents[ii];
         if (event.Time > time)
             break;
         if (event.eClass == Target::EventClass::Debuff) {
@@ -106,8 +142,18 @@ void Target::applyEventsAtTime(const Second &time) {
                 if (devent.type == DebuffEventType::Tick) {
                     applyDamageToTarget(devent.hits, (debuff->getSource()), shared_from_this(), time);
                 } else if (devent.type == DebuffEventType::Remove) {
-    SIM_INFO("Time : {}, abl: [{} {}], removing debuff",time.getValue(),detail::getAbilityName(event.aId), event.aId);
-                    removeDebuff(event.aId, event.pId);
+                    removeDebuff(event.aId, event.pId,time);
+                }
+            }
+        }else if(event.eClass==Target::EventClass::Buff){
+            auto buff = getBuff<Buff>(event.aId);
+            CHECK(buff);
+            auto events = buff->resolveEventsUpToTime(time, shared_from_this());
+            for(auto && devent : events){
+                if (devent.type == DebuffEventType::Tick) {
+                    CHECK(false,"Can't have a buff tick damage...");
+                } else if (devent.type == DebuffEventType::Remove) {
+                    removeBuff(event.aId,time);
                 }
             }
         }
@@ -142,7 +188,7 @@ bool Target::isBleeding() const {
     }
     return false;
 }
-void Target::removeDebuff(const AbilityId &aid, const TargetId &pid) {
+void Target::removeDebuff(const AbilityId &aid, const TargetId &pid,const Second & time) {
     auto dotMapIt = _debuffs.find(aid);
     CHECK(dotMapIt != _debuffs.end());
     auto dotIt = dotMapIt->second.find(pid);
@@ -153,5 +199,41 @@ void Target::removeDebuff(const AbilityId &aid, const TargetId &pid) {
     } else {
         dotMapIt->second.erase(pid);
     }
+    addEvent({TargetEventType::RemoveDebuff,time,std::nullopt,aid});
 }
+void Target::removeBuff(const AbilityId &aid,const Second & time) {
+    auto dotMapIt = _buffs.find(aid);
+    CHECK(dotMapIt != _buffs.end());
+    _buffs.erase(dotMapIt);
+    addEvent({TargetEventType::RemoveBuff,time,std::nullopt,aid});
+}
+
+void Target::addEvent(TargetEvent && event){
+    if(event.type==TargetEventType::Damage){
+        CHECK(event.damage.has_value())
+        auto && hits = event.damage.value();
+        for (auto &&hit : hits) {
+            SIM_INFO("Time : {}, abl: [{} {}], damage: {}, crit: {}, miss: {}, offhand: {}, type: {}", event.time.getValue(), detail::getAbilityName(hit.id), hit.id,
+                     hit.dmg, hit.crit, hit.miss, hit.offhand, static_cast<int>(hit.dt));
+        }
+    }else if(event.type==TargetEventType::AddBuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Adding Buff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::RemoveBuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Removing Buff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::RefreshBuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Refreshing Buff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::AddDebuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Adding Debuff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::RemoveDebuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Removing Debuff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::RefreshDebuff){
+        SIM_INFO("Time : {}, abl: [{} {}], Refreshing Debuff",event.time.getValue(),detail::getAbilityName(event.id.value()),event.id.value());
+    }else if(event.type==TargetEventType::Die){
+        SIM_INFO("Time : {},  Target: {}, Death",event.time.getValue(),getId());
+        _deathTime=event.time;
+
+    }
+    _events.push_back(std::move(event));
+}
+
 } // namespace Simulator
