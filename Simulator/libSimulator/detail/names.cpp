@@ -27,12 +27,34 @@ std::string getAbilityName(const AbilityId &id) {
             return "Wounding Shots";
         case dirty_fighting_exploited_weakness:
             return "Exploited Weakness (Dirty Blast)";
+        case dirty_fighting_bloody_mayhem:
+            return "Bloody Mayhem";
+        case gunslinger_entrenched_offsense:
+            return "Entrenched Offence";
+        case gunslinger_hunker_down:
+            return "Hunker Down";
         case gunslinger_vital_shot:
             return "Vital Shot";
+        case gunslinger_smugglers_luck:
+            return "Smuggler's Luck";
+        case gunslinger_illegal_mods:
+            return "Illegal Mods";
         case debuff_marked:
             return "Marked";
         case debuff_assailable:
             return "Assailable";
+        case debuff_shattered:
+            return "Shattered";
+        case relic_critical_surge:
+            return "Critical Surge";
+        case relic_mastery_surge:
+            return "Mastery Surge";
+        case relic_power_surge:
+            return "Power Surge";
+        case test_buff:
+            return "Test Buff";
+        case test_debuff:
+            return "Test Debuff";
         default:
             return "";
     }
