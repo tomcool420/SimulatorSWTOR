@@ -52,12 +52,11 @@ struct StatChanges {
     double armorPen{0.0};
 
     double multiplier{0.0};
-    
+
     Second castTime{0.0};
     bool armorDebuff{false};
     double flatMeleeRangeAccuracy{0.0};
     double flatForceTechAccuracy{0.0};
-
 };
 using AllStatChanges = std::vector<StatChanges>;
 

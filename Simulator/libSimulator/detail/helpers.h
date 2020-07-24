@@ -45,7 +45,7 @@ class EnergyLodeBuff : public Buff {
 
     void setStacks(int stacks) { _stacks = stacks - 1; }
     int getStacks() const { return std::clamp(_stacks + 1, 0, 4); }
-    [[nodiscard]] Buff * clone() const override {return new EnergyLodeBuff(*this);}
+    [[nodiscard]] Buff *clone() const override { return new EnergyLodeBuff(*this); }
 
   private:
     int _stacks = 0;
@@ -53,64 +53,60 @@ class EnergyLodeBuff : public Buff {
 
 class ColdBloodedBuff : public Buff {
   public:
-    ColdBloodedBuff() : Buff(){ }
+    ColdBloodedBuff() : Buff() {}
 
     DamageHits onAbilityHit(DamageHits &hits, const Second & /*time*/, const TargetPtr & /*player*/,
-                            const TargetPtr & target) override {
-        if(target->getCurrentHealth()/target->getMaxHealth()<0.3){
+                            const TargetPtr &target) override {
+        if (target->getCurrentHealth() / target->getMaxHealth() < 0.3) {
             for (auto &&hit : hits) {
-                if (hit.id == dirty_fighting_exploited_weakness ||
-                    hit.id == dirty_fighting_shrap_bomb ||
+                if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
                     hit.id == gunslinger_vital_shot ||
                     (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
                     SIM_INFO("APPLYING COLD BLOODED TO ABILITY {}", detail::getAbilityName(hit.id));
-                    hit.dmg*=1.15;
+                    hit.dmg *= 1.15;
                 }
             }
         }
         return {};
     }
-    [[nodiscard]] Buff * clone() const override {return new ColdBloodedBuff(*this);}
-
+    [[nodiscard]] Buff *clone() const override { return new ColdBloodedBuff(*this); }
 };
 
 class BloodyMayhemDebuff : public Debuff {
   public:
-    BloodyMayhemDebuff() : Debuff(dirty_fighting_bloody_mayhem){
-        setDuration(Second(15.0));
-    }
+    BloodyMayhemDebuff() : Debuff(dirty_fighting_bloody_mayhem) { setDuration(Second(15.0)); }
 
-    DamageHits onAbilityHit(DamageHits &hits, const Second & time, const TargetPtr & player,
-                            const TargetPtr & target) override {
-        if(_triggered)
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
+                            const TargetPtr &target) override {
+        if (_triggered)
             return {};
-        AbilityCoefficients coeffs{0.396,0.0396,0.0396,0.0,DamageType::Internal};
+        AbilityCoefficients coeffs{0.396, 0.0396, 0.0396, 0.0, DamageType::Internal};
         AbilityInfo info{{coeffs}};
-        Ability abl(dirty_fighting_bloody_mayhem,info);
+        Ability abl(dirty_fighting_bloody_mayhem, info);
         for (auto &&hit : hits) {
             if (hit.id == dirty_fighting_shrap_bomb) {
 
-                _triggered=true;
+                _triggered = true;
                 break;
             }
         }
-        if(_triggered){
+        if (_triggered) {
             DamageHits ret;
             auto afs = getAllFinalStats(abl, player, target);
             auto newHits = getHits(abl, afs, target);
             ret.insert(ret.end(), newHits.begin(), newHits.end());
-            setDuration(time-getStartTime()+Second(1e-5));
+            setDuration(time - getStartTime() + Second(1e-5));
             return ret;
         }
         return {};
-        
     }
-    [[nodiscard]] Debuff *clone() const override {return new BloodyMayhemDebuff(*this);}
-private:
+    [[nodiscard]] Debuff *clone() const override { return new BloodyMayhemDebuff(*this); }
+
+  private:
     bool _triggered{false};
 };
 
-struct AbilityLogInformation{
+struct AbilityLogInformation {
     AbilityId id;
     double totalDamage{0};
     int hitCount{0};
@@ -118,5 +114,5 @@ struct AbilityLogInformation{
     int missCount{0};
 };
 
-std::map<AbilityId, AbilityLogInformation> getEventInformation(const TargetPtr & target);
+std::map<AbilityId, AbilityLogInformation> getEventInformation(const TargetPtr &target);
 } // namespace Simulator

@@ -1,10 +1,10 @@
 #pragma once
 #include "Gunslinger.h"
 
-namespace Simulator{
-class DirtyFighting: public Gunslinger{
-    
-protected:
+namespace Simulator {
+class DirtyFighting : public Gunslinger {
+
+  protected:
     AbilityPtr getAbilityInternal(AbilityId id) override;
 };
-}
+} // namespace Simulator

@@ -31,7 +31,6 @@ constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};
 
-
 constexpr uint64_t debuff_assailable{807698664784260};
 constexpr uint64_t debuff_marked{2115340112757234};
 constexpr uint64_t debuff_shattered{3322127138684928};
@@ -41,7 +40,6 @@ constexpr uint64_t tactics_high_energy_cell{3963924101726208};
 constexpr uint64_t relic_mastery_surge{4293365273198592};
 constexpr uint64_t relic_power_surge{42929443664035840};
 constexpr uint64_t relic_critical_surge{4289220629757952};
-
 
 constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};

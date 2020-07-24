@@ -11,8 +11,6 @@ std::mutex mutex;
 std::shared_ptr<spdlog::logger> logger;
 } // namespace
 
-
-
 void redirectLogging(const Sinks &sinks) {
     auto l = std::make_shared<spdlog::logger>("v3d", sinks.begin(), sinks.end());
     l->set_level(spdlog::level::trace);

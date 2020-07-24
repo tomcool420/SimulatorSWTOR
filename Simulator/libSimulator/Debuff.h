@@ -4,7 +4,7 @@
 #include "utility.h"
 #include <optional>
 namespace Simulator {
-enum class DebuffEventType { Apply, Remove, Tick,Internal };
+enum class DebuffEventType { Apply, Remove, Tick, Internal };
 struct DebuffEvent {
     DebuffEventType type;
     Second time;
@@ -37,7 +37,7 @@ class Debuff : public TimedStatusEffect {
   private:
     AbilityId _id;
     TargetPtr _source{nullptr};
-    SIMULATOR_SET_MACRO(BlockedByDebuffs,AbilityIds,{})
+    SIMULATOR_SET_MACRO(BlockedByDebuffs, AbilityIds, {})
     SIMULATOR_SET_MACRO(Bleeding, bool, false);
     SIMULATOR_SET_MACRO(Burning, bool, false);
     SIMULATOR_SET_MACRO(Poisoned, bool, false);

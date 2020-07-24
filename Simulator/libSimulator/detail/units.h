@@ -103,12 +103,12 @@ struct ForceTechDamageCategory {};
 DEFINE_UNIT(FTPower, ForceTechDamageCategory, 1.0);
 struct AccuracyRatingCategory {};
 DEFINE_UNIT(AccuracyRating, AccuracyRatingCategory, 1.0);
-struct TimeCategory{};
-DEFINE_UNIT(Second,TimeCategory,1.0);
-DEFINE_UNIT(Minute,TimeCategory,60.0);
-struct HealthCategory{};
-DEFINE_UNIT(HealthPoints,HealthCategory,1.0);
-struct ArmorCatergory{};
-DEFINE_UNIT(Armor,ArmorCatergory,1.0);
+struct TimeCategory {};
+DEFINE_UNIT(Second, TimeCategory, 1.0);
+DEFINE_UNIT(Minute, TimeCategory, 60.0);
+struct HealthCategory {};
+DEFINE_UNIT(HealthPoints, HealthCategory, 1.0);
+struct ArmorCatergory {};
+DEFINE_UNIT(Armor, ArmorCatergory, 1.0);
 
 } // namespace Simulator

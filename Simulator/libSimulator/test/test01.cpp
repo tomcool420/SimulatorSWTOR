@@ -1,12 +1,12 @@
-#include "../detail/helpers.h"
 #include "../Ability.h"
 #include "../AbilityBuff.h"
+#include "../AbilityDebuff.h"
 #include "../StatBuff.h"
+#include "../abilities.h"
 #include "../detail/calculations.h"
+#include "../detail/helpers.h"
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
-#include "../AbilityDebuff.h"
-#include "../abilities.h"
 
 using namespace Simulator;
 TEST(calculations, initial) {
@@ -176,7 +176,7 @@ TEST(AbilityDamageCalculation, Tech) {
     }
 
     {
-        Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false,false);
+        Ability highImpactBolt(2021194429628416, 1.97, 0.197, 0.197, 0.31, DamageType::Weapon, false, false, false);
         auto sc = sb;
         AllStatChanges asc{sc};
         for (auto &&b : tacticsBuffs) {
@@ -234,9 +234,7 @@ TEST(AbilityDamageCalculation, VitalShot) {
     }
 }
 
-
-
-TEST(Amplifier, PeriodicIntensity){
+TEST(Amplifier, PeriodicIntensity) {
     RawStats rs;
     rs.master = Mastery(2250);
     rs.power = Power(0);
@@ -246,60 +244,62 @@ TEST(Amplifier, PeriodicIntensity){
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {1376.0, 2556.0};
-    
+
     auto statBuffs = getDefaultStatsBuffPtr(false, false);
     auto player = Target::New(rs);
     auto vitalShot = getDot(gunslinger_vital_shot);
     vitalShot->setSource(player);
-    player->addBuff(std::move(statBuffs),Second(0.0));
+    player->addBuff(std::move(statBuffs), Second(0.0));
     auto t = Target::New(rs); // create a dummy with 1 mil HP;
 
     {
         auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
         auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
         for (auto &&dr : damageRange) {
-            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second)
+                      << std::endl;
             ASSERT_NEAR(dr.dmg.first, 1026.8826, 1e-3);
         }
     }
     auto ab = std::make_unique<AmplifierBuff>();
     ab->setPeriodicIntensityBonus(0.044);
     auto abId = ab->getId();
-    player->addBuff(std::move(ab),Second(0.0));
+    player->addBuff(std::move(ab), Second(0.0));
     {
         auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
         auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
         for (auto &&dr : damageRange) {
-            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second)
+                      << std::endl;
             ASSERT_NEAR(dr.dmg.first, 1072.0654, 1e-3);
         }
     }
-    
+
     auto ass = getDebuff(debuff_assailable);
     t->addDebuff(std::move(ass), player, Second(0.0));
     {
         auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
         auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
         for (auto &&dr : damageRange) {
-            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second)
+                      << std::endl;
             ASSERT_NEAR(dr.dmg.first, 1143.947, 1e-3);
         }
     }
-    
-    player->removeBuff(abId,Second(0.0));
+
+    player->removeBuff(abId, Second(0.0));
     {
         auto asc = getAllFinalStats(vitalShot->getAbility(), player, t);
         auto damageRange = calculateDamageRange(vitalShot->getAbility(), asc);
         for (auto &&dr : damageRange) {
-            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second) << std::endl;
+            std::cout << fmt::format("Damage range for vital shot is : {}-{}", dr.dmg.first, dr.dmg.second)
+                      << std::endl;
             ASSERT_NEAR(dr.dmg.first, 1098.764, 1e-3);
         }
     }
-
-    
 }
 
-TEST(BaseDamage, HemoBlast){
+TEST(BaseDamage, HemoBlast) {
     RawStats rs;
     rs.master = Mastery(4953);
     rs.power = Power(2100);
@@ -309,26 +309,26 @@ TEST(BaseDamage, HemoBlast){
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {413, 767};
-    
+
     auto statBuffs = getDefaultStatsBuffPtr(false, false);
     auto player = Target::New(rs);
     auto abl = getAbility(dirty_fighting_hemorraghing_blast);
-    player->addBuff(std::move(statBuffs),Second(0.0));
+    player->addBuff(std::move(statBuffs), Second(0.0));
     auto t = Target::New(rs); // create a dummy with 1 mil HP;
 
     {
         auto asc = getAllFinalStats(*abl, player, t);
         auto damageRange = calculateDamageRange(*abl, asc);
-        double min = damageRange[0].dmg.first+damageRange[1].dmg.first;
-        double max = damageRange[0].dmg.second+damageRange[1].dmg.second;
+        double min = damageRange[0].dmg.first + damageRange[1].dmg.first;
+        double max = damageRange[0].dmg.second + damageRange[1].dmg.second;
 
-        std::cout << fmt::format("Damage range for hemo blast is : {}-{}",min, max) << std::endl;
-        ASSERT_NEAR(min,1022.23,1e-1);
-        ASSERT_NEAR(max,1283.77,1e-1);
+        std::cout << fmt::format("Damage range for hemo blast is : {}-{}", min, max) << std::endl;
+        ASSERT_NEAR(min, 1022.23, 1e-1);
+        ASSERT_NEAR(max, 1283.77, 1e-1);
     }
 }
 
-TEST(BaseDamage, Quickdraw){
+TEST(BaseDamage, Quickdraw) {
     RawStats rs;
     rs.master = Mastery(4953);
     rs.power = Power(2100);
@@ -338,26 +338,26 @@ TEST(BaseDamage, Quickdraw){
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {413, 767};
-    
+
     auto statBuffs = getDefaultStatsBuffPtr(false, false);
     auto player = Target::New(rs);
     auto abl = getAbility(gunslinger_quickdraw);
-    player->addBuff(std::move(statBuffs),Second(0.0));
+    player->addBuff(std::move(statBuffs), Second(0.0));
     auto t = Target::New(rs); // create a dummy with 1 mil HP;
 
     {
         auto asc = getAllFinalStats(*abl, player, t);
         auto damageRange = calculateDamageRange(*abl, asc);
-        double min = damageRange[0].dmg.first+damageRange[1].dmg.first;
-        double max = damageRange[0].dmg.second+damageRange[1].dmg.second;
+        double min = damageRange[0].dmg.first + damageRange[1].dmg.first;
+        double max = damageRange[0].dmg.second + damageRange[1].dmg.second;
 
-        std::cout << fmt::format("Damage range for quickdraw is : {}-{}",min, max) << std::endl;
-        ASSERT_NEAR(std::round(min),9819,1e-1);
-        ASSERT_NEAR(std::round(max),12381,1e-1);
+        std::cout << fmt::format("Damage range for quickdraw is : {}-{}", min, max) << std::endl;
+        ASSERT_NEAR(std::round(min), 9819, 1e-1);
+        ASSERT_NEAR(std::round(max), 12381, 1e-1);
     }
 }
 
-TEST(Debuff, Blocking){
+TEST(Debuff, Blocking) {
     RawStats rs;
     rs.master = Mastery(4953);
     rs.power = Power(2100);
@@ -367,7 +367,7 @@ TEST(Debuff, Blocking){
     rs.forceTechPower = FTPower(7008);
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {413, 767};
-    
+
     auto shat = std::make_unique<ShatteredDebuff>();
     auto ass = getDebuff(debuff_assailable);
     auto t = Target::New(rs);
@@ -376,10 +376,9 @@ TEST(Debuff, Blocking){
     t->addDebuff(std::move(ass), p, Second(0.0));
     ASSERT_TRUE(t->getDebuff<Debuff>(debuff_shattered, p->getId()));
     ASSERT_FALSE(t->getDebuff<Debuff>(debuff_assailable, p->getId()));
-
 }
 
-TEST(Json, ParseAbility){
+TEST(Json, ParseAbility) {
     {
         std::string jsonString = R"({
             "coefficients": [
@@ -409,13 +408,14 @@ TEST(Json, ParseAbility){
             "Initial Tick": false
         })";
         auto abl = detail::getAbilityFromJson(nlohmann::json::parse(jsonString));
-        ASSERT_EQ(abl.coefficients.size(),2);
-        ASSERT_NEAR(abl.coefficients[0].coefficient,1.502,1e-4);
+        ASSERT_EQ(abl.coefficients.size(), 2);
+        ASSERT_NEAR(abl.coefficients[0].coefficient, 1.502, 1e-4);
     }
     {
-        std::string jsonString=R"({"coefficients":[{"Coefficient":1.502,"Amount Modifier Percent":-0.2,"Standard Health Percent Min":0.13,"Standard Health Percent Max":0.17,"Damage Type":1,"Offhand Hit":false,"Damage Over Time":false,"Area Of Effect":false},{"Coefficient":0,"Amount Modifier Percent":0,"Standard Health Percent Min":0,"Standard Health Percent Max":0,"Damage Type":1,"Offhand Hit":true,"Damage Over Time":false,"Area Of Effect":false}],"Number of Ticks":1,"Time":1.5,"Initial Tick":false})";
+        std::string jsonString =
+            R"({"coefficients":[{"Coefficient":1.502,"Amount Modifier Percent":-0.2,"Standard Health Percent Min":0.13,"Standard Health Percent Max":0.17,"Damage Type":1,"Offhand Hit":false,"Damage Over Time":false,"Area Of Effect":false},{"Coefficient":0,"Amount Modifier Percent":0,"Standard Health Percent Min":0,"Standard Health Percent Max":0,"Damage Type":1,"Offhand Hit":true,"Damage Over Time":false,"Area Of Effect":false}],"Number of Ticks":1,"Time":1.5,"Initial Tick":false})";
         auto abl = detail::getAbilityFromJson(nlohmann::json::parse(jsonString));
-        ASSERT_EQ(abl.coefficients.size(),2);
-        ASSERT_NEAR(abl.coefficients[0].coefficient,1.502,1e-4);
+        ASSERT_EQ(abl.coefficients.size(), 2);
+        ASSERT_NEAR(abl.coefficients[0].coefficient, 1.502, 1e-4);
     }
 }

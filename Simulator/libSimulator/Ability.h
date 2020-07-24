@@ -1,10 +1,10 @@
 #pragma once
 #include "OnHitAction.h"
 #include "types.h"
+#include "utility.h"
 #include <cstdint>
 #include <functional>
 #include <vector>
-#include "utility.h"
 
 namespace Simulator {
 class Target;
@@ -49,22 +49,27 @@ class Ability {
         }
         _allStatChanges.resize(_info.coefficients.size());
     }
-    Ability(AbilityId iid, AbilityInfo info) : _id(iid), _info(std::move(info)) {_allStatChanges.resize(_info.coefficients.size());}
+    Ability(AbilityId iid, AbilityInfo info) : _id(iid), _info(std::move(info)) {
+        _allStatChanges.resize(_info.coefficients.size());
+    }
 
     const AbilityId &getId() const { return _id; };
     const AllAbilityCoefficient &getCoefficients() const { return _info.coefficients; }
     const AbilityInfo &getInfo() const { return _info; }
-    void setInfo(AbilityInfo info) {_info=std::move(info);}
+    void setInfo(AbilityInfo info) { _info = std::move(info); }
     void addOnHitAction(const OnHitActionPtr &oha);
     void onAbilityHitTarget(const DamageHits &hits, const TargetPtr &source, const TargetPtr &target,
                             const Second &time);
     void addOnEndAction(OnEndAction &&action) { _onEndActions.push_back(std::move(action)); }
     void onAbilityEnd(const TargetPtr &source, const TargetPtr &target, const Second &time);
-    void setStatChanges(AllStatChanges && allStatChanges){_allStatChanges=std::move(allStatChanges);}
-    void setStatChanges(const StatChanges & statChanges){_allStatChanges=AllStatChanges(_info.coefficients.size(),statChanges);}
-    const AllStatChanges & getStatChanges() const {return _allStatChanges;}
-    SIMULATOR_SET_MACRO(Cooldown,Second,Second(0.0));
-    SIMULATOR_SET_MACRO(CooldownIsAffectedByAlacrity,bool,true);
+    void setStatChanges(AllStatChanges &&allStatChanges) { _allStatChanges = std::move(allStatChanges); }
+    void setStatChanges(const StatChanges &statChanges) {
+        _allStatChanges = AllStatChanges(_info.coefficients.size(), statChanges);
+    }
+    const AllStatChanges &getStatChanges() const { return _allStatChanges; }
+    SIMULATOR_SET_MACRO(Cooldown, Second, Second(0.0));
+    SIMULATOR_SET_MACRO(CooldownIsAffectedByAlacrity, bool, true);
+
   private:
     AbilityId _id;
     AbilityInfo _info;

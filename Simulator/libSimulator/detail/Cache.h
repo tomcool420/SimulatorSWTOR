@@ -1,10 +1,10 @@
 #pragma once
+#include "log.h"
 #include "../Ability.h"
 #include "../types.h"
 #include "../utility.h"
-#include <mutex>
 #include <map>
-#include "log.h"
+#include <mutex>
 
 namespace Simulator::detail {
 template <class T> class Cache {

@@ -1,8 +1,8 @@
 #pragma once
-#include "types.h"
 #include "detail/units.h"
-#include <optional>
+#include "types.h"
 #include "utility.h"
+#include <optional>
 
 namespace Simulator {
 class TimedStatusEffect {

@@ -1,8 +1,8 @@
 #pragma once
 #include "Debuff.h"
 #include "OnHitAction.h"
-#include "types.h"
 #include "Target.h"
+#include "types.h"
 
 namespace Simulator {
 class ConditionalApplyDebuff : public OnHitAction {

@@ -31,6 +31,4 @@ inline void checkFailed(const std::string &condition, const std::string &descrip
     throw std::runtime_error(errorString);
 }
 
-
-
 } // namespace Simulator
