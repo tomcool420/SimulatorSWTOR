@@ -3,3 +3,4 @@ boost/1.71.0@conan/stable
 spdlog/1.4.2@bincrafters/stable
 ms-gsl/3.0.1
 gtest/1.10.0
+nlohmann_json/3.8.0

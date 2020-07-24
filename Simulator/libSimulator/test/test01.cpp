@@ -6,6 +6,8 @@
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
 #include "../AbilityDebuff.h"
+#include "../abilities.h"
+
 using namespace Simulator;
 TEST(calculations, initial) {
     EXPECT_NEAR(0.071438, detail::getAlacrity(AlacrityRating(1213)), 1e-6);
@@ -375,4 +377,45 @@ TEST(Debuff, Blocking){
     ASSERT_TRUE(t->getDebuff<Debuff>(debuff_shattered, p->getId()));
     ASSERT_FALSE(t->getDebuff<Debuff>(debuff_assailable, p->getId()));
 
+}
+
+TEST(Json, ParseAbility){
+    {
+        std::string jsonString = R"({
+            "coefficients": [
+                {
+                    "Coefficient": 1.502,
+                    "Amount Modifier Percent": -0.2,
+                    "Standard Health Percent Min": 0.13,
+                    "Standard Health Percent Max": 0.17,
+                    "Damage Type": 1,
+                    "Offhand Hit": false,
+                    "Damage Over Time": false,
+                    "Area Of Effect": false
+                },
+                {
+                    "Coefficient": 0,
+                    "Amount Modifier Percent": 0,
+                    "Standard Health Percent Min": 0,
+                    "Standard Health Percent Max": 0,
+                    "Damage Type": 1,
+                    "Offhand Hit": true,
+                    "Damage Over Time": false,
+                    "Area Of Effect": false
+                }
+            ],
+            "Number of Ticks": 1,
+            "Time": 1.5,
+            "Initial Tick": false
+        })";
+        auto abl = detail::getAbilityFromJson(nlohmann::json::parse(jsonString));
+        ASSERT_EQ(abl.coefficients.size(),2);
+        ASSERT_NEAR(abl.coefficients[0].coefficient,1.502,1e-4);
+    }
+    {
+        std::string jsonString=R"({"coefficients":[{"Coefficient":1.502,"Amount Modifier Percent":-0.2,"Standard Health Percent Min":0.13,"Standard Health Percent Max":0.17,"Damage Type":1,"Offhand Hit":false,"Damage Over Time":false,"Area Of Effect":false},{"Coefficient":0,"Amount Modifier Percent":0,"Standard Health Percent Min":0,"Standard Health Percent Max":0,"Damage Type":1,"Offhand Hit":true,"Damage Over Time":false,"Area Of Effect":false}],"Number of Ticks":1,"Time":1.5,"Initial Tick":false})";
+        auto abl = detail::getAbilityFromJson(nlohmann::json::parse(jsonString));
+        ASSERT_EQ(abl.coefficients.size(),2);
+        ASSERT_NEAR(abl.coefficients[0].coefficient,1.502,1e-4);
+    }
 }
