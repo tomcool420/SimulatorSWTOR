@@ -17,12 +17,12 @@ namespace Simulator {
   private:                                                                                                             \
     type _##name{default};
 
-#define SIMULATOR_GET_ONLY_MACRO(name, type, default)                                                                       \
-public:                                                                                                              \
-  const type &get##name() const { return _##name; }                                                                  \
-                                                                                                                     \
-private:                                                                                                             \
-  type _##name{default};
+#define SIMULATOR_GET_ONLY_MACRO(name, type, default)                                                                  \
+  public:                                                                                                              \
+    [[nodiscard]] const type &get##name() const { return _##name; }                                                    \
+                                                                                                                       \
+  private:                                                                                                             \
+    type _##name{default};
 
 inline std::string getCheckString() { return ""; }
 template <class... A> std::string getCheckString(A... a) { return fmt::format(a...); }

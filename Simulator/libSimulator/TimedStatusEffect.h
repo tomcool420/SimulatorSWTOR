@@ -2,6 +2,8 @@
 #include "types.h"
 #include "detail/units.h"
 #include <optional>
+#include "utility.h"
+
 namespace Simulator {
 class TimedStatusEffect {
   public:

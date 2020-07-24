@@ -2,6 +2,7 @@
 #include "OnHitAction.h"
 #include "types.h"
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 namespace Simulator {
@@ -17,9 +18,10 @@ struct AbilityCoefficients {
     bool respectsGCD{true};
     double multiplier{0.00};
     bool isOffhandHit{false};
+    bool isBleedDamage{false};
 };
 using AllAbilityCoefficient = std::vector<AbilityCoefficients>;
-enum class AbilityCastType{Instant,Cast,Channeled,OffGCD};
+enum class AbilityCastType { Instant, Cast, Channeled, OffGCD };
 struct AbilityInfo {
     AllAbilityCoefficient coefficients;
     AbilityCastType type{AbilityCastType::Instant};
@@ -27,9 +29,12 @@ struct AbilityInfo {
     int nTicks{1};
 };
 
+using OnEndAction = std::function<void(const TargetPtr &, const TargetPtr &, const Second &)>;
+using OnEndActions = std::vector<OnEndAction>;
 class Ability {
   public:
-    Ability(AbilityId iid, double coeff, double ShxMin, double ShxMax, double Am, DamageType dt, bool dot, bool aoe, bool offhandHit=false)
+    Ability(AbilityId iid, double coeff, double ShxMin, double ShxMax, double Am, DamageType dt, bool dot, bool aoe,
+            bool offhandHit = false)
         : Ability(iid, AbilityCoefficients{coeff, ShxMin, ShxMax, Am, dt, dot, aoe}, offhandHit){};
     Ability(AbilityId iid, AbilityCoefficients coefficients, bool hasOffhandHit = false) : _id(iid) {
         _info.coefficients.push_back(coefficients);
@@ -49,15 +54,19 @@ class Ability {
     void addOnHitAction(const OnHitActionPtr &oha);
     void onAbilityHitTarget(const DamageHits &hits, const TargetPtr &source, const TargetPtr &target,
                             const Second &time);
+    void addOnEndAction(OnEndAction &&action) { _onEndActions.push_back(std::move(action)); }
+    void onAbilityEnd(const TargetPtr &source, const TargetPtr &target, const Second &time);
 
   private:
     AbilityId _id;
     AbilityInfo _info;
     OnHitActionPtrs _onHitActions;
+    OnEndActions _onEndActions;
 };
 
 [[nodiscard]] DamageRanges calculateDamageRange(const Ability &ability, const AllFinalStats &stats);
-[[nodiscard]] DamageHits adjustForHitsAndCrits(const DamageRanges &hits, const AllFinalStats &stats, const TargetPtr &t);
+[[nodiscard]] DamageHits adjustForHitsAndCrits(const DamageRanges &hits, const AllFinalStats &stats,
+                                               const TargetPtr &t);
 [[nodiscard]] DamageHits adjustForDefensives(const DamageHits &hits, const AllFinalStats &stats, const TargetPtr &t);
 
 // This does the first three
