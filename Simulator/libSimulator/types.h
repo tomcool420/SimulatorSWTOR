@@ -9,6 +9,9 @@ using TargetPtr = std::shared_ptr<Target>;
 using TargetPtrs = std::vector<TargetPtr>;
 class Ability;
 using AbilityPtr = std::shared_ptr<Ability>;
+class Debuff;
+using DebuffPtr = std::unique_ptr<Debuff>;
+
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
 using DamageTypes = std::vector<DamageType>;

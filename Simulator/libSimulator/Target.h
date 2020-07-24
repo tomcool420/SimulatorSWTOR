@@ -101,6 +101,9 @@ class Target : public std::enable_shared_from_this<Target> {
     const TargetEvents &getEvents() const { return _events; }
     std::optional<Second> getDeathTime() const { return _deathTime; }
 
+    void setAbilityCooldown(const AbilityId &id,const Second & time);
+    std::optional<Second> getAbilityCooldownEnd(const AbilityId &id) const;
+    void finishCooldown(const AbilityId &abl, const Second &time);
   protected:
     void addEvent(TargetEvent &&event);
 
@@ -115,6 +118,7 @@ class Target : public std::enable_shared_from_this<Target> {
     TargetEvents _events;
     TargetId _tag;
     std::optional<Second> _deathTime;
+    std::map<AbilityId,Second> _abilityCooldownEnd;
 
     // this needs to be replaced by a generic debuff
     bool _sundered = true;

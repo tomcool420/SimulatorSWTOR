@@ -5,7 +5,7 @@
 #include "detail/names.h"
 
 namespace Simulator{
-std::optional<Second> SetRotation::getNextEventTime(){
+std::optional<Second> Rotation::getNextEventTime(){
     if(_target->getCurrentHealth()<=HealthPoints(0.0))
         return std::nullopt;
     
@@ -24,13 +24,24 @@ std::optional<Second> SetRotation::getNextEventTime(){
                 return _abilityStartTime+_currentTick*_abilityCastTickTime;
         }
     }
+
+    return std::nullopt;
+}
+std::optional<Second> SetRotation::getNextEventTime(){
+    auto time = Rotation::getNextEventTime();
+    if(time)
+        return time;
     if(_idCounter<_ids.size()){
-        return _nextFreeGCD;
+        return getNextFreeGCD();
     }else if(++_iterationCount<_Repeats){
         _idCounter=0;
-        return _nextFreeGCD;
+        return getNextFreeGCD();
     }
     return std::nullopt;
+}
+AbilityId SetRotation::getNextAbility(){
+    CHECK(_idCounter<_ids.size());
+    return _ids[_idCounter++];
 }
 enum class TargetType{
     Rotation,
@@ -42,7 +53,7 @@ struct NextEvent{
     Second time;
     int targetCount{0};
 };
-void SetRotation::doRotation(){
+void Rotation::doRotation(){
     CHECK(_target);
     
     auto getEvents = [&](){
@@ -76,7 +87,7 @@ void SetRotation::doRotation(){
     }
 }
 
-void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & target){
+void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr & target){
     if(_currentAbility){
         auto && info = _currentAbility->getInfo();
         switch (info.type) {
@@ -86,6 +97,8 @@ void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & ta
                 auto fs = getAllFinalStats(*_currentAbility, getSource(), target);
                 auto hits = getHits(*_currentAbility, fs, target);
                 applyDamageToTarget(hits, getSource(), target, endCastTime);
+                auto abilityCooldown = _currentAbility->getCooldownIsAffectedByAlacrity() ? _currentAbility->getCooldown()/(1.0+_abilityAlacrityAmount):_currentAbility->getCooldown();
+                getSource()->setAbilityCooldown(_currentAbility->getId(), abilityCooldown+endCastTime);
                 _currentAbility->onAbilityHitTarget(hits, getSource(), target, endCastTime);
                 _currentAbility->onAbilityEnd(getSource(), target, endCastTime);
                 _currentAbility=nullptr;
@@ -115,10 +128,11 @@ void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & ta
                 break;
         }
     }else{
-        auto abl = getAbility(_ids[_idCounter]);
+        auto id = getNextAbility();
+        auto abl = getAbility(id);
         CHECK(abl);
         auto && info = abl->getInfo();
-        SIM_INFO("[ROTATION] Time : {}, Casting ability [{} : {}]",time.getValue(),detail::getAbilityName(_ids[_idCounter]),_ids[_idCounter]);
+        SIM_INFO("[ROTATION] Time : {}, Casting ability [{} : {}]",time.getValue(),detail::getAbilityName(id),id);
         auto afs= getAllFinalStats(*abl, getSource(), target);
         if(afs.size()){
             _abilityAlacrityAmount=afs[0].alacrity;
@@ -137,6 +151,8 @@ void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & ta
                 applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
                 _currentAbility->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
                 _currentTick=1;
+                auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity() ? abl->getCooldown()/(1.0+_abilityAlacrityAmount):abl->getCooldown();
+                getSource()->setAbilityCooldown(abl->getId(), abilityCooldown+_nextFreeGCD);
                 _nextFreeGCDForInstant+=Second(std::ceil(10*Second(1.5).getValue()/(1+_abilityAlacrityAmount))/10.0);
                 _nextFreeGCD+=Second(std::ceil(10*Second(1.5).getValue()/(1+_abilityAlacrityAmount))/10.0);
                 break;
@@ -146,6 +162,8 @@ void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & ta
                 applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
                 abl->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
                 abl->onAbilityEnd(getSource(), target, _nextFreeGCD);
+                auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity() ? abl->getCooldown()/(1.0+_abilityAlacrityAmount):abl->getCooldown();
+                getSource()->setAbilityCooldown(abl->getId(), abilityCooldown+_nextFreeGCD);
                 _nextFreeGCDForInstant=_nextFreeGCD+_MinTimeAfterInstant;
                 _nextFreeGCD=_nextFreeGCD+Second(std::ceil(10*Second(1.5).getValue()/(1+_abilityAlacrityAmount))/10.0);
                 break;
@@ -156,13 +174,14 @@ void SetRotation::resolveEventsUpToTime(const Second &time, const TargetPtr & ta
                 applyDamageToTarget(hits, getSource(), target, castTime);
                 abl->onAbilityHitTarget(hits, getSource(), target, castTime);
                 abl->onAbilityEnd(getSource(), target, castTime);
+                auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity() ? abl->getCooldown()/(1.0+_abilityAlacrityAmount):abl->getCooldown();
+                getSource()->setAbilityCooldown(abl->getId(), abilityCooldown+castTime);
                 _nextFreeGCDForInstant=castTime+_MinTimeAfterInstant;
                 _nextFreeGCD=std::max(_nextFreeGCD,_nextFreeGCDForInstant);
             }
             default:
                 break;
         }
-        ++_idCounter;
     }
     
 }

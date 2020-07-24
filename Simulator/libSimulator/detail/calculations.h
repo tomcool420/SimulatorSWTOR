@@ -10,4 +10,5 @@ namespace Simulator::detail {
 [[nodiscard]] double getBonusDamage(Mastery mastery);
 [[nodiscard]] double getBonusDamage(Power power);
 [[nodiscard]] double getDamageReduction(Armor armor);
+[[nodiscard]] Second getReducedDuration(Second time, double alacrity);
 } // namespace Simulator::detail

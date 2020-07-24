@@ -97,7 +97,7 @@ TEST(calculations, complicated) {
     t->addDOT(std::move(gutBleeding), player, {gStats}, Second(0.0));
     checkTriumph(true);
 
-    EXPECT_ANY_THROW(t->getDebuff<DOT>(tactics_gut_dot + 1, player->getId()));
+    EXPECT_EQ(t->getDebuff<DOT>(tactics_gut_dot + 1, player->getId()),nullptr);
     auto addedDot = t->getDebuff<DOT>(tactics_gut_dot, player->getId());
     EXPECT_TRUE(addedDot != nullptr);
     t->logHits();
@@ -107,7 +107,7 @@ TEST(calculations, complicated) {
     ASSERT_TRUE(t->isBleeding());
     while (auto ine = t->getNextEventTime()) {
         Second nextRefreshTime = lastAppliedTime + Second(8.301);
-        if (nextRefreshTime < *ine && t->getCurrentHealth() > HealthPoints(1e-6)) {
+        if (nextRefreshTime < *ine && t->getCurrentHealth() > HealthPoints(100000)) {
             lastAppliedTime = nextRefreshTime;
             t->refreshDOT(addedDot->getId(), player->getId(), lastAppliedTime);
         } else {
