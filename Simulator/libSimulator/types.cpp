@@ -83,10 +83,11 @@ AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &source, 
     auto &&rs = source->getRawStats();
     auto scb = source->getStatChangesFromBuffs(ability, target);
     auto scd = target->getStatChangesFromDebuff(ability, source);
+    const auto &sca = ability.getStatChanges();
     CHECK(scb.size() == scd.size());
     AllFinalStats ret(scb.size());
     for (int ii = 0; ii < scb.size(); ++ii) {
-        ret[ii] = getFinalStats(rs, scb[ii] + scd[ii]);
+        ret[ii] = getFinalStats(rs, scb[ii] + scd[ii]+sca[ii]);
     }
     return ret;
 }
