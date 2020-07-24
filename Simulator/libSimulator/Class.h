@@ -8,12 +8,17 @@
 namespace Simulator {
 
 class Class {
-    [[nodiscard]] virtual AbilityPtr getAbility(AbilityId id)=0;
-    [[nodiscard]] virtual std::optional<Second> getNextEventTime()=0;
-    [[nodiscard]] virtual std::vector<BuffPtr> getBuffs()=0;
-    
+    [[nodiscard]] const AbilityPtr & getAbility(AbilityId id){
+        return _cache.getFromCacheIfNotIn(id, [&](){
+            return getAbilityInternal(id);
+        });
+    }
+//    [[nodiscard]] virtual std::optional<Second> getNextEventTime()=0;
+//    [[nodiscard]] virtual std::vector<BuffPtr> getBuffs()=0;
+
+    void onAbilityWasCast(const Ability & abl);
   protected:
-    [[nodiscard]] virtual AbilityInfo getAbilityInfo(AbilityId id)=0;
+    [[nodiscard]] virtual AbilityPtr getAbilityInternal(AbilityId id)=0;
     [[nodiscard]] auto & getCache() {return _cache;}
 private:
     detail::Cache<AbilityPtr> _cache;

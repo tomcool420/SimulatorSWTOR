@@ -26,4 +26,8 @@ namespace Simulator::detail {
 [[nodiscard]] double getDamageReduction(Armor armor){
     return (armor.getValue()/(armor.getValue()+349.0*75+800));
 }
+[[nodiscard]] Second getReducedDuration(Second time, double alacrity){
+    return time /(1.0+alacrity);
+}
+
 } // namespace Simulator::detail

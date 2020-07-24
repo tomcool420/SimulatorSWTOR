@@ -2,6 +2,7 @@
 #include "Debuff.h"
 #include "OnHitAction.h"
 #include "types.h"
+#include "Target.h"
 
 namespace Simulator {
 class ConditionalApplyDebuff : public OnHitAction {

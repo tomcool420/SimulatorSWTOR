@@ -24,7 +24,7 @@ template <class T> class Cache {
         std::lock_guard lock(_lock);
         auto it = _instanceMapperMap.find(key);
         if (it->second.first <= 1) {
-            SIM_INFO("CACHE: Releasing mapper");
+            SIM_INFO("CACHE: Releasing object");
             _instanceMapperMap.erase(it);
             return true;
         } else {

@@ -43,7 +43,6 @@ class Debuff : public TimedStatusEffect {
     SIMULATOR_SET_MACRO(Poisoned, bool, false);
     SIMULATOR_SET_MACRO(Unique, bool, false);
 };
-using DebuffPtr = std::unique_ptr<Debuff>;
 
 template <class T> class OnAbilityHitDebuff : public Debuff {
   public:
