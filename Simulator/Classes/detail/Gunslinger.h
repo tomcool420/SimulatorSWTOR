@@ -1,6 +1,8 @@
 #include "../../libSimulator/Ability.h"
 #include "../../libSimulator/DOT.h"
 #include "../../libSimulator/constants.h"
+#include "../../libSimulator/Target.h"
+#include "../../libSimulator/ConditionalApplyDebuff.h"
 
 namespace Simulator::detail {
 class GunslingerEntrencedOffenceBuff : public Buff {
