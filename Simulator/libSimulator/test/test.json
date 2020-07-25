@@ -1,0 +1,27 @@
+{
+    "coefficients": [
+        {
+            "Coefficient": 1.502,
+            "Amount Modifier Percent": -0.2,
+            "Standard Health Percent Min": 0.13,
+            "Standard Health Percent Max": 0.17,
+            "Damage Type": 1,
+            "Offhand Hit": false,
+            "Damage Over Time": false,
+            "Area Of Effect": false
+        },
+        {
+            "Coefficient": 0,
+            "Amount Modifier Percent": 0,
+            "Standard Health Percent Min": 0,
+            "Standard Health Percent Max": 0,
+            "Damage Type": 1,
+            "Offhand Hit": true,
+            "Damage Over Time": false,
+            "Area Of Effect": false
+        }
+    ],
+    "Number of Ticks": 1,
+    "Time": 1.5,
+    "Initial Tick": false
+}

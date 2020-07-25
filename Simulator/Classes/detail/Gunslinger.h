@@ -1,3 +1,4 @@
+#pragma once
 #include "../../libSimulator/Ability.h"
 #include "../../libSimulator/DOT.h"
 #include "../../libSimulator/constants.h"
@@ -34,19 +35,19 @@ class GunslingerEntrencedOffenceBuff : public Buff {
   private:
     int _stacks{0};
 };
-AbilityPtr createDotAbility(AbilityInfo info, DOTPtr &&dot) {
+inline AbilityPtr createDotAbility(AbilityInfo info, DOTPtr &&dot) {
     CHECK(dot);
     auto abl = std::make_shared<Ability>(dot->getId(), info);
     abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(dot)));
     return abl;
 }
 
-AbilityPtr createDotAbility(DOTPtr &&dot) {
+inline AbilityPtr createDotAbility(DOTPtr &&dot) {
     CHECK(dot);
     return createDotAbility(dot->getAbility().getInfo(), std::move(dot));
 }
 
-auto getTickOnWoundingShotsLambda() {
+inline auto getTickOnWoundingShotsLambda() {
     return [](DamageHits &hits, const Second &time, const TargetPtr &source, const TargetPtr &target,
               DOT &dot) -> DamageHits {
         bool hitWoundingShots = false;

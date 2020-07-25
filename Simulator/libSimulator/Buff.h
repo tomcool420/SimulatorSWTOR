@@ -32,6 +32,5 @@ class Buff : public TimedStatusEffect {
   private:
     AbilityId _id{0};
 };
-using BuffPtr = std::unique_ptr<Buff>;
 
 } // namespace Simulator

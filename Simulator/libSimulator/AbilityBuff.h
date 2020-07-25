@@ -83,4 +83,21 @@ template <class Lambda> OnAbilityHitBuff<Lambda> *MakeOnAbilityHitBuff(std::stri
     return new OnAbilityHitBuff<Lambda>(name, std::forward<Lambda>(t));
 }
 
+template<class Lambda>
+class ConditionalBuff : public Buff{
+public:
+    ConditionalBuff(const std::string & buffname,  Lambda && l) : _name(buffname),_l(std::forward<Lambda>(l)){}
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override{
+        _l(ability,fstats,target);
+    }
+    [[nodiscard]] Buff *clone() const override { return new ConditionalBuff(*this); }
+
+private:
+    std::string _name;
+    Lambda _l;
+
+};
+template <class Lambda> Buff *MakeConditionalBuff(std::string name, Lambda &&t) {
+    return new ConditionalBuff<Lambda>(name, std::forward<Lambda>(t));
+}
 } // namespace Simulator

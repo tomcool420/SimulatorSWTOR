@@ -11,6 +11,8 @@ class Ability;
 using AbilityPtr = std::shared_ptr<Ability>;
 class Debuff;
 using DebuffPtr = std::unique_ptr<Debuff>;
+class Buff;
+using BuffPtr = std::unique_ptr<Buff>;
 
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
