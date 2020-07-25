@@ -188,7 +188,7 @@ AbilityPtr getAbility(AbilityId id) {
         AbilityInfo info{{coeffsMH, coeffOH}, AbilityCastType::Channeled, Second(1.0), 4};
         auto ws = std::make_shared<Ability>(dirty_fighting_wounding_shots, std::move(info));
         ws->addOnEndAction([](const TargetPtr &source, const TargetPtr &, const Second &time) {
-            if (auto b = source->getBuff<Buff>(gunslinger_smugglers_luck)) {
+            if (source->getBuff<Buff>(gunslinger_smugglers_luck)) {
                 source->removeBuff(gunslinger_smugglers_luck, time);
             }
         });
