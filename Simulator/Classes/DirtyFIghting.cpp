@@ -105,7 +105,7 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         auto info = detail::getDefaultAbilityInfo(dirty_fighting_wounding_shots);
         auto ws = std::make_shared<Ability>(id, std::move(info));
         ws->addOnEndAction([](const TargetPtr &source, const TargetPtr &, const Second &time) {
-            if (auto b = source->getBuff<Buff>(gunslinger_smugglers_luck)) {
+            if (source->getBuff<Buff>(gunslinger_smugglers_luck)) {
                 source->removeBuff(gunslinger_smugglers_luck, time);
             }
         });
