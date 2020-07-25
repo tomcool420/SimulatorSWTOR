@@ -19,6 +19,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 option(CALL_PIP "Install pip dependencies" ON)
 option(CALL_CONAN "Install conan dependencies" ON)
 option(LOCAL_CONAN_HOME, "local directory for conan" OFF)
+option(ENABLE_COVERALLS,"Enable Coveralls" OFF)
 if(${LOCAL_CONAN_HOME})
 set(ENV{CONAN_USER_HOME} ${CMAKE_SOURCE_DIR}/.conan)
 endif()
@@ -35,6 +36,14 @@ if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 else()
   set(PYTHON_EXECUTABLE ${CMAKE_BINARY_DIR}/venv/bin/python)
 endif()
+
+if(ENABLE_COVERALLS)
+  include(Coveralls)
+  coveralls_turn_on_coverage()
+
+
+endif()
+
 
 if(CALL_PIP STREQUAL "ON")
   file(TIMESTAMP ${CMAKE_SOURCE_DIR}/tools/requirements.txt REQUIREMENTS_TIMESTAMP_T "%Y%j%H%M%S")
