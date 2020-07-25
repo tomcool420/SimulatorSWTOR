@@ -109,7 +109,7 @@ void Target::applyDamageHit(const DamageHits &hits, const TargetPtr & /*player*/
     for (auto hit : hits) {
         if (hit.miss)
             continue;
-        sum += std::round(hit.dmg);
+        sum += static_cast<int>(std::round(hit.dmg));
     }
     _health -= HealthPoints(sum);
     if (_health <= HealthPoints(0.0)) {
