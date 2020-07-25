@@ -25,5 +25,5 @@ script:
   - mkdir build && cd build
   - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
   - ninja -k 100 all
-  - ctest 
+  - ctest --output-on-failure=1
   # Run your build commands next

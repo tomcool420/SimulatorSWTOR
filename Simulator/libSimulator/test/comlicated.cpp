@@ -239,7 +239,7 @@ TEST(Calculations, Rotation2WS) {
         rot.setStart(Second(0.0));
         rot.setTarget(target);
         rot.doRotation();
-        damages.push_back(target->getMaxHealth().getValue() - target->getCurrentHealth().getValue());
+        damages.push_back(static_cast<int>(target->getMaxHealth().getValue() - target->getCurrentHealth().getValue()));
     }
     std::sort(damages.begin(), damages.end());
     auto sum = std::accumulate(damages.begin(), damages.end(), 0);
@@ -339,7 +339,7 @@ TEST(Calculations, Rotation2WS_HighStats) {
     }
     std::sort(deathTimes.begin(), deathTimes.end());
     auto sum = std::accumulate(deathTimes.begin(), deathTimes.end(), Second(0));
-    Second mean = sum / deathTimes.size();
+    Second mean = sum / (double)deathTimes.size();
     SIM_INFO("Over {} iterations, mean death time is {} and range is {} - {}", deathTimes.size(),
              sum.getValue() / deathTimes.size(), deathTimes.front(), deathTimes.back());
 
