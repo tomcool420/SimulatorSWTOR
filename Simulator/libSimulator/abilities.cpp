@@ -95,6 +95,24 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
             coeffOH.isOffhandHit = true;
             return AbilityInfo{{coeffMH, coeffOH}};
         }
+        case gunslinger_speed_shot:{
+            AbilityCoefficients coeffMH{0.93,0.093,0.093,-0.38};
+            AbilityCoefficients coeffOH{0.0, 0.0, 0.0, -0.38};
+            coeffOH.isOffhandHit=true;
+            AbilityInfo info{{coeffMH,coeffOH}};
+            info.type=AbilityCastType::Channeled;
+            info.nTicks=4;
+            info.time=Second(1.0);
+            return info;
+        }
+        case gunslinger_xs_freighter_flyby:{
+            AbilityCoefficients coeff{0.7,0.07,0.07,0.0,DamageType::Elemental};
+            AbilityInfo info{{coeff}};
+            info.nTicks=3;
+            info.extraInitialTick=false;
+            info.time=Second(3);
+            return info;
+        }
             
         case smuggler_flurry_of_bolts: {
             AbilityCoefficients coeffMH{1.0, 0.0, 0.0, 0.0};

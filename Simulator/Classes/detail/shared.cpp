@@ -2,8 +2,8 @@
 #include "../../libSimulator/Ability.h"
 #include "../../libSimulator/AbilityDebuff.h"
 #include "../../libSimulator/Debuff.h"
+#include "../../libSimulator/StatBuff.h"
 #include "../../libSimulator/constants.h"
-
 namespace Simulator::detail {
 class ShatteredDebuff : public Debuff {
   public:
@@ -69,4 +69,15 @@ DebuffPtr getGenericDebuff(AbilityId id) {
     return nullptr;
 }
 
+BuffPtr getDefaultStatsBuffPtr(bool twopiece, bool forceValor) {
+    StatChanges sb;
+    sb.masteryMultiplierBonus = forceValor * 0.05 + twopiece * 0.02; // Set bonus + force valor;
+    sb.flatMeleeRangeCritChance = 0.06;                              // companion + lucky shots;
+    sb.flatForceTechCritChance = 0.06;                               // companion + lucky shots;
+    sb.flatMeleeRangeCriticalMultiplierBonus = 0.01;                 // companion
+    sb.flatForceTechCriticalMultiplierBonus = 0.01;                  // companion
+
+    sb.bonusDamageMultiplier = 0.05; // force might
+    return std::make_unique<StatBuff>(sb);
+}
 } // namespace Simulator::detail

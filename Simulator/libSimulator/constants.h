@@ -26,7 +26,8 @@ constexpr uint64_t gunslinger_smugglers_luck{962811408678912};
 constexpr uint64_t gunslinger_entrenched_offsense{4307238017564672};
 constexpr uint64_t gunslinger_hunker_down{2044808159821824};
 constexpr uint64_t gunslinger_illegal_mods{760484089298944};
-
+constexpr uint64_t gunslinger_xs_freighter_flyby{2524220999335936};
+constexpr uint64_t gunslinger_speed_shot{807264873086976};
 constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
 
 

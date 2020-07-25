@@ -57,12 +57,22 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
             abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(
                 std::make_unique<detail::GunslingerEntrencedOffenceBuff>(), false));
         }
-        abl->setCooldown(Second(45) - getEstablishedFoothold() * Second(15));
+        abl->setCooldown(Second(45) - getEstablishedFoothold() * Second(10) - getLayLowPassive()*Second(15));
         abl->setCooldownIsAffectedByAlacrity(false);
+        return abl;
+    }
+    case gunslinger_speed_shot:{
+        auto info = detail::getDefaultAbilityInfo(id);
+        info.coefficients[0].multiplier+=0.05; //Steady Shot
+        info.coefficients[1].multiplier+=0.05;
+        auto abl = std::make_shared<Ability>(id,info);
         return abl;
     }
     }
     return nullptr;
 }
-
+std::vector<BuffPtr> Gunslinger::getStaticBuffs(){
+    std::vector<BuffPtr> ret;
+    return ret;
+}
 } // namespace Simulator
