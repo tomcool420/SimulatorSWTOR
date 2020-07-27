@@ -39,7 +39,6 @@ jobs:
     - os: windows
       script:
         - choco install ninja
-        - bash
         - mkdir build
         - cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
