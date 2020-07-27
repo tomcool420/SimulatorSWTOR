@@ -33,6 +33,14 @@ class Debuff : public TimedStatusEffect {
     virtual void refresh(const Second &time) { setStartTime(time); }
     [[nodiscard]] const TargetPtr &getSource() const { return _source; }
     [[nodiscard]] const AbilityId &getId() const { return _id; }
+    using OnDebuffRemovedAction = std::function<void(const TargetPtr &, const TargetPtr &, const Second &)>;
+    void addOnDebuffRemovedAction(OnDebuffRemovedAction &&action) { _onRemovalActions.push_back(std::move(action)); }
+    void onWasRemovedFromTarget(const TargetPtr &target, const Second &time) {
+        for (auto &&action : _onRemovalActions) {
+            action(_source, target, time);
+        }
+    }
+    [[nodiscard]] virtual bool getRefreshable() const { return true; }
 
   private:
     AbilityId _id;
@@ -42,6 +50,7 @@ class Debuff : public TimedStatusEffect {
     SIMULATOR_SET_MACRO(Burning, bool, false);
     SIMULATOR_SET_MACRO(Poisoned, bool, false);
     SIMULATOR_SET_MACRO(Unique, bool, false);
+    std::vector<OnDebuffRemovedAction> _onRemovalActions;
 };
 
 template <class T> class OnAbilityHitDebuff : public Debuff {
