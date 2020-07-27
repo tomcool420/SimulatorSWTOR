@@ -30,15 +30,17 @@ jobs:
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         - ninja -k 100 all
     - os: osx
-      image: xcode11.6
+      osx_image: xcode12u
       compiler: clang
       script:
-        - brew install ninja
         - mkdir build && cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - cmake .. -G Xcode -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - cmake --build . --target ALL_BUILD --config RelWithDebInfo
+    - os: windows
+      script:
+        - choco install ninja
+        - mkdir build && cd build
+          - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         - ninja -k 100 all
-
 after_success:
-  - cd build
   - ctest --output-on-failure=1
-  # Run your build commands next
