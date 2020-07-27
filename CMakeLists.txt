@@ -103,5 +103,5 @@ set(SIM_PROJECT SimulatorSWTOR)
 include(add_static_library)
 include(add_exe)
 include(add_test)
-
+include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(Simulator)

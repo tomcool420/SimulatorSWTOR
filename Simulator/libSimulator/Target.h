@@ -2,6 +2,7 @@
 #include "Buff.h"
 #include "DOT.h"
 #include "Debuff.h"
+#include "Energy.h"
 #include "constants.h"
 #include "detail/units.h"
 #include "types.h"
@@ -16,7 +17,7 @@ namespace Simulator {
 using TargetId = boost::uuids::uuid;
 class Target : public std::enable_shared_from_this<Target> {
   public:
-    enum class EventClass { Dot, Buff, Debuff };
+    enum class EventClass { Dot, Buff, Debuff, Energy };
     struct Event {
         Second Time{0.0};
         EventClass eClass;
@@ -31,13 +32,16 @@ class Target : public std::enable_shared_from_this<Target> {
         RemoveDebuff,
         RefreshDebuff,
         Die,
-        Damage
+        Damage,
+        SpendEnergy,
+        GainEnergy
     };
     struct TargetEvent {
         TargetEventType type;
         Second time;
         std::optional<DamageHits> damage;
         std::optional<AbilityId> id;
+        std::optional<double> amount;
     };
     using TargetEvents = std::vector<TargetEvent>;
 
@@ -105,6 +109,11 @@ class Target : public std::enable_shared_from_this<Target> {
     std::optional<Second> getAbilityCooldownEnd(const AbilityId &id) const;
     void finishCooldown(const AbilityId &abl, const Second &time);
 
+    void setEnergyModel(EnergyPtr e);
+    void addEnergy(int e, const Second &time);
+    void spendEnergy(int e, const Second &time);
+    const std::shared_ptr<Energy> &getEnergyModel() const { return _energy; }
+
   protected:
     void addEvent(TargetEvent &&event);
 
@@ -120,7 +129,7 @@ class Target : public std::enable_shared_from_this<Target> {
     TargetId _tag;
     std::optional<Second> _deathTime;
     std::map<AbilityId, Second> _abilityCooldownEnd;
-
+    EnergyPtr _energy;
     // this needs to be replaced by a generic debuff
     bool _sundered = true;
 };
