@@ -2,8 +2,6 @@ dist: bionic
 sudo: required
 language:
   - cpp
-compiler:
-  - gcc
 addons:
   apt:
     sources:
@@ -15,15 +13,32 @@ addons:
       - python3
       - ninja-build
       - python3-venv
-script:
-  - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
-  - export CC=/usr/bin/gcc-8
-  - export CXX=/usr/bin/g++-8
-  # Check versions of gcc, g++ and cmake
-  - gcc -v && g++ -v && cmake --version
-  - mkdir build && cd build
-  - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
-  - ninja -k 100 all
+
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      compiler: gcc
+      script:
+        - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+        - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+        - export CC=/usr/bin/gcc-8
+        - export CXX=/usr/bin/g++-8
+        # Check versions of gcc, g++ and cmake
+        - gcc -v && g++ -v && cmake --version
+        - mkdir build && cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - ninja -k 100 all
+    - os: osx
+      image: xcode11.6
+      compiler: clang
+      script:
+        - brew install ninja
+        - mkdir build && cd build
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - ninja -k 100 all
+
+after_success:
+  - cd build
   - ctest --output-on-failure=1
   # Run your build commands next
