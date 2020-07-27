@@ -80,7 +80,7 @@ if(TargetOSX)
   set(ENV{SDKROOT} ${sdkpath})
 endif()
 
-set(conan_command ${PYTHON_EXECUTABLE} -m conans.conan install ${PROJECT_SOURCE_DIR} repo@velo3d/stable -g cmake -if
+set(conan_command ${PYTHON_EXECUTABLE} -m conans.conan install ${PROJECT_SOURCE_DIR} -g cmake -if
                   ${CMAKE_BINARY_DIR} --build missing ${CONAN_FLAGS})
 message(STATUS "Running ${conan_command}")
 
