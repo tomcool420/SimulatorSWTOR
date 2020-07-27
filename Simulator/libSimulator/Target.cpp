@@ -25,6 +25,11 @@ std::optional<Second> Target::getNextEventTime() {
             events.push_back({*ne, EventClass::Buff, aid, getId()});
         }
     }
+    if (_energy) {
+        if (auto ne = _energy->getNextEventTime()) {
+            events.push_back({*ne, EventClass::Energy, {}, getId()});
+        }
+    }
 
     std::sort(events.begin(), events.end(), [](const Event &a, const Event &b) { return a.Time < b.Time; });
     _upcomingEvents = std::move(events);
@@ -32,7 +37,7 @@ std::optional<Second> Target::getNextEventTime() {
         return _upcomingEvents[0].Time;
     }
     return std::nullopt;
-}
+} // namespace Simulator
 
 void Target::addDOT(DOTPtr dot, TargetPtr source, const AllFinalStats &fs, const Second &time) {
     CHECK(dot);
@@ -40,11 +45,11 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const AllFinalStats &fs, const
     auto &dotMap = _debuffs[id];
     dot->setSource(source);
     CHECK(fs.size() == 1);
-    dot->apply(fs[0], time);
     auto it = dotMap.find(source->getId());
-    if (it != dotMap.end()) {
+    if (it != dotMap.end() && it->second->getRefreshable()) {
         it->second->refresh(time);
     } else {
+        dot->apply(fs[0], time);
         dotMap.insert_or_assign(source->getId(), std::move(dot));
     }
 }
@@ -155,6 +160,11 @@ void Target::applyEventsAtTime(const Second &time) {
                     removeBuff(event.aId, time);
                 }
             }
+        } else if (event.eClass == Target::EventClass::Energy) {
+            CHECK(_energy);
+            auto e = _energy->resolveEventsUpToTime(time, shared_from_this());
+            addEvent(
+                {TargetEventType::GainEnergy, time, std::nullopt, std::nullopt, static_cast<double>(e.gainedEnergy)});
         }
         getNextEventTime();
     }
@@ -192,7 +202,7 @@ void Target::removeDebuff(const AbilityId &aid, const TargetId &pid, const Secon
     CHECK(dotMapIt != _debuffs.end());
     auto dotIt = dotMapIt->second.find(pid);
     CHECK(dotIt != dotMapIt->second.end());
-
+    dotIt->second->onWasRemovedFromTarget(shared_from_this(), time);
     if (dotMapIt->second.size() == 1) {
         _debuffs.erase(dotMapIt);
     } else {
@@ -237,6 +247,10 @@ void Target::addEvent(TargetEvent &&event) {
     } else if (event.type == TargetEventType::Die) {
         SIM_INFO("Time : {},  Target: {}, Death", event.time.getValue(), getId());
         _deathTime = event.time;
+    } else if (event.type == TargetEventType::GainEnergy) {
+        SIM_INFO("Time : {}, Target: {}, Gain {} Energy", event.time.getValue(), getId(), event.amount.value());
+    } else if (event.type == TargetEventType::SpendEnergy) {
+        SIM_INFO("Time : {}, Target: {}, Spend {} Energy", event.time.getValue(), getId(), event.amount.value());
     }
     _events.push_back(std::move(event));
 }
@@ -251,4 +265,18 @@ std::optional<Second> Target::getAbilityCooldownEnd(const AbilityId &id) const {
 }
 
 void Target::finishCooldown(const AbilityId &id, const Second &time) { _abilityCooldownEnd[id] = time; }
+void Target::setEnergyModel(EnergyPtr e) { _energy = e; }
+void Target::addEnergy(int e, const Second &time) {
+    if (_energy) {
+        _energy->addEnergy(e, time);
+        addEvent({TargetEventType::GainEnergy, time, std::nullopt, std::nullopt, static_cast<double>(e)});
+    }
+}
+void Target::spendEnergy(int e, const Second &time) {
+    if (_energy) {
+        _energy->spendEnergy(e, time);
+        addEvent({TargetEventType::SpendEnergy, time, std::nullopt, std::nullopt, static_cast<double>(e)});
+    }
+}
+
 } // namespace Simulator

@@ -17,6 +17,7 @@ constexpr uint64_t tactics_gut{2029878853500928};
 constexpr uint64_t dirty_fighting_hemorraghing_blast{3404620575539200};
 constexpr uint64_t dirty_fighting_shrap_bomb{807698664783872};
 constexpr uint64_t gunslinger_vital_shot{2115340112756736};
+constexpr uint64_t gunslinger_vital_shot_weakened{2115340112756737}; // Not the actual id, just a different debuff
 constexpr uint64_t dirty_fighting_dirty_blast{3404611985604608};
 constexpr uint64_t dirty_fighting_wounding_shots{807711549685760};
 constexpr uint64_t dirty_fighting_exploited_weakness{4308285989585170};
@@ -30,20 +31,16 @@ constexpr uint64_t gunslinger_xs_freighter_flyby{2524220999335936};
 constexpr uint64_t gunslinger_speed_shot{807264873086976};
 constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
 
+constexpr uint64_t consular_double_strike{812728071487488};
+constexpr uint64_t consular_saber_strike{947486965366784};
+constexpr uint64_t shadow_shadow_strike{812839740637184};
+constexpr uint64_t shadow_spinning_strike{2295904832847872};
+constexpr uint64_t shadow_vaulting_slash{3915738863632384};
 
-constexpr uint64_t consular_double_strike {812728071487488};
-constexpr uint64_t consular_saber_strike {947486965366784};
-constexpr uint64_t shadow_shadow_strike {812839740637184};
-constexpr uint64_t shadow_spinning_strike {2295904832847872};
-constexpr uint64_t shadow_vaulting_slash {3915738863632384};
-
-constexpr uint64_t shadow_clairvoyant_strike {980042817470464};
-constexpr uint64_t shadow_infiltration_force_breach {4056665330548736};
-constexpr uint64_t shadow_psychokinetic_blast {3401425119870976};
-constexpr uint64_t shadow_technique {979819479171072};
-
-
-
+constexpr uint64_t shadow_clairvoyant_strike{980042817470464};
+constexpr uint64_t shadow_infiltration_force_breach{4056665330548736};
+constexpr uint64_t shadow_psychokinetic_blast{3401425119870976};
+constexpr uint64_t shadow_technique{979819479171072};
 
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};

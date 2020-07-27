@@ -29,6 +29,9 @@ struct AbilityInfo {
     Second time{Second(1.5)};
     int nTicks{1};
     bool extraInitialTick{false};
+    Second cooldownTime{Second(0.0)};
+    bool ignoresAlacrity{false};
+    int energyCost{0};
 };
 
 using OnEndAction = std::function<void(const TargetPtr &, const TargetPtr &, const Second &)>;

@@ -1,9 +1,9 @@
 #pragma once
 #include <boost/operators.hpp>
+#include <cmath>
 #include <gsl/gsl>
 #include <iostream>
 #include <numeric>
-#include <cmath>
 
 namespace Simulator {
 template <class T, class Category> class UnitBase : public boost::multiplicative<T, double> {
@@ -108,6 +108,7 @@ DEFINE_UNIT(AccuracyRating, AccuracyRatingCategory, 1.0);
 struct TimeCategory {};
 DEFINE_UNIT(Second, TimeCategory, 1.0);
 DEFINE_UNIT(Minute, TimeCategory, 60.0);
+constexpr Second _tinyTime{1e-7};
 struct HealthCategory {};
 DEFINE_UNIT(HealthPoints, HealthCategory, 1.0);
 struct ArmorCatergory {};
