@@ -29,10 +29,7 @@ jobs:
         - mkdir build && cd build
         - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         - ninja -k 100 all
-      cache:
-        directories:
-          - $HOME/AppData/Local/Temp/chocolatey
-          - $HOME/.conan
+
     - os: osx
       osx_image: xcode11.6
       compiler: clang
@@ -40,10 +37,7 @@ jobs:
         - mkdir build && cd build
         - cmake .. -G Xcode -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         - cmake --build . --target ALL_BUILD --config RelWithDebInfo
-      cache:
-        directories:
-          - $HOME/AppData/Local/Temp/chocolatey
-          - $HOME/.conan
+
 
     # - os: windows
     #   script:
@@ -57,7 +51,9 @@ jobs:
     #     directories:
     #       - $HOME/AppData/Local/Temp/chocolatey
     #       - $HOME/.conan
-
+cache:
+  directories:
+    - $HOME/.conan
 
 after_success:
   - ctest --output-on-failure=1
