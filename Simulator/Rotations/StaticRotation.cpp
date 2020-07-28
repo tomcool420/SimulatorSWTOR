@@ -15,7 +15,7 @@ RotationalReturn StaticRotation::getNextAbility(const TargetPtr &source, const T
         return std::get<Second>(elt);
     }
 }
-void StaticRotation::log(std::ostream &s, int indent) {
+void StaticRotation::log(std::ostream &s, int indent) const {
     s << fmt::format("Static Rotation with size {} and current index {}:\n", _rotation.size(), _index);
     for (int ii = 0; ii < _rotation.size(); ++ii) {
         s << fmt::format("{:>{}} ", ii == _index ? "*" : "", indent + 2);
