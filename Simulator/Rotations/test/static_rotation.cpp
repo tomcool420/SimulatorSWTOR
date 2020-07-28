@@ -25,7 +25,7 @@ TestData getTestData() {
     ret.df = std::make_shared<DirtyFighting>();
     return ret;
 }
-
+}
 TEST(StaticRotation, Simple) {
     auto &&[s, t, c] = getTestData();
     StaticRotation r;
@@ -41,7 +41,7 @@ TEST(StaticRotation, Simple) {
     ASSERT_EQ(a, dirty_fighting_shrap_bomb);
     ASSERT_EQ(r.getIndex(), 3);
     auto av = r.getNextAbility(s, t, Second(0.0), Second(0.0));
-    ASSERT_ANY_THROW(auto s = std::get<Second>(av));
+    ASSERT_ANY_THROW(static_cast<void>( std::get<Second>(av)));
     ASSERT_EQ(std::get<AbilityId>(av), gunslinger_speed_shot);
     r.log(std::cout, 0);
 }
