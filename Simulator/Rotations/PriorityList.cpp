@@ -1,7 +1,7 @@
 #include "PriorityList.h"
 
 namespace Simulator {
-void PriorityList::log(std::ostream &stream, int indent) {
+void PriorityList::log(std::ostream &stream, int) {
     stream << fmt::format("Priority list with {} items\n", _priorites.size());
 }
 RotationalReturn PriorityList::getNextAbility(const TargetPtr &source, const TargetPtr &target,
