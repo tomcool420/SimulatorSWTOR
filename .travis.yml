@@ -37,6 +37,7 @@ jobs:
       compiler: gcc
       env: CMAKE_BUILD_TYPE=Debug
       script:
+        - sudo pip3 install cpp-coveralls
         - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
         - export CC=/usr/bin/gcc-8
@@ -49,7 +50,7 @@ jobs:
       after_succes:
         - ctest 
         - cd ..
-        - build/venv/bin/coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
+        - coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
     - os: osx
       osx_image: xcode11.6
       compiler: clang
