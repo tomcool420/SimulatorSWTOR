@@ -16,6 +16,7 @@ addons:
       - python3-pip
       - lcov
       - python3-setuptools
+      - python3-wheel
 
 jobs:
   include:
