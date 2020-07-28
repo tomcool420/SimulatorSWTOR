@@ -4,16 +4,16 @@
 #include <variant>
 namespace Simulator {
 
-using RotationalReturn = AbilityId;
+using RotationalReturn = std::variant<AbilityId, Second>;
 class RotationalPriorityList {
   public:
-    virtual void log(std::iostream &stream, int indent) = 0;
+    virtual void log(std::ostream &stream, int indent) = 0;
     [[nodiscard]] virtual RotationalReturn getNextAbility(const TargetPtr &source, const TargetPtr &target,
                                                           const Second &nextInstant, const Second &nextGCD) = 0;
 };
 using RotationalPriorityListPtr = std::shared_ptr<RotationalPriorityList>;
 
-class PriorityList : RotationalPriorityList {
+class PriorityList : public RotationalPriorityList {
   public:
     struct Priority {
         std::optional<AbilityId> aId;
@@ -56,7 +56,7 @@ class PriorityList : RotationalPriorityList {
         CHECK(false, "No Abilities left in priority list. it is ill formed");
         return 0;
     }
-    void log(std::iostream &stream, int indent = 0) {
+    void log(std::ostream &stream, int indent = 0) override {
         stream << fmt::format("{<:{}} Priority list with {} items", "", indent, _priorites.size());
     }
 
