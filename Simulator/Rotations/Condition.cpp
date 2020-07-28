@@ -2,8 +2,7 @@
 
 namespace Simulator {
 Condition getCooldownFinishedCondition(AbilityId id) {
-    Condition lambda = [=](const TargetPtr &source, const TargetPtr &, const Second &nextInstant,
-                           const Second &nextGCD) -> bool {
+    Condition lambda = [=](const TargetPtr &source, const TargetPtr &, const Second &, const Second &nextGCD) -> bool {
         auto hasCD = source->getAbilityCooldownEnd(id);
         if (hasCD)
             return *hasCD <= nextGCD + Second(1e-7);
