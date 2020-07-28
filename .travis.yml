@@ -13,12 +13,14 @@ addons:
       - python3
       - ninja-build
       - python3-venv
+      - lcov
 
 jobs:
   include:
     - os: linux
       dist: bionic
       compiler: gcc
+      env: CMAKE_BUILD_TYPE=RelWithDebInfo
       script:
         - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
@@ -27,9 +29,26 @@ jobs:
         # Check versions of gcc, g++ and cmake
         - gcc -v && g++ -v && cmake --version
         - mkdir build && cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - cmake .. -G Ninja 
         - ninja -k 100 all
-
+    - os: linux
+      dist: bionic
+      compiler: gcc
+      env: CMAKE_BUILD_TYPE=Debug
+      script:
+        - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+        - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+        - export CC=/usr/bin/gcc-8
+        - export CXX=/usr/bin/g++-8
+        # Check versions of gcc, g++ and cmake
+        - gcc -v && g++ -v && cmake --version
+        - mkdir build && cd build
+        - cmake .. -G Ninja  -DCOVERAGE=ON 
+        - ninja -k 100 all
+      after_succes:
+        - ctest 
+        - cd ..
+        - coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
     - os: osx
       osx_image: xcode11.6
       compiler: clang
