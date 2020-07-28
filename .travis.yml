@@ -49,7 +49,7 @@ jobs:
       after_succes:
         - ctest 
         - cd ..
-        - coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
+        - build/venv/bin/coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
     - os: osx
       osx_image: xcode11.6
       compiler: clang
