@@ -41,8 +41,10 @@ jobs:
       env: CMAKE_BUILD_TYPE=Debug
       script:
         - pip3 install --user cpp-coveralls
+        - export PATH=/usr/local/bin/:$PATH
         - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+        - sudo ln -s /usr/bin/gcov /usr/local/bin/gcov
         - export CC=/usr/bin/gcc-8
         - export CXX=/usr/bin/g++-8
         # Check versions of gcc, g++ and cmake
@@ -53,7 +55,7 @@ jobs:
       after_succes:
         - ctest 
         - cd ..
-        - ~/.local/bin/coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "/build/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
+        - ~/.local/bin/coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "build/CMakeFiles" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu --gcov /usr/bin/gcov-8
     - os: osx
       osx_image: xcode11.6
       compiler: clang
