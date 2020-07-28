@@ -44,6 +44,7 @@ jobs:
         - export PATH=/usr/local/bin/:$PATH
         - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+        - sudo ln -s /usr/bin/gcov /usr/local/bin/gcov
         - export CC=/usr/bin/gcc-8
         - export CXX=/usr/bin/g++-8
         # Check versions of gcc, g++ and cmake
