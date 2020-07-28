@@ -13,12 +13,17 @@ addons:
       - python3
       - ninja-build
       - python3-venv
+      - python3-pip
+      - lcov
+      - python3-setuptools
+      - python3-wheel
 
 jobs:
   include:
     - os: linux
       dist: bionic
       compiler: gcc
+      env: CMAKE_BUILD_TYPE=RelWithDebInfo
       script:
         - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
@@ -27,9 +32,28 @@ jobs:
         # Check versions of gcc, g++ and cmake
         - gcc -v && g++ -v && cmake --version
         - mkdir build && cd build
-        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
         - ninja -k 100 all
-
+        - ctest --output-on-failure=1
+    - os: linux
+      dist: bionic
+      compiler: gcc
+      env: CMAKE_BUILD_TYPE=Debug
+      script:
+        - pip3 install --user cpp-coveralls
+        - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+        - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
+        - export CC=/usr/bin/gcc-8
+        - export CXX=/usr/bin/g++-8
+        # Check versions of gcc, g++ and cmake
+        - gcc -v && g++ -v && cmake --version
+        - mkdir build && cd build
+        - cmake .. -G Ninja  -DCOVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+        - ninja -k 100 all
+      after_succes:
+        - ctest 
+        - cd ..
+        - ~/.local/bin/coveralls -b build -E ".conan" -E "/usr/" -E "/test/" -E "/build/" -E "Simulator/Simulator" -t djkKTaIgaDaxnk4mB9eS9wGknnuqC4lwu
     - os: osx
       osx_image: xcode11.6
       compiler: clang
@@ -37,7 +61,7 @@ jobs:
         - mkdir build && cd build
         - cmake .. -G Xcode -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         - cmake --build . --target ALL_BUILD --config RelWithDebInfo
-
+        - ctest --output-on-failure=1
 
     # - os: windows
     #   script:
@@ -54,6 +78,3 @@ jobs:
 cache:
   directories:
     - $HOME/.conan
-
-after_success:
-  - ctest --output-on-failure=1
