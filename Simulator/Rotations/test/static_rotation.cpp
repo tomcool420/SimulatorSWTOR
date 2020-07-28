@@ -1,4 +1,5 @@
 #include "../../Classes/DirtyFighting.h"
+#include "../PriorityList.h"
 #include "../StaticRotation.h"
 #include <gtest/gtest.h>
 using namespace Simulator;
@@ -25,7 +26,7 @@ TestData getTestData() {
     ret.df = std::make_shared<DirtyFighting>();
     return ret;
 }
-}
+} // namespace
 TEST(StaticRotation, Simple) {
     auto &&[s, t, c] = getTestData();
     StaticRotation r;
@@ -41,7 +42,48 @@ TEST(StaticRotation, Simple) {
     ASSERT_EQ(a, dirty_fighting_shrap_bomb);
     ASSERT_EQ(r.getIndex(), 3);
     auto av = r.getNextAbility(s, t, Second(0.0), Second(0.0));
-    ASSERT_ANY_THROW(static_cast<void>( std::get<Second>(av)));
+    ASSERT_ANY_THROW(static_cast<void>(std::get<Second>(av)));
     ASSERT_EQ(std::get<AbilityId>(av), gunslinger_speed_shot);
-    r.log(std::cout, 0);
+    ASSERT_NO_THROW(r.log(std::cout, 0));
+}
+
+TEST(StaticRotation, Delay) {
+    auto &&[s, t, c] = getTestData();
+    StaticRotation r;
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_vital_shot);
+    r.addAbility(dirty_fighting_shrap_bomb);
+    r.addDelay(Second(3));
+    ASSERT_EQ(r.getSize(), 4);
+    auto a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    ASSERT_EQ(a, gunslinger_speed_shot);
+    ASSERT_EQ(r.getIndex(), 1);
+    a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    ASSERT_EQ(a, dirty_fighting_shrap_bomb);
+    auto av = r.getNextAbility(s, t, Second(0.0), Second(0.0));
+    ASSERT_TRUE(std::holds_alternative<Second>(av));
+    ASSERT_EQ(r.getIndex(), 4);
+    av = r.getNextAbility(s, t, Second(0.0), Second(0.0));
+    ASSERT_ANY_THROW(static_cast<void>(std::get<Second>(av)));
+    ASSERT_EQ(std::get<AbilityId>(av), gunslinger_speed_shot);
+    ASSERT_NO_THROW(r.log(std::cout, 0));
+}
+
+TEST(StaticRotation, PriorityList) {
+    auto &&[s, t, c] = getTestData();
+    StaticRotation r;
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_vital_shot);
+    auto p = std::make_shared<PriorityList>();
+    p->addAbility(dirty_fighting_dirty_blast, {});
+    r.addPriorityList(p);
+    r.addAbility(dirty_fighting_shrap_bomb);
+    ASSERT_EQ(r.getSize(), 4);
+    auto a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    ASSERT_EQ(a, gunslinger_speed_shot);
+    a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    a = std::get<AbilityId>(r.getNextAbility(s, t, Second(0.0), Second(0.0)));
+    ASSERT_EQ(a, dirty_fighting_dirty_blast);
+    ASSERT_NO_THROW(r.log(std::cout, 0));
 }
