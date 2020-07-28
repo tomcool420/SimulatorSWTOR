@@ -29,7 +29,7 @@ jobs:
         # Check versions of gcc, g++ and cmake
         - gcc -v && g++ -v && cmake --version
         - mkdir build && cd build
-        - cmake .. -G Ninja 
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
         - ninja -k 100 all
     - os: linux
       dist: bionic
@@ -43,7 +43,7 @@ jobs:
         # Check versions of gcc, g++ and cmake
         - gcc -v && g++ -v && cmake --version
         - mkdir build && cd build
-        - cmake .. -G Ninja  -DCOVERAGE=ON 
+        - cmake .. -G Ninja  -DCOVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
         - ninja -k 100 all
       after_succes:
         - ctest 
