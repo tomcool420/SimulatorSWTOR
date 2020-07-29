@@ -96,8 +96,10 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         abl->setStatChanges(sc);
         if (getExploitedWeakness()) {
             auto ewInfo = detail::getDefaultAbilityInfo(dirty_fighting_exploited_weakness);
-            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(
-                std::make_unique<DOT>(dirty_fighting_exploited_weakness, ewInfo)));
+            auto ewDot = std::unique_ptr<DOT>(
+                MakeOnAbilityHitDot(dirty_fighting_exploited_weakness, ewInfo, detail::getTickOnWoundingShotsLambda()));
+            ewDot->setTickOnRefresh(true);
+            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(ewDot)));
         }
         return abl;
     }

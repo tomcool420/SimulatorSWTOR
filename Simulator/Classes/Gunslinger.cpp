@@ -54,7 +54,7 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
         auto abl = std::make_shared<Ability>(id, info);
         if (getEstablishedFoothold()) {
             abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(
-                std::make_unique<detail::GunslingerEntrencedOffenceBuff>(), false));
+                std::make_unique<detail::GunslingerEntrencedOffenseBuff>(), false));
         }
         abl->setCooldown(info.cooldownTime - getEstablishedFoothold() * Second(10) - getLayLowPassive() * Second(15));
         abl->setCooldownIsAffectedByAlacrity(false);

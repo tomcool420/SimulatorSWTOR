@@ -19,4 +19,5 @@ class StaticRotation : public RotationalPriorityList {
     int _index{0};
     std::vector<std::variant<AbilityId, RotationalPriorityListPtr, Second>> _rotation;
 };
+using StaticRotationPtr = std::shared_ptr<StaticRotation>;
 } // namespace Simulator

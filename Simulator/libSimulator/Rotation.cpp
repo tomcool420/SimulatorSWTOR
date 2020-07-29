@@ -39,9 +39,9 @@ std::optional<Second> SetRotation::getNextEventTime() {
     }
     return std::nullopt;
 }
-AbilityId SetRotation::getNextAbility() {
+AbilityPtr SetRotation::getNextAbility() {
     CHECK(_idCounter < _ids.size());
-    return _ids[_idCounter++];
+    return getAbility(_ids[_idCounter++]);
 }
 enum class TargetType {
     Rotation,
@@ -74,6 +74,10 @@ void Rotation::doRotation() {
     auto ne = getEvents();
     while (ne.size() > 0) {
         auto &&event = ne[0];
+        if (_target->getDeathTime() || _target->getCurrentHealth() <= HealthPoints(0.0)) {
+            ne.clear();
+            break;
+        }
         if (event.type == TargetType::Source) {
             getSource()->applyEventsAtTime(event.time + Second(1e-7));
         } else if (event.type == TargetType::Target) {
@@ -106,7 +110,8 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         } break;
         case AbilityCastType::Channeled: {
             auto currentTickTime = _abilityStartTime + _currentTick * _abilityCastTickTime;
-            CHECK(_abilityStartTime + _abilityCastTickTime < time + Second(1e-5));
+            if (_abilityStartTime + _abilityCastTickTime > time + Second(1e-5))
+                CHECK(_abilityStartTime + _abilityCastTickTime <= time + Second(1e-5));
 
             auto fs = getAllFinalStats(*_currentAbility, getSource(), target);
             auto hits = getHits(*_currentAbility, fs, target);
@@ -128,8 +133,8 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             break;
         }
     } else {
-        auto id = getNextAbility();
-        auto abl = getAbility(id);
+        auto abl = getNextAbility();
+        auto id = abl->getId();
         CHECK(abl);
         auto &&info = abl->getInfo();
         SIM_INFO("[ROTATION] Time : {}, Casting ability [{} : {}]", time.getValue(), detail::getAbilityName(id), id);

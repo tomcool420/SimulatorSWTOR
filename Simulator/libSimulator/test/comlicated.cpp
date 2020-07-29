@@ -368,7 +368,7 @@ TEST(Calculations, Rotation2WS_HighStats) {
              s.hp.getValue() / (deathTimes.front() - Second(1.5)).getValue());
 }
 
-TEST(Calculations, DotsEntrenchedOffence) {
+TEST(Calculations, DotsEntrenchedOffense) {
     RawStats rs;
     rs.master = Mastery(12138);
     rs.power = Power(9393);

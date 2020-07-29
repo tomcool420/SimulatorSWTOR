@@ -30,6 +30,7 @@ TestData getTestData() {
     ret.df = std::make_shared<DirtyFighting>();
     return ret;
 }
+} // namespace
 TEST(PriorityList, Simple) {
     PriorityList p;
     auto &&[s, t, c] = getTestData();
@@ -55,4 +56,3 @@ TEST(PriorityList, Simple) {
     rr = std::get<AbilityId>(p.getNextAbility(s, t, Second(60), Second(60.0)));
     ASSERT_EQ(rr, gunslinger_smugglers_luck);
 }
-} // namespace

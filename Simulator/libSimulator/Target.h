@@ -74,6 +74,7 @@ class Target : public std::enable_shared_from_this<Target> {
     using BuffMap = std::map<AbilityId, BuffPtr>;
     BuffMap &getBuffs() { return _buffs; }
 
+    void setLogEvents(bool log) { _logEvents = log; }
     const RawStats &getRawStats() const { return _rawStats; }
     AllStatChanges getStatChangesFromBuffs(const Ability &abl, const TargetPtr &target) const;
     AllStatChanges getStatChangesFromDebuff(const Ability &abl, const TargetPtr &source) const;
@@ -132,6 +133,7 @@ class Target : public std::enable_shared_from_this<Target> {
     EnergyPtr _energy;
     // this needs to be replaced by a generic debuff
     bool _sundered = true;
+    bool _logEvents{true};
 };
 
 template <class T> void addBuffs(const TargetPtr &t, T v, const Second &time) {

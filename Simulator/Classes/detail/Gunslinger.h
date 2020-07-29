@@ -1,20 +1,21 @@
 #pragma once
 #include "../../libSimulator/Ability.h"
-#include "../../libSimulator/DOT.h"
-#include "../../libSimulator/constants.h"
-#include "../../libSimulator/Target.h"
 #include "../../libSimulator/ConditionalApplyDebuff.h"
+#include "../../libSimulator/DOT.h"
+#include "../../libSimulator/Target.h"
+#include "../../libSimulator/constants.h"
 
 namespace Simulator::detail {
-class GunslingerEntrencedOffenceBuff : public Buff {
+class GunslingerEntrencedOffenseBuff : public Buff {
   public:
-    GunslingerEntrencedOffenceBuff() : Buff() {
+    GunslingerEntrencedOffenseBuff() : Buff() {
         setId(gunslinger_entrenched_offsense);
         setDuration(Second(15));
     };
     [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) {
         _stacks = std::clamp(static_cast<int>(std::floor((time - getStartTime()).getValue())), 0, 5);
-        SIM_INFO("Entrenched offence is now at {} stacks ", _stacks);
+        SIM_INFO("DEBUG: Time: {}, Entrenched Offense is now at {} stacks (start: {})", time.getValue(), _stacks,
+                 getStartTime().getValue());
         if (time > getEndTime()) {
             return {{DebuffEventType::Remove}};
         }
@@ -30,7 +31,7 @@ class GunslingerEntrencedOffenceBuff : public Buff {
             return getStartTime() + ((_stacks + 1) * Second(1.0));
         return Buff::getNextEventTime();
     }
-    [[nodiscard]] Buff *clone() const final { return new GunslingerEntrencedOffenceBuff(*this); };
+    [[nodiscard]] Buff *clone() const final { return new GunslingerEntrencedOffenseBuff(*this); };
 
   private:
     int _stacks{0};
