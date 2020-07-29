@@ -14,7 +14,7 @@ class Class {
     virtual std::vector<BuffPtr> getStaticBuffs() = 0;
     //    [[nodiscard]] virtual std::optional<Second> getNextEventTime()=0;
     //    [[nodiscard]] virtual std::vector<BuffPtr> getBuffs()=0;
-
+    virtual EnergyPtr getEnergyModel() { return nullptr; }
     void onAbilityWasCast(const Ability &abl);
     virtual ~Class() = default;
 

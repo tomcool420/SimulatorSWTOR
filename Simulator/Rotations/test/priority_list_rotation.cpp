@@ -144,7 +144,7 @@ stats getStdDev(const std::vector<Second> &times) {
     auto stddev = std::sqrt(variance);
     return {mean, stddev, min, max};
 }
-TEST(FullRotation, WoundingShots2) {
+TEST(FullRotation, DISABLED_WoundingShots2) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
         auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
@@ -270,7 +270,7 @@ TEST(FullRotation, WoundingShots2) {
     logParseInformation(events, duration);
 }
 
-TEST(FullRotation, WoundingShots3) {
+TEST(FullRotation, DISABLED_WoundingShots3) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
         auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
@@ -423,80 +423,29 @@ TEST(FullRotation, WoundingShots3) {
     logParseInformation(events, duration);
 }
 
-TEST(FullRotation, WoundingShots2AlacrityRange) {
-    auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
-        auto &&[s, t, c] = getTestData(alacrity, crit);
-        auto d = new detail::LogDisabler;
-        auto p = std::make_shared<PriorityList>();
-        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
-        auto baseRotation = std::make_shared<StaticRotation>();
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(gunslinger_vital_shot);
-        baseRotation->addAbility(dirty_fighting_shrap_bomb);
-        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
-        baseRotation->addAbility(dirty_fighting_wounding_shots);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_wounding_shots);
-        p->addPriorityList(baseRotation, {});
-        addBuffs(s, c->getStaticBuffs(), Second(0.0));
-        s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
-        s->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
-                   Second(0.0));
-        s->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0}),
-                   Second(0.0));
-        c->setExploitedWeakness(ew);
-        c->setLayLowPassive(ll);
-        c->setEstablishedFoothold(ef);
-        if (shattered) {
-            t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
-        }
-        PriorityListRotation rot(s);
-        rot.setNextFreeGCD(Second(0.0));
-        rot.setTarget(t);
-        rot.setClass(c);
-        rot.setPriorityList(p);
-        rot.setMinTimeAfterInstant(Second(0.0));
-        rot.setDelayAfterChanneled(Second(0.05));
-        rot.doRotation();
-        delete d;
-        return t->getEvents();
-    };
-    double totalStats = 2331.0 + 2095;
-    struct info {
-        double alacrity;
-        double crit;
-        double mean;
-        double stddev;
-    };
-    int iterations = 100;
-    std::vector<info> infos;
-    for (double alacrity = 0; alacrity < totalStats; alacrity += 40) {
-        std::cout << "Alacrity: " << alacrity << "\n";
-        double crit = std::max(0.0, totalStats - alacrity);
-        std::vector<Second> times;
-        for (int ii = 0; ii < iterations; ++ii) {
-            auto &&events = lambda(true, true, true, true, alacrity, crit);
-            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
-            times.push_back(time);
-        }
-        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-        infos.push_back(info{alacrity, crit, mean.getValue(), stddev});
-    }
-    for (auto &v : infos) {
-        std::cout << v.alacrity << "," << v.crit << "," << v.mean << "," << v.stddev << "\n";
-    }
-}
-
-TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
+TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
-                     std::vector<BuffPtr> &&relics = {}) {
+                     bool critRelic = false) {
         auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
+        // auto p = std::make_shared<PriorityList>();
+        // p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
+        // p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+        // p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+
+        // auto baseRotation = std::make_shared<StaticRotation>();
+        // baseRotation->addAbility(dirty_fighting_dirty_blast);
+        // baseRotation->addAbility(gunslinger_vital_shot);
+        // baseRotation->addAbility(dirty_fighting_shrap_bomb);
+        // baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+        // baseRotation->addAbility(dirty_fighting_wounding_shots);
+        // baseRotation->addAbility(dirty_fighting_dirty_blast);
+        // baseRotation->addAbility(dirty_fighting_dirty_blast);
+        // baseRotation->addAbility(dirty_fighting_dirty_blast);
+        // baseRotation->addAbility(dirty_fighting_dirty_blast);
+        // baseRotation->addAbility(dirty_fighting_wounding_shots);
+        // p->addPriorityList(baseRotation, {});
+
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
         p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
@@ -507,16 +456,52 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         baseRotation->addAbility(dirty_fighting_shrap_bomb);
         baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
         baseRotation->addAbility(dirty_fighting_wounding_shots);
+
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+        baseRotation->addAbility(gunslinger_vital_shot);
+        baseRotation->addAbility(dirty_fighting_shrap_bomb);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+
         p->addPriorityList(baseRotation, {});
+
+        s->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
+                   Second(0.0));
+        if (!critRelic) {
+            s->addBuff(
+                std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0}),
+                Second(0.0));
+        } else {
+            s->addBuff(
+                std::make_unique<RelicProcBuff>(relic_critical_surge, Mastery{0.0}, Power{0.0}, CriticalRating{2892}),
+                Second(0.0));
+        }
         addBuffs(s, c->getStaticBuffs(), Second(0.0));
         s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
-
-        addBuffs(s, std::move(relics), Second(0.0));
         c->setExploitedWeakness(ew);
         c->setLayLowPassive(ll);
         c->setEstablishedFoothold(ef);
@@ -528,8 +513,8 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         rot.setTarget(t);
         rot.setClass(c);
         rot.setPriorityList(p);
-        rot.setMinTimeAfterInstant(Second(0.0));
-        rot.setDelayAfterChanneled(Second(0.05));
+        rot.setMinTimeAfterInstant(Second(0.03));
+        rot.setDelayAfterChanneled(Second(0.01));
         rot.doRotation();
         delete d;
         return t->getEvents();
@@ -541,17 +526,14 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         double mean;
         double stddev;
     };
-    int iterations = 200;
+    int iterations = 300;
     std::vector<info> infosCrit;
     for (double alacrity = 0; alacrity < totalStats; alacrity += 40) {
         std::cout << "Alacrity: " << alacrity << "\n";
         double crit = std::max(0.0, totalStats - alacrity);
         std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
-            std::vector<BuffPtr> relics{
-                std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
-                std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0})};
-            auto &&events = lambda(true, true, true, true, alacrity, crit, std::move(relics));
+            auto &&events = lambda(true, true, true, true, alacrity, crit, true);
             auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
             times.push_back(time);
         }
@@ -564,10 +546,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         double crit = std::max(0.0, totalStats - alacrity);
         std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
-            std::vector<BuffPtr> relics{
-                std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
-                std::make_unique<RelicProcBuff>(relic_critical_surge, Mastery{0.0}, Power{0}, CriticalRating{2892})};
-            auto &&events = lambda(true, true, true, true, alacrity, crit, std::move(relics));
+            auto &&events = lambda(true, true, true, true, alacrity, crit, false);
             auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
             times.push_back(time);
         }

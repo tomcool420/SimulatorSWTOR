@@ -14,7 +14,7 @@ class GunslingerEntrencedOffenseBuff : public Buff {
     };
     [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) {
         _stacks = std::clamp(static_cast<int>(std::floor((time - getStartTime()).getValue())), 0, 5);
-        SIM_INFO("DEBUG: Time: {}, Entrenched Offense is now at {} stacks (start: {})", time.getValue(), _stacks,
+        SIM_INFO("DEBUG: Time: {}, Entrenched Offense is now at {} stacks (start: {})", tim_energy->getValue(), _stacks,
                  getStartTime().getValue());
         if (time > getEndTime()) {
             return {{DebuffEventType::Remove}};

@@ -84,6 +84,25 @@ class DirtyShot : public Buff {
     }
     [[nodiscard]] Buff *clone() const override { return new DirtyShot(*this); }
 };
+class FightingSpirit : public Buff {
+  public:
+    FightingSpirit() : Buff() {}
+
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
+                            const TargetPtr &target) override {
+        for (auto &&hit : hits) {
+            if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
+                hit.id == gunslinger_vital_shot ||
+                (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
+                player->addEnergy(1, time);
+                SIM_INFO("[Fighting Spirit] Time: {} : gain 1 energy", time.getValue());
+            }
+        }
+
+        return {};
+    }
+    [[nodiscard]] Buff *clone() const override { return new FightingSpirit(*this); }
+};
 
 } // namespace detail
 
@@ -204,6 +223,7 @@ std::vector<BuffPtr> DirtyFighting::getStaticBuffs() {
         })));
     ret.push_back(std::make_unique<detail::ColdBlooded>());
     ret.push_back(std::make_unique<detail::DirtyShot>());
+    ret.push_back(std::make_unique<detail::FightingSpirit>());
     return ret;
 }
 } // namespace Simulator

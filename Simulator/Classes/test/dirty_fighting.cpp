@@ -159,7 +159,7 @@ TEST(DirtyFighting, WeakDots) {
     df->setExploitedWeakness(true);
     addBuffs(player, df->getStaticBuffs(), Second(0.0));
     player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
-
+    target->setEnergyModel(target->getEnergyModel());
     AbilityIds ids{
         dirty_fighting_shrap_bomb, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,
         smuggler_flurry_of_bolts,  smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,

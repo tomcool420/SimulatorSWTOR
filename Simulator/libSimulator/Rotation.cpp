@@ -162,6 +162,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
             _currentAbility->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
             _source->spendEnergy(_currentAbility->getInfo().energyCost, _nextFreeGCD);
+            double duration = (info.nTicks - 1) * info.time.getValue() / (1.0 + _abilityAlacrityAmount);
+            duration = std::ceil(10.0 * duration) / 10.0;
+            _abilityCastTickTime = Second(duration / (info.nTicks - 1.0));
             _currentTick = 1;
             auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity()
                                        ? abl->getCooldown() / (1.0 + _abilityAlacrityAmount)
