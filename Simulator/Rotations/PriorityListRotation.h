@@ -20,7 +20,7 @@ class PriorityListRotation : public Rotation {
     ClassPtr _class;
     RotationalPriorityListPtr _plr;
     std::optional<RotationalPriorityListPtr> _opener;
-    bool _openerDone{true};
+    // bool _openerDone{true};
     std::optional<std::pair<AbilityId, Second>> _nextAbility;
 };
 } // namespace Simulator
