@@ -4,11 +4,10 @@
 #include "detail/Cache.h"
 #include "detail/units.h"
 #include "types.h"
-
 namespace Simulator {
 
 class Class {
-public:
+  public:
     [[nodiscard]] const AbilityPtr &getAbility(AbilityId id) {
         return _cache.getFromCacheIfNotIn(id, [&]() { return getAbilityInternal(id); });
     }
@@ -18,6 +17,7 @@ public:
 
     void onAbilityWasCast(const Ability &abl);
     virtual ~Class() = default;
+
   protected:
     [[nodiscard]] virtual AbilityPtr getAbilityInternal(AbilityId id) = 0;
     [[nodiscard]] auto &getCache() { return _cache; }

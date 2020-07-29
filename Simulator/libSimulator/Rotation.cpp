@@ -1,5 +1,6 @@
 #include "Rotation.h"
 #include "Ability.h"
+#include "Class.h"
 #include "detail/helpers.h"
 #include "detail/log.h"
 #include "detail/names.h"
@@ -41,6 +42,8 @@ std::optional<Second> SetRotation::getNextEventTime() {
 }
 AbilityPtr SetRotation::getNextAbility() {
     CHECK(_idCounter < _ids.size());
+    if (_class)
+        return _class->getAbility(_ids[_idCounter++]);
     return getAbility(_ids[_idCounter++]);
 }
 enum class TargetType {
@@ -134,6 +137,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         }
     } else {
         auto abl = getNextAbility();
+        CHECK(abl);
         auto id = abl->getId();
         CHECK(abl);
         auto &&info = abl->getInfo();

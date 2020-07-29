@@ -3,7 +3,9 @@
 #include "constants.h"
 #include "detail/calculations.h"
 #include "utility.h"
+#include <Simulator/libSimulator/detail/log.h>
 #include <random>
+
 namespace Simulator {
 DamageRanges calculateDamageRange(const Ability &iAbility, const AllFinalStats &astats) {
     DamageRanges ret;

@@ -22,7 +22,8 @@ Debuff *DOT::clone() const { return new DOT(*this); }
 
 DebuffEvents DOT::resolveEventsUpToTime(const Second &time, const TargetPtr &t) {
     DebuffEvents ret;
-    while (getStartTime() + (_TickCount + !_hasInitialTick) * _tickRate <= time + Second(1e-7)) {
+    while ((getStartTime() + (_TickCount + !_hasInitialTick) * _tickRate <= time + Second(1e-7)) &&
+           _nticks != _TickCount) {
         auto expectedTime = getStartTime() + (_TickCount + !_hasInitialTick) * _tickRate;
         ret.push_back({DebuffEventType::Tick, expectedTime, tick(t, time)});
     }

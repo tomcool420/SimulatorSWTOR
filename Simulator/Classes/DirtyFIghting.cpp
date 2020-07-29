@@ -48,7 +48,9 @@ class ColdBlooded : public Buff {
     DamageHits onAbilityHit(DamageHits &hits, const Second & /*time*/, const TargetPtr & /*player*/,
                             const TargetPtr &target) override {
         if (target->getCurrentHealth() / target->getMaxHealth() < 0.3) {
-            for (auto &&hit : hits) {
+            int hitCount = static_cast<int>(hits.size());
+            for (int ii = 0; ii < hitCount; ++ii) {
+                auto &hit = hits[ii];
                 if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
                     hit.id == gunslinger_vital_shot ||
                     (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
@@ -123,6 +125,7 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         info.coefficients[0].multiplier += 0.05; // Bombastic (40)
         auto sb = std::unique_ptr<DOT>(MakeOnAbilityHitDot(id, info, detail::getTickOnWoundingShotsLambda()));
         sb->setDoubleTickChance(0.1); // Gushing Wounds (64)
+        sb->setExtraTime(Second(5));
         info.coefficients[0].isAreaOfEffect = true;
         auto abl = detail::createDotAbility(info, std::move(sb));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(detail::getGenericDebuff(debuff_assailable)));
@@ -133,6 +136,7 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         info.nTicks += 2;
         auto dot = std::unique_ptr<DOT>(MakeOnAbilityHitDot(id, info, detail::getTickOnWoundingShotsLambda()));
         dot->setDoubleTickChance(0.1); // Mortal Wound (32)
+        dot->setExtraTime(Second(5));
         auto abl = detail::createDotAbility(std::move(dot));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(detail::getGenericDebuff(debuff_marked)));
         return abl;

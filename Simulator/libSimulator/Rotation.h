@@ -46,13 +46,13 @@ class SetRotation : public Rotation {
     std::optional<Second> getNextEventTime() override;
     void setStart(Second time) { setNextFreeGCD(time); }
     virtual ~SetRotation() = default;
-
+    void setClass(const ClassPtr &c) { _class = c; }
     SIMULATOR_SET_MACRO(Repeats, int, 1);
     AbilityPtr getNextAbility() override;
 
   private:
     AbilityIds _ids;
-
+    ClassPtr _class;
     int _idCounter{0};
     int _iterationCount{0};
 };

@@ -35,7 +35,7 @@ class DOT : public Debuff {
         _TickCount = 0;
         _lastTickTime = Second(-1e6);
         setStartTime(time);
-        setDuration((_nticks - _hasInitialTick) * _tickRate + _extraTime);
+        setDuration((_nticks - _hasInitialTick) * _tickRate + _ExtraTime);
         ++_refreshCount;
     }
     [[nodiscard]] bool isFinished() const { return _TickCount == _nticks; }
@@ -55,6 +55,7 @@ class DOT : public Debuff {
     SIMULATOR_SET_MACRO(DoubleTickChance, std::optional<double>, std::nullopt);
     SIMULATOR_GET_ONLY_MACRO(DefaultTickRate, Second, Second{0.0});
     SIMULATOR_SET_MACRO(TickOnRefresh, bool, false);
+    SIMULATOR_SET_MACRO(ExtraTime, Second, Second(0));
 
     void replaceAbilityInfo(AbilityInfo info) {
         _nticks = info.nTicks;
@@ -71,7 +72,6 @@ class DOT : public Debuff {
     int _defaultNTicks;
     Second _tickRate;
     Second _lastTickTime{-1e6};
-    Second _extraTime;
     bool _hasInitialTick{true};
     bool _defaultHasInitialTick{true};
     int _refreshCount{0};

@@ -153,3 +153,24 @@ TEST(DirtyFighting, DotRefresh) {
     rot.setRepeats(1);
     rot.doRotation();
 }
+
+TEST(DirtyFighting, WeakDots) {
+    auto &&[player, target, df] = getTestData();
+    df->setExploitedWeakness(true);
+    addBuffs(player, df->getStaticBuffs(), Second(0.0));
+    player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+
+    AbilityIds ids{
+        dirty_fighting_shrap_bomb, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,
+        smuggler_flurry_of_bolts,  smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,
+        smuggler_flurry_of_bolts,  smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,
+        smuggler_flurry_of_bolts,  smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, smuggler_flurry_of_bolts,
+        smuggler_flurry_of_bolts,  smuggler_flurry_of_bolts, smuggler_flurry_of_bolts, dirty_fighting_wounding_shots};
+
+    SetRotation rot(player, ids);
+    rot.setClass(df);
+    rot.setTarget(target);
+    rot.setStart(Second(0.0));
+    rot.setRepeats(1);
+    rot.doRotation();
+}

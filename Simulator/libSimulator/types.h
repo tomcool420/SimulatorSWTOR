@@ -1,8 +1,8 @@
 #pragma once
 #include "constants.h"
 #include "detail/units.h"
+#include <boost/container/small_vector.hpp>
 #include <vector>
-
 namespace Simulator {
 class Target;
 using TargetPtr = std::shared_ptr<Target>;
@@ -109,6 +109,6 @@ struct DamageHit {
     bool miss{false};
     bool aoe{false};
 };
-using DamageHits = std::vector<DamageHit>;
+using DamageHits = boost::container::small_vector<DamageHit, 3>;
 
 } // namespace Simulator
