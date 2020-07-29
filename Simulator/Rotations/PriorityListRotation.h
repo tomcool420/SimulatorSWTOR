@@ -11,7 +11,7 @@ class PriorityListRotation : public Rotation {
     PriorityListRotation(TargetPtr source) : Rotation(std::move(source)) {}
     void setClass(const ClassPtr &c) { _class = c; }
     void setPriorityList(const RotationalPriorityListPtr &plr) { _plr = plr; }
-    void setOpener(const StaticRotationPtr &opener) {}
+    void setOpener(const StaticRotationPtr &opener) { _opener = opener; }
     std::optional<Second> getNextEventTime() override;
     virtual AbilityPtr getNextAbility() override;
     virtual ~PriorityListRotation() = default;

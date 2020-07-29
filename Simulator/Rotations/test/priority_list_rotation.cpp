@@ -96,7 +96,7 @@ void logParseInformation(const Target::TargetEvents &events, Second duration) {
                  abl.totalDamage / totalDamage * 100.0);
     }
     for (auto &&abl : informations) {
-        int totalHits = abl.hitCount + abl.missCount + abl.critCount;
+        // int totalHits = abl.hitCount + abl.missCount + abl.critCount;
         SIM_INFO("[{:<35} {:>19}]: norm min: {}-{}, crit {}-{}", detail::getAbilityName(abl.id), abl.id,
                  abl.normRange.first, abl.normRange.second, abl.critRange.first, abl.critRange.second);
     }
@@ -124,7 +124,12 @@ struct stats {
     Second max;
 };
 stats getStdDev(const std::vector<Second> &times) {
-    std::sort(times.begin(), times.end());
+    Second max{0.0};
+    Second min{1e6};
+    for (auto &t : times) {
+        min = std::min(t, min);
+        max = std::max(t, max);
+    }
     auto totalTime = std::accumulate(times.begin(), times.end(), Second(0.0));
     auto mean = totalTime / static_cast<double>(times.size());
     std::vector<double> diffsSq(times.size());
@@ -134,11 +139,11 @@ stats getStdDev(const std::vector<Second> &times) {
     });
     auto variance = std::accumulate(diffsSq.begin(), diffsSq.end(), 0.0) / times.size();
     auto stddev = std::sqrt(variance);
-    return {mean, stddev, times.front(), times.back()};
+    return {mean, stddev, min, max};
 }
 TEST(FullRotation, WoundingShots2) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
-        auto &&[s, t, c] = getTestData();
+        auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
@@ -302,7 +307,7 @@ TEST(FullRotation, WoundingShots2) {
 
 TEST(FullRotation, WoundingShots3) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
-        auto &&[s, t, c] = getTestData();
+        auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
@@ -378,7 +383,7 @@ TEST(FullRotation, WoundingShots3) {
             times.push_back(time);
         }
         auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds (stddev = {})", mean.getValue(), stddev);
+        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(), stddev,minV,maxV);
     }
     {
         Second totalTime{0.0};
