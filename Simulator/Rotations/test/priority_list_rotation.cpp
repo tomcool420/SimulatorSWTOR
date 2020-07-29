@@ -270,10 +270,16 @@ TEST(FullRotation, DISABLED_WoundingShots2) {
     logParseInformation(events, duration);
 }
 
-TEST(FullRotation, DISABLED_WoundingShots3) {
-    auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
+TEST(FullRotation, WoundingShots3) {
+    bool disableLog = true;
+    bool wireInEnergy = false;
+    auto lambda = [&](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
         auto &&[s, t, c] = getTestData(alacrity, crit);
-        auto d = new detail::LogDisabler;
+        detail::LogDisabler *d = nullptr;
+        if (disableLog)
+            d = new detail::LogDisabler;
+        if (wireInEnergy)
+            s->setEnergyModel(c->getEnergyModel());
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
         p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
@@ -336,10 +342,11 @@ TEST(FullRotation, DISABLED_WoundingShots3) {
         rot.setMinTimeAfterInstant(Second(0.0));
         rot.setDelayAfterChanneled(Second(0.05));
         rot.doRotation();
-        delete d;
+        if (d)
+            delete d;
         return t->getEvents();
     };
-    int iterations = 500;
+    int iterations = 1;
     {
         std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
@@ -417,10 +424,12 @@ TEST(FullRotation, DISABLED_WoundingShots3) {
         SIM_INFO("Mean Time to Death Baseline 1.3 (Shattered): {} seconds (stddev = {}, min = {}, max = {})",
                  mean.getValue(), stddev, minV, maxV);
     }
-
-    auto &&events = lambda(true, true, true, true);
-    auto duration = getLastDamageEvent(events) - getFirstDamageEvent(events);
-    logParseInformation(events, duration);
+    wireInEnergy = true;
+    ASSERT_NO_THROW({
+        auto events = lambda(true, true, true, true);
+        auto duration = getLastDamageEvent(events) - getFirstDamageEvent(events);
+        logParseInformation(events, duration);
+    });
 }
 
 TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {

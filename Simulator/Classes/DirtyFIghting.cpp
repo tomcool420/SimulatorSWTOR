@@ -88,14 +88,12 @@ class FightingSpirit : public Buff {
   public:
     FightingSpirit() : Buff() {}
 
-    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
-                            const TargetPtr &) override {
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player, const TargetPtr &) override {
         for (auto &&hit : hits) {
             if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
                 hit.id == gunslinger_vital_shot ||
                 (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
                 player->addEnergy(1, time);
-                SIM_INFO("[Fighting Spirit] Time: {} : gain 1 energy", time.getValue());
             }
         }
 

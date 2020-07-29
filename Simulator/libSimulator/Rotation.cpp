@@ -59,7 +59,7 @@ struct NextEvent {
 void Rotation::doRotation() {
     CHECK(_target);
 
-    auto getEvents = [&]() {
+    auto getEvents = [&]() -> std::vector<NextEvent> {
         std::vector<NextEvent> events;
         if (auto nextSourceEvent = getSource()->getNextEventTime()) {
             events.push_back(NextEvent{TargetType::Source, *nextSourceEvent});
@@ -70,6 +70,8 @@ void Rotation::doRotation() {
         if (auto nextRotationEvent = getNextEventTime()) {
             events.push_back(NextEvent{TargetType::Rotation, *nextRotationEvent});
         }
+        if (events.size() == 1 && events[0].type == TargetType::Source)
+            return {}; // return nothing if the only even is a source event
         std::sort(events.begin(), events.end(), [](const NextEvent &a, const NextEvent &b) { return a.time < b.time; });
         return events;
     };
@@ -101,6 +103,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             CHECK(endCastTime < time + Second(1e-5));
             auto fs = getAllFinalStats(*_currentAbility, getSource(), target);
             auto hits = getHits(*_currentAbility, fs, target);
+            _source->spendEnergy(_currentAbility->getInfo().energyCost, endCastTime);
             applyDamageToTarget(hits, getSource(), target, endCastTime);
             auto abilityCooldown = _currentAbility->getCooldownIsAffectedByAlacrity()
                                        ? _currentAbility->getCooldown() / (1.0 + _abilityAlacrityAmount)
@@ -108,7 +111,6 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             getSource()->setAbilityCooldown(_currentAbility->getId(), abilityCooldown + endCastTime);
             _currentAbility->onAbilityHitTarget(hits, getSource(), target, endCastTime);
             _currentAbility->onAbilityEnd(getSource(), target, endCastTime);
-            _source->spendEnergy(_currentAbility->getInfo().energyCost, endCastTime);
             _currentAbility = nullptr;
         } break;
         case AbilityCastType::Channeled: {
@@ -118,9 +120,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
 
             auto fs = getAllFinalStats(*_currentAbility, getSource(), target);
             auto hits = getHits(*_currentAbility, fs, target);
+            _source->spendEnergy(_currentAbility->getInfo().energyCost, currentTickTime);
             applyDamageToTarget(hits, getSource(), target, currentTickTime);
             _currentAbility->onAbilityHitTarget(hits, getSource(), target, currentTickTime);
-            _source->spendEnergy(_currentAbility->getInfo().energyCost, currentTickTime);
             _currentTick += 1;
 
             if (_currentTick == info.nTicks) {
@@ -159,9 +161,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         case AbilityCastType::Channeled: {
             _currentAbility = abl;
             auto hits = getHits(*_currentAbility, afs, target);
+            _source->spendEnergy(_currentAbility->getInfo().energyCost, _nextFreeGCD);
             applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
             _currentAbility->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
-            _source->spendEnergy(_currentAbility->getInfo().energyCost, _nextFreeGCD);
             double duration = (info.nTicks - 1) * info.time.getValue() / (1.0 + _abilityAlacrityAmount);
             duration = std::ceil(10.0 * duration) / 10.0;
             _abilityCastTickTime = Second(duration / (info.nTicks - 1.0));
@@ -178,9 +180,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         }
         case AbilityCastType::Instant: {
             auto hits = getHits(*abl, afs, target);
+            _source->spendEnergy(abl->getInfo().energyCost, _nextFreeGCD);
             applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
             abl->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
-            _source->spendEnergy(abl->getInfo().energyCost, _nextFreeGCD);
             abl->onAbilityEnd(getSource(), target, _nextFreeGCD);
             auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity()
                                        ? abl->getCooldown() / (1.0 + _abilityAlacrityAmount)
@@ -194,9 +196,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         case AbilityCastType::OffGCD: {
             DamageHits hits = abl->getCoefficients().empty() ? DamageHits{} : getHits(*abl, afs, target);
             auto castTime = std::max(time, _nextFreeGCDForInstant);
+            _source->spendEnergy(abl->getInfo().energyCost, castTime);
             applyDamageToTarget(hits, getSource(), target, castTime);
             abl->onAbilityHitTarget(hits, getSource(), target, castTime);
-            _source->spendEnergy(abl->getInfo().energyCost, castTime);
             abl->onAbilityEnd(getSource(), target, castTime);
             auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity()
                                        ? abl->getCooldown() / (1.0 + _abilityAlacrityAmount)

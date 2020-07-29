@@ -251,9 +251,11 @@ void Target::addEvent(TargetEvent &&event) {
             SIM_INFO("Time : {},  Target: {}, Death", event.time.getValue(), getId());
             _deathTime = event.time;
         } else if (event.type == TargetEventType::GainEnergy) {
-            SIM_INFO("Time : {}, Target: {}, Gain {} Energy", event.time.getValue(), getId(), event.amount.value());
+            SIM_INFO("Time : {}, Target: {}, Gain {} Energy, now at {}", event.time.getValue(), getId(),
+                     event.amount.value(), _energy->getCurrentEnergy());
         } else if (event.type == TargetEventType::SpendEnergy) {
-            SIM_INFO("Time : {}, Target: {}, Spend {} Energy", event.time.getValue(), getId(), event.amount.value());
+            SIM_INFO("Time : {}, Target: {}, Spend {} Energy, now at {}", event.time.getValue(), getId(),
+                     event.amount.value(), _energy->getCurrentEnergy());
         }
     }
     _events.push_back(std::move(event));
