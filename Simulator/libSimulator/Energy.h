@@ -24,5 +24,4 @@ class Energy {
     std::vector<std::pair<int, double>> _energyThresholds;
     std::optional<Second> _nextTickTime;
 };
-using EnergyPtr = std::shared_ptr<Energy>;
 } // namespace Simulator

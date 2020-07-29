@@ -89,7 +89,7 @@ class FightingSpirit : public Buff {
     FightingSpirit() : Buff() {}
 
     DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
-                            const TargetPtr &target) override {
+                            const TargetPtr &) override {
         for (auto &&hit : hits) {
             if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
                 hit.id == gunslinger_vital_shot ||
