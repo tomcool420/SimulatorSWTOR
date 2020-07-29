@@ -74,33 +74,6 @@ std::map<AbilityId, AbilityLogInformation> getEventInformation(const Target::Tar
     }
     return ret;
 }
-void logParseInformation(const Target::TargetEvents &events, Second duration) {
-    auto abilities = getEventInformation(events);
-    std::vector<AbilityLogInformation> informations;
-    for (auto &&abl : abilities) {
-        informations.push_back(abl.second);
-    }
-    std::sort(
-        informations.begin(), informations.end(),
-        [](const AbilityLogInformation &a, const AbilityLogInformation &b) { return a.totalDamage > b.totalDamage; });
-    auto totalDamage =
-        std::accumulate(informations.begin(), informations.end(), 0.0,
-                        [](const double &s, const AbilityLogInformation &b) { return s + b.totalDamage; });
-    for (auto &&abl : informations) {
-        int totalHits = abl.hitCount + abl.missCount + abl.critCount;
-        SIM_INFO("[{:<35} {:>19}]: Hits: {:>4}, Normal Hits {:>4} ({:>02.2f}%), Crits: {:>4} ({:6.2f}%), Misses: {:>4} "
-                 "({:>5.2f}%), DPS: {:>7}, Percentage: {}",
-                 detail::getAbilityName(abl.id), abl.id, totalHits, abl.hitCount,
-                 (double)abl.hitCount / totalHits * 100.0, abl.critCount, (double)abl.critCount / totalHits * 100.0,
-                 abl.missCount, (double)abl.missCount / totalHits * 100.0, abl.totalDamage / duration.getValue(),
-                 abl.totalDamage / totalDamage * 100.0);
-    }
-    for (auto &&abl : informations) {
-        // int totalHits = abl.hitCount + abl.missCount + abl.critCount;
-        SIM_INFO("[{:<35} {:>19}]: norm min: {}-{}, crit {}-{}", detail::getAbilityName(abl.id), abl.id,
-                 abl.normRange.first, abl.normRange.second, abl.critRange.first, abl.critRange.second);
-    }
-}
 Second getFirstDamageEvent(const Target::TargetEvents &events) {
     for (auto &&e : events) {
         if (e.type == Target::TargetEventType::Damage)
@@ -117,6 +90,36 @@ Second getLastDamageEvent(const Target::TargetEvents &events) {
     CHECK(false);
     return Second(0.0);
 }
+void logParseInformation(const Target::TargetEvents &events, Second duration) {
+    auto abilities = getEventInformation(events);
+    std::vector<AbilityLogInformation> informations;
+    for (auto &&abl : abilities) {
+        informations.push_back(abl.second);
+    }
+    std::sort(
+        informations.begin(), informations.end(),
+        [](const AbilityLogInformation &a, const AbilityLogInformation &b) { return a.totalDamage > b.totalDamage; });
+    auto totalDamage =
+        std::accumulate(informations.begin(), informations.end(), 0.0,
+                        [](const double &s, const AbilityLogInformation &b) { return s + b.totalDamage; });
+    auto tt = getLastDamageEvent(events) - getFirstDamageEvent(events);
+    SIM_INFO("It took {} seconds to kill target", tt.getValue());
+    for (auto &&abl : informations) {
+        int totalHits = abl.hitCount + abl.missCount + abl.critCount;
+        SIM_INFO("[{:<35} {:>19}]: Hits: {:>4}, Normal Hits {:>4} ({:>02.2f}%), Crits: {:>4} ({:6.2f}%), Misses: {:>4} "
+                 "({:>5.2f}%), DPS: {:>7}, Percentage: {}",
+                 detail::getAbilityName(abl.id), abl.id, totalHits, abl.hitCount,
+                 (double)abl.hitCount / totalHits * 100.0, abl.critCount, (double)abl.critCount / totalHits * 100.0,
+                 abl.missCount, (double)abl.missCount / totalHits * 100.0, abl.totalDamage / duration.getValue(),
+                 abl.totalDamage / totalDamage * 100.0);
+    }
+    for (auto &&abl : informations) {
+        // int totalHits = abl.hitCount + abl.missCount + abl.critCount;
+        SIM_INFO("[{:<35} {:>19}]: norm min: {}-{}, crit {}-{}", detail::getAbilityName(abl.id), abl.id,
+                 abl.normRange.first, abl.normRange.second, abl.critRange.first, abl.critRange.second);
+    }
+}
+
 struct stats {
     Second mean;
     double stddev;
@@ -178,131 +181,93 @@ TEST(FullRotation, WoundingShots2) {
         rot.setTarget(t);
         rot.setClass(c);
         rot.setPriorityList(p);
-        rot.setMinTimeAfterInstant(Second(0.1));
-        rot.setDelayAfterChanneled(Second(0.15));
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setDelayAfterChanneled(Second(0.05));
         rot.doRotation();
         delete d;
         return t->getEvents();
     };
-    int iterations = 20;
+    int iterations = 500;
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(false, true, true, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, false, true, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (no Lay Low): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (no Lay Low): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(),
+                 stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
-        for (int ii = 0; ii < iterations; ++ii) {
-            auto &&events = lambda(true, true, true, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
-        }
-        SIM_INFO("Mean Time to Death: {} seconds", totalTime.getValue() / iterations);
-    }
-
-    {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, false, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (no exploited weakness): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (no Exploited Weakness): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
+        for (int ii = 0; ii < iterations; ++ii) {
+            auto &&events = lambda(true, true, true, false);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
+        }
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death : {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(), stddev, minV,
+                 maxV);
+    }
+    {
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (Shattered): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(),
+                 stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
-        for (int ii = 0; ii < iterations; ++ii) {
-            auto &&events = lambda(true, true, true, true);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
-        }
-        SIM_INFO("Mean Time to Death (Shattered): {} seconds", totalTime.getValue() / iterations);
-    }
-    {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true, 1214, 3206);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death Baseline 1.4 (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death Baseline 1.4 (Shattered): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true, 3208, 1232);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death Baseline 1.3 (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death Baseline 1.3 (Shattered): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
-    {
-        auto &&[s, t, c] = getTestData();
-        auto p = std::make_shared<PriorityList>();
-        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
-        auto baseRotation = std::make_shared<StaticRotation>();
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(gunslinger_vital_shot);
-        baseRotation->addAbility(dirty_fighting_shrap_bomb);
-        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
-        baseRotation->addAbility(dirty_fighting_wounding_shots);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_dirty_blast);
-        baseRotation->addAbility(dirty_fighting_wounding_shots);
-        p->addPriorityList(baseRotation, {});
-        addBuffs(s, c->getStaticBuffs(), Second(0.0));
-        t->setLogEvents(false);
-        s->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
-                   Second(0.0));
-        s->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0}),
-                   Second(0.0));
-        s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
-        c->setExploitedWeakness(true);
-        c->setLayLowPassive(true);
-        c->setEstablishedFoothold(true);
-        auto vs = c->getAbility(dirty_fighting_dirty_blast);
-        auto afs = getAllFinalStats(*vs, s, t);
-        auto drs = calculateDamageRange(*vs, afs);
-        for (auto dr : drs)
-            SIM_INFO("vs range  {}-{}", dr.dmg.first, dr.dmg.second);
-        auto hits = getHits(*vs, afs, t);
-        for (auto hit : hits)
-            SIM_INFO("vs hit  {}", hit.dmg);
-        t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
-
-        PriorityListRotation rot(s);
-        rot.setNextFreeGCD(Second(0.0));
-        rot.setTarget(t);
-        rot.setClass(c);
-        rot.setPriorityList(p);
-
-        auto d = new detail::LogDisabler;
-        rot.doRotation();
-        delete d;
-        // SIM_INFO("Target died after {} seconds", t->getDeathTime()->getValue());
-        auto &&events = t->getEvents();
-        auto tt = getLastDamageEvent(t->getEvents()) - getFirstDamageEvent(t->getEvents());
-        SIM_INFO("It took {} seconds to kill target", tt.getValue());
-        logParseInformation(events, tt);
-    }
+    auto &&events = lambda(true, true, true, true);
+    auto duration = getLastDamageEvent(events) - getFirstDamageEvent(events);
+    logParseInformation(events, duration);
 }
 
 TEST(FullRotation, WoundingShots3) {
@@ -368,13 +333,13 @@ TEST(FullRotation, WoundingShots3) {
         rot.setTarget(t);
         rot.setClass(c);
         rot.setPriorityList(p);
-        rot.setMinTimeAfterInstant(Second(0.1));
-        rot.setDelayAfterChanneled(Second(0.15));
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setDelayAfterChanneled(Second(0.05));
         rot.doRotation();
         delete d;
         return t->getEvents();
     };
-    int iterations = 20;
+    int iterations = 500;
     {
         std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
@@ -383,59 +348,239 @@ TEST(FullRotation, WoundingShots3) {
             times.push_back(time);
         }
         auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(), stddev,minV,maxV);
+        SIM_INFO("Mean Time to Death (no Established Foothold): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, false, true, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (no Lay Low): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (no Lay Low): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(),
+                 stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
-        for (int ii = 0; ii < iterations; ++ii) {
-            auto &&events = lambda(true, true, true, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
-        }
-        SIM_INFO("Mean Time to Death: {} seconds", totalTime.getValue() / iterations);
-    }
-
-    {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, false, false);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (no exploited weakness): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (no Exploited Weakness): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
+        for (int ii = 0; ii < iterations; ++ii) {
+            auto &&events = lambda(true, true, true, false);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
+        }
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death : {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(), stddev, minV,
+                 maxV);
+    }
+    {
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death (Shattered): {} seconds (stddev = {}, min = {}, max = {})", mean.getValue(),
+                 stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true, 1214, 3206);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death Baseline 1.4 (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death Baseline 1.4 (Shattered): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
     {
-        Second totalTime{0.0};
+        std::vector<Second> times;
         for (int ii = 0; ii < iterations; ++ii) {
             auto &&events = lambda(true, true, true, true, 3208, 1232);
-            totalTime += getLastDamageEvent(events) - getFirstDamageEvent(events);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
         }
-        SIM_INFO("Mean Time to Death Baseline 1.3 (Shattered): {} seconds", totalTime.getValue() / iterations);
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        SIM_INFO("Mean Time to Death Baseline 1.3 (Shattered): {} seconds (stddev = {}, min = {}, max = {})",
+                 mean.getValue(), stddev, minV, maxV);
     }
 
     auto &&events = lambda(true, true, true, true);
     auto duration = getLastDamageEvent(events) - getFirstDamageEvent(events);
     logParseInformation(events, duration);
+}
+
+TEST(FullRotation, WoundingShots2AlacrityRange) {
+    auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095) {
+        auto &&[s, t, c] = getTestData(alacrity, crit);
+        auto d = new detail::LogDisabler;
+        auto p = std::make_shared<PriorityList>();
+        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
+        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        auto baseRotation = std::make_shared<StaticRotation>();
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(gunslinger_vital_shot);
+        baseRotation->addAbility(dirty_fighting_shrap_bomb);
+        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+        p->addPriorityList(baseRotation, {});
+        addBuffs(s, c->getStaticBuffs(), Second(0.0));
+        s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+        s->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
+                   Second(0.0));
+        s->addBuff(std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0}),
+                   Second(0.0));
+        c->setExploitedWeakness(ew);
+        c->setLayLowPassive(ll);
+        c->setEstablishedFoothold(ef);
+        if (shattered) {
+            t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
+        }
+        PriorityListRotation rot(s);
+        rot.setNextFreeGCD(Second(0.0));
+        rot.setTarget(t);
+        rot.setClass(c);
+        rot.setPriorityList(p);
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.doRotation();
+        delete d;
+        return t->getEvents();
+    };
+    double totalStats = 2331.0 + 2095;
+    struct info {
+        double alacrity;
+        double crit;
+        double mean;
+        double stddev;
+    };
+    int iterations = 100;
+    std::vector<info> infos;
+    for (double alacrity = 0; alacrity < totalStats; alacrity += 40) {
+        std::cout << "Alacrity: " << alacrity << "\n";
+        double crit = std::max(0.0, totalStats - alacrity);
+        std::vector<Second> times;
+        for (int ii = 0; ii < iterations; ++ii) {
+            auto &&events = lambda(true, true, true, true, alacrity, crit);
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
+        }
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        infos.push_back(info{alacrity, crit, mean.getValue(), stddev});
+    }
+    for (auto &v : infos) {
+        std::cout << v.alacrity << "," << v.crit << "," << v.mean << "," << v.stddev << "\n";
+    }
+}
+
+TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
+    auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
+                     std::vector<BuffPtr> &&relics = {}) {
+        auto &&[s, t, c] = getTestData(alacrity, crit);
+        auto d = new detail::LogDisabler;
+        auto p = std::make_shared<PriorityList>();
+        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
+        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        auto baseRotation = std::make_shared<StaticRotation>();
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(gunslinger_vital_shot);
+        baseRotation->addAbility(dirty_fighting_shrap_bomb);
+        baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_dirty_blast);
+        baseRotation->addAbility(dirty_fighting_wounding_shots);
+        p->addPriorityList(baseRotation, {});
+        addBuffs(s, c->getStaticBuffs(), Second(0.0));
+        s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+
+        addBuffs(s, std::move(relics), Second(0.0));
+        c->setExploitedWeakness(ew);
+        c->setLayLowPassive(ll);
+        c->setEstablishedFoothold(ef);
+        if (shattered) {
+            t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
+        }
+        PriorityListRotation rot(s);
+        rot.setNextFreeGCD(Second(0.0));
+        rot.setTarget(t);
+        rot.setClass(c);
+        rot.setPriorityList(p);
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setDelayAfterChanneled(Second(0.05));
+        rot.doRotation();
+        delete d;
+        return t->getEvents();
+    };
+    double totalStats = 2331.0 + 2095;
+    struct info {
+        double alacrity;
+        double crit;
+        double mean;
+        double stddev;
+    };
+    int iterations = 200;
+    std::vector<info> infosCrit;
+    for (double alacrity = 0; alacrity < totalStats; alacrity += 40) {
+        std::cout << "Alacrity: " << alacrity << "\n";
+        double crit = std::max(0.0, totalStats - alacrity);
+        std::vector<Second> times;
+        for (int ii = 0; ii < iterations; ++ii) {
+            std::vector<BuffPtr> relics{
+                std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
+                std::make_unique<RelicProcBuff>(relic_power_surge, Mastery{0.0}, Power{2892}, CriticalRating{0.0})};
+            auto &&events = lambda(true, true, true, true, alacrity, crit, std::move(relics));
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
+        }
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        infosCrit.push_back(info{alacrity, crit, mean.getValue(), stddev});
+    }
+    std::vector<info> infosPower;
+    for (double alacrity = 0; alacrity < totalStats; alacrity += 40) {
+        std::cout << "Alacrity: " << alacrity << "\n";
+        double crit = std::max(0.0, totalStats - alacrity);
+        std::vector<Second> times;
+        for (int ii = 0; ii < iterations; ++ii) {
+            std::vector<BuffPtr> relics{
+                std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
+                std::make_unique<RelicProcBuff>(relic_critical_surge, Mastery{0.0}, Power{0}, CriticalRating{2892})};
+            auto &&events = lambda(true, true, true, true, alacrity, crit, std::move(relics));
+            auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+            times.push_back(time);
+        }
+        auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+        infosPower.push_back(info{alacrity, crit, mean.getValue(), stddev});
+    }
+    std::cout << "alacrity rating,critical rating,mean (crit relic),stddev (crit relic),mean (power relic),stddev "
+                 "(power relic)"
+              << "\n";
+    for (int ii = 0; ii < infosCrit.size(); ++ii) {
+        auto &&vc = infosCrit[ii];
+        auto &&vp = infosPower[ii];
+        std::cout << vc.alacrity << "," << vc.crit << "," << vc.mean << "," << vc.stddev << "," << vp.mean << ","
+                  << vp.stddev << "\n";
+    }
 }
