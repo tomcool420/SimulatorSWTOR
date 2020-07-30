@@ -56,7 +56,7 @@ class Target : public std::enable_shared_from_this<Target> {
     void applyDamage(const Ability &abl, const FinalStats &stats, const Second &sec);
     void applyDamageHit(const DamageHits &hits, const TargetPtr &target, const Second &time);
     double getDefenseChance() const { return _defenseChance; };
-    Armor getArmor() const { return _rawStats.armor * (1 - 0.2 * _sundered); }
+    Armor getArmor() const { return _rawStats.armor; }
     // future proofing
     double getInternalDR() const { return 0.0; };
     double getElementalDR() const { return 0.0; };
@@ -131,8 +131,6 @@ class Target : public std::enable_shared_from_this<Target> {
     std::optional<Second> _deathTime;
     std::map<AbilityId, Second> _abilityCooldownEnd;
     EnergyPtr _energy;
-    // this needs to be replaced by a generic debuff
-    bool _sundered = true;
     bool _logEvents{true};
 };
 
