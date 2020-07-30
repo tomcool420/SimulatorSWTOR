@@ -30,7 +30,7 @@ std::string getAbilityName(const AbilityId &id) {
     case dirty_fighting_bloody_mayhem:
         return "Bloody Mayhem";
     case gunslinger_entrenched_offsense:
-        return "Entrenched Offence";
+        return "Entrenched Offense";
     case gunslinger_hunker_down:
         return "Hunker Down";
     case gunslinger_vital_shot:

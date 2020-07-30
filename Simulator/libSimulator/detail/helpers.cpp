@@ -14,7 +14,7 @@ class EntrencedOffsenceBuff : public Buff {
     };
     [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) {
         _stacks = std::clamp(static_cast<int>(std::floor((time - getStartTime()).getValue())), 0, 5);
-        SIM_INFO("Entrenched offence is now at {} stacks ", _stacks);
+        SIM_INFO("Entrenched Offense is now at {} stacks ", _stacks);
         if (time > getEndTime()) {
             return {{DebuffEventType::Remove}};
         }
@@ -372,23 +372,4 @@ RawStats getDefaultStats() {
     return rs;
 }
 
-std::map<AbilityId, AbilityLogInformation> getEventInformation(const TargetPtr &target) {
-    std::map<AbilityId, AbilityLogInformation> ret;
-    for (auto &&event : target->getEvents()) {
-        if (event.type != Target::TargetEventType::Damage)
-            continue;
-        for (auto &&hit : *event.damage) {
-            auto &&info = ret[hit.id];
-            info.id = hit.id;
-            info.totalDamage += hit.dmg;
-            if (hit.crit)
-                info.critCount += 1;
-            else if (hit.miss)
-                info.missCount += 1;
-            else
-                info.hitCount += 1;
-        }
-    }
-    return ret;
-}
 } // namespace Simulator

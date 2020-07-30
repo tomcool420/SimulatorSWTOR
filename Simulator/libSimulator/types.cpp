@@ -81,8 +81,8 @@ AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &source, 
         return getAllFinalStats(tabl, source, target);
     }
     auto &&rs = source->getRawStats();
-    auto scb = source->getStatChangesFromBuffs(ability, target);
-    auto scd = target->getStatChangesFromDebuff(ability, source);
+    AllStatChanges scb = source->getStatChangesFromBuffs(ability, target);
+    AllStatChanges scd = target ? target->getStatChangesFromDebuff(ability, source) : AllStatChanges(scb.size());
     const auto &sca = ability.getStatChanges();
     CHECK(scb.size() == scd.size());
     AllFinalStats ret(scb.size());

@@ -113,6 +113,4 @@ struct AbilityLogInformation {
     int critCount{0};
     int missCount{0};
 };
-
-std::map<AbilityId, AbilityLogInformation> getEventInformation(const TargetPtr &target);
 } // namespace Simulator

@@ -35,21 +35,27 @@ class DOT : public Debuff {
         _TickCount = 0;
         _lastTickTime = Second(-1e6);
         setStartTime(time);
-        setDuration((_nticks - _hasInitialTick) * _tickRate);
+        setDuration((_nticks - _hasInitialTick) * _tickRate + _ExtraTime);
         ++_refreshCount;
     }
     [[nodiscard]] bool isFinished() const { return _TickCount == _nticks; }
     [[nodiscard]] const Ability &getAbility() const { return _ability; }
     [[nodiscard]] std::optional<Second> getNextEventTime() const override {
-        if (_TickCount == _nticks)
-            return std::nullopt;
-        return std::max(_lastTickTime + _tickRate, getStartTime() + _tickRate * (!_hasInitialTick));
+        if (_TickCount != _nticks)
+            return (getStartTime() + (_TickCount + !_hasInitialTick) * _tickRate);
+        return TimedStatusEffect::getNextEventTime();
     }
     [[nodiscard]] DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &t) override;
+    [[nodiscard]] bool getRefreshable() const override {
+        if (_TickCount == _nticks)
+            return false;
+        return true;
+    }
     SIMULATOR_SET_MACRO(TickCount, int, 0);
     SIMULATOR_SET_MACRO(DoubleTickChance, std::optional<double>, std::nullopt);
     SIMULATOR_GET_ONLY_MACRO(DefaultTickRate, Second, Second{0.0});
     SIMULATOR_SET_MACRO(TickOnRefresh, bool, false);
+    SIMULATOR_SET_MACRO(ExtraTime, Second, Second(0));
 
     void replaceAbilityInfo(AbilityInfo info) {
         _nticks = info.nTicks;

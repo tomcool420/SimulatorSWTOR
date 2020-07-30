@@ -43,6 +43,7 @@ class Ability {
         : Ability(iid, AbilityCoefficients{coeff, ShxMin, ShxMax, Am, dt, dot, aoe}, offhandHit){};
     Ability(AbilityId iid, AbilityCoefficients coefficients, bool hasOffhandHit = false) : _id(iid) {
         _info.coefficients.push_back(coefficients);
+        _Cooldown = _info.cooldownTime;
         if (coefficients.damageType == DamageType::Weapon && hasOffhandHit) {
             coefficients.StandardHealthPercentMin = 0.0;
             coefficients.coefficient = 0.0;
@@ -54,6 +55,7 @@ class Ability {
     }
     Ability(AbilityId iid, AbilityInfo info) : _id(iid), _info(std::move(info)) {
         _allStatChanges.resize(_info.coefficients.size());
+        _Cooldown = _info.cooldownTime;
     }
 
     const AbilityId &getId() const { return _id; };

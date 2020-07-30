@@ -1,8 +1,8 @@
 #pragma once
 #include "constants.h"
 #include "detail/units.h"
+#include <boost/container/small_vector.hpp>
 #include <vector>
-
 namespace Simulator {
 class Target;
 using TargetPtr = std::shared_ptr<Target>;
@@ -13,6 +13,10 @@ class Debuff;
 using DebuffPtr = std::unique_ptr<Debuff>;
 class Buff;
 using BuffPtr = std::unique_ptr<Buff>;
+class Class;
+using ClassPtr = std::shared_ptr<Class>;
+class Energy;
+using EnergyPtr = std::shared_ptr<Energy>;
 
 using WeaponDamage = std::pair<double, double>;
 enum class DamageType { Kinetic = 1, Energy = 2, Internal = 3, Elemental = 4, Weapon = 5 };
@@ -107,6 +111,6 @@ struct DamageHit {
     bool miss{false};
     bool aoe{false};
 };
-using DamageHits = std::vector<DamageHit>;
+using DamageHits = boost::container::small_vector<DamageHit, 3>;
 
 } // namespace Simulator

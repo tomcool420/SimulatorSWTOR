@@ -18,6 +18,7 @@ TEST(Energy, Knight) {
 }
 
 TEST(Energy, Gunslinger) {
+    auto t = Target::New({});
     Energy e;
     e.setMaxEnergy(110);
     e.setCurrentEnergy(110);
@@ -31,17 +32,17 @@ TEST(Energy, Gunslinger) {
     e.spendEnergy(30, Second(0.0));
     ASSERT_TRUE(e.getNextEventTime());
     ASSERT_NEAR(e.getNextEventTime().value().getValue(), Second(1.0).getValue(), Second(1e-3).getValue());
-    e.resolveEventsUpToTime(e.getNextEventTime().value(), nullptr);
+    e.resolveEventsUpToTime(e.getNextEventTime().value(), t);
     ASSERT_NEAR(e.getCurrentEnergy(), 85, 1e-3);
     ASSERT_NEAR(e.getNextEventTime().value().getValue(), 2.0, 1e-3);
     e.spendEnergy(20, Second(1.5));
     ASSERT_NEAR(e.getCurrentEnergy(), 65, 1e-3);
 
-    e.resolveEventsUpToTime(e.getNextEventTime().value(), nullptr);
+    e.resolveEventsUpToTime(e.getNextEventTime().value(), t);
     ASSERT_NEAR(e.getCurrentEnergy(), 68, 1e-3);
     e.spendEnergy(50, Second(2.5));
     ASSERT_NEAR(e.getCurrentEnergy(), 18, 1e-3);
-    e.resolveEventsUpToTime(e.getNextEventTime().value(), nullptr);
+    e.resolveEventsUpToTime(e.getNextEventTime().value(), t);
     ASSERT_NEAR(e.getCurrentEnergy(), 20, 1e-3);
 }
 

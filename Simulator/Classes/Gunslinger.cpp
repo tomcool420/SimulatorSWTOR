@@ -40,7 +40,6 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
         ass->setId(gunslinger_smugglers_luck);
         auto abl = std::make_shared<Ability>(id, info);
         abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(std::move(ass), false));
-        abl->setCooldown(Second(60));
         return abl;
     }
     case gunslinger_vital_shot: {
@@ -55,23 +54,23 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
         auto abl = std::make_shared<Ability>(id, info);
         if (getEstablishedFoothold()) {
             abl->addOnHitAction(std::make_shared<ConditionalApplyBuff>(
-                std::make_unique<detail::GunslingerEntrencedOffenceBuff>(), false));
+                std::make_unique<detail::GunslingerEntrencedOffenseBuff>(), false));
         }
-        abl->setCooldown(Second(45) - getEstablishedFoothold() * Second(10) - getLayLowPassive()*Second(15));
+        abl->setCooldown(info.cooldownTime - getEstablishedFoothold() * Second(10) - getLayLowPassive() * Second(15));
         abl->setCooldownIsAffectedByAlacrity(false);
         return abl;
     }
-    case gunslinger_speed_shot:{
+    case gunslinger_speed_shot: {
         auto info = detail::getDefaultAbilityInfo(id);
-        info.coefficients[0].multiplier+=0.05; //Steady Shot
-        info.coefficients[1].multiplier+=0.05;
-        auto abl = std::make_shared<Ability>(id,info);
+        info.coefficients[0].multiplier += 0.05; // Steady Shot
+        info.coefficients[1].multiplier += 0.05;
+        auto abl = std::make_shared<Ability>(id, info);
         return abl;
     }
     }
     return nullptr;
 }
-std::vector<BuffPtr> Gunslinger::getStaticBuffs(){
+std::vector<BuffPtr> Gunslinger::getStaticBuffs() {
     std::vector<BuffPtr> ret;
     return ret;
 }

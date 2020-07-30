@@ -12,21 +12,20 @@ class Rotation {
 
     const TargetPtr &getSource() const { return _source; }
     void setTarget(TargetPtr &target) { _target = target; }
+    const TargetPtr &getTarget() const { return _target; }
     [[nodiscard]] Second getNextFreeGCD() const { return _nextFreeGCD; }
     [[nodiscard]] Second getNextFreeGCDForInstantCast() const { return _nextFreeGCDForInstant; }
-    virtual AbilityId getNextAbility() = 0;
+    virtual AbilityPtr getNextAbility() = 0;
     void doRotation();
 
     virtual ~Rotation() = default;
 
-    SIMULATOR_SET_MACRO(DelayAfterChanneled, Second, Second{0.0})
-    SIMULATOR_SET_MACRO(MinTimeAfterInstant, Second, Second{0.1})
-
-  protected:
     void setNextFreeGCD(Second time) {
         _nextFreeGCD = time;
         _nextFreeGCDForInstant = time;
     }
+    SIMULATOR_SET_MACRO(DelayAfterChanneled, Second, Second{0.0})
+    SIMULATOR_SET_MACRO(MinTimeAfterInstant, Second, Second{0.1})
 
   private:
     TargetPtr _source;
@@ -47,13 +46,13 @@ class SetRotation : public Rotation {
     std::optional<Second> getNextEventTime() override;
     void setStart(Second time) { setNextFreeGCD(time); }
     virtual ~SetRotation() = default;
-
+    void setClass(const ClassPtr &c) { _class = c; }
     SIMULATOR_SET_MACRO(Repeats, int, 1);
-    AbilityId getNextAbility() override;
+    AbilityPtr getNextAbility() override;
 
   private:
     AbilityIds _ids;
-
+    ClassPtr _class;
     int _idCounter{0};
     int _iterationCount{0};
 };

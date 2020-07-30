@@ -26,12 +26,10 @@ void setupLogging(const Sinks &sinks) {
 const std::shared_ptr<spdlog::logger> &getLogger() {
     std::lock_guard l(mutex);
     if (!logger) {
-        setupLogging({
-#if defined(_MSC_VER)
-            std::make_shared<spdlog::sinks::msvc_sink_mt>(),
-#endif
-                std::make_shared<spdlog::sinks::stdout_sink_mt>()
-        });
+        setupLogging({// #if defined(_MSC_VER)
+                      //             std::make_shared<spdlog::sinks::msvc_sink_mt>(),
+                      // #endif
+                      std::make_shared<spdlog::sinks::stdout_sink_mt>()});
     }
     return logger;
 }

@@ -55,6 +55,7 @@ void Target::addDOT(DOTPtr dot, TargetPtr source, const AllFinalStats &fs, const
 }
 void Target::addBuff(BuffPtr buff, const Second &time) {
     addEvent({TargetEventType::AddBuff, time, std::nullopt, buff->getId()});
+    buff->setStartTime(time);
     _buffs.insert_or_assign(buff->getId(), std::move(buff));
 }
 
@@ -218,39 +219,44 @@ void Target::removeBuff(const AbilityId &aid, const Second &time) {
 }
 
 void Target::addEvent(TargetEvent &&event) {
-    if (event.type == TargetEventType::Damage) {
-        CHECK(event.damage.has_value())
-        auto &&hits = event.damage.value();
-        for (auto &&hit : hits) {
-            SIM_INFO("Time : {}, abl: [{} {}], damage: {}, crit: {}, miss: {}, offhand: {}, type: {}",
-                     event.time.getValue(), detail::getAbilityName(hit.id), hit.id, hit.dmg, hit.crit, hit.miss,
-                     hit.offhand, static_cast<int>(hit.dt));
+    if (_logEvents) {
+        if (event.type == TargetEventType::Damage) {
+            CHECK(event.damage.has_value())
+            auto &&hits = event.damage.value();
+            for (auto &&hit : hits) {
+                SIM_INFO(
+                    "Time : {}, abl: [{} {}], damage: {}, crit: {}, miss: {}, offhand: {}, type: {} [HP Remaining: {}]",
+                    event.time.getValue(), detail::getAbilityName(hit.id), hit.id, hit.dmg, hit.crit, hit.miss,
+                    hit.offhand, static_cast<int>(hit.dt), _health.getValue());
+            }
+        } else if (event.type == TargetEventType::AddBuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Adding Buff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::RemoveBuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Removing Buff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::RefreshBuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Refreshing Buff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::AddDebuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Adding Debuff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::RemoveDebuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Removing Debuff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::RefreshDebuff) {
+            SIM_INFO("Time : {}, abl: [{} {}], Refreshing Debuff", event.time.getValue(),
+                     detail::getAbilityName(event.id.value()), event.id.value());
+        } else if (event.type == TargetEventType::Die) {
+            SIM_INFO("Time : {},  Target: {}, Death", event.time.getValue(), getId());
+            _deathTime = event.time;
+        } else if (event.type == TargetEventType::GainEnergy) {
+            SIM_INFO("Time : {}, Target: {}, Gain {} Energy, now at {}", event.time.getValue(), getId(),
+                     event.amount.value(), _energy->getCurrentEnergy());
+        } else if (event.type == TargetEventType::SpendEnergy) {
+            SIM_INFO("Time : {}, Target: {}, Spend {} Energy, now at {}", event.time.getValue(), getId(),
+                     event.amount.value(), _energy->getCurrentEnergy());
         }
-    } else if (event.type == TargetEventType::AddBuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Adding Buff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::RemoveBuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Removing Buff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::RefreshBuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Refreshing Buff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::AddDebuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Adding Debuff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::RemoveDebuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Removing Debuff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::RefreshDebuff) {
-        SIM_INFO("Time : {}, abl: [{} {}], Refreshing Debuff", event.time.getValue(),
-                 detail::getAbilityName(event.id.value()), event.id.value());
-    } else if (event.type == TargetEventType::Die) {
-        SIM_INFO("Time : {},  Target: {}, Death", event.time.getValue(), getId());
-        _deathTime = event.time;
-    } else if (event.type == TargetEventType::GainEnergy) {
-        SIM_INFO("Time : {}, Target: {}, Gain {} Energy", event.time.getValue(), getId(), event.amount.value());
-    } else if (event.type == TargetEventType::SpendEnergy) {
-        SIM_INFO("Time : {}, Target: {}, Spend {} Energy", event.time.getValue(), getId(), event.amount.value());
     }
     _events.push_back(std::move(event));
 }

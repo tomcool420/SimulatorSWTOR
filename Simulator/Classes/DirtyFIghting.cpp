@@ -48,7 +48,9 @@ class ColdBlooded : public Buff {
     DamageHits onAbilityHit(DamageHits &hits, const Second & /*time*/, const TargetPtr & /*player*/,
                             const TargetPtr &target) override {
         if (target->getCurrentHealth() / target->getMaxHealth() < 0.3) {
-            for (auto &&hit : hits) {
+            int hitCount = static_cast<int>(hits.size());
+            for (int ii = 0; ii < hitCount; ++ii) {
+                auto &hit = hits[ii];
                 if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
                     hit.id == gunslinger_vital_shot ||
                     (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
@@ -65,13 +67,13 @@ class DirtyShot : public Buff {
   public:
     DirtyShot() : Buff() {}
 
-    DamageHits onAbilityHit(DamageHits &hits, const Second & time, const TargetPtr & player,
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
                             const TargetPtr &target) override {
         if (target->getCurrentHealth() / target->getMaxHealth() < 0.3) {
             for (auto &&hit : hits) {
                 if (hit.id == dirty_fighting_wounding_shots) {
-                    if(auto cd = player->getAbilityCooldownEnd(gunslinger_quickdraw)){
-                        if(*cd>time && getRandomValue(0.0, 1.0)<0.8){
+                    if (auto cd = player->getAbilityCooldownEnd(gunslinger_quickdraw)) {
+                        if (*cd > time && getRandomValue(0.0, 1.0) < 0.8) {
                             player->finishCooldown(gunslinger_quickdraw, time);
                         }
                     }
@@ -82,6 +84,23 @@ class DirtyShot : public Buff {
     }
     [[nodiscard]] Buff *clone() const override { return new DirtyShot(*this); }
 };
+class FightingSpirit : public Buff {
+  public:
+    FightingSpirit() : Buff() {}
+
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player, const TargetPtr &) override {
+        for (auto &&hit : hits) {
+            if (hit.id == dirty_fighting_exploited_weakness || hit.id == dirty_fighting_shrap_bomb ||
+                hit.id == gunslinger_vital_shot ||
+                (hit.id == dirty_fighting_dirty_blast && hit.dt == DamageType::Internal)) {
+                player->addEnergy(1, time);
+            }
+        }
+
+        return {};
+    }
+    [[nodiscard]] Buff *clone() const override { return new FightingSpirit(*this); }
+};
 
 } // namespace detail
 
@@ -91,13 +110,15 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         auto info = detail::getDefaultAbilityInfo(id);
         auto abl = std::make_shared<Ability>(dirty_fighting_dirty_blast, std::move(info));
         StatChanges sc;
-        sc.multiplier+= 0.05; // Nice Try (36)
-        sc.multiplier+= 0.05; // Steady Shots Gunslinger passive
+        sc.multiplier += 0.05; // Nice Try (36)
+        sc.multiplier += 0.05; // Steady Shots Gunslinger passive
         abl->setStatChanges(sc);
         if (getExploitedWeakness()) {
             auto ewInfo = detail::getDefaultAbilityInfo(dirty_fighting_exploited_weakness);
-            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(
-                std::make_unique<DOT>(dirty_fighting_exploited_weakness, ewInfo)));
+            auto ewDot = std::unique_ptr<DOT>(
+                MakeOnAbilityHitDot(dirty_fighting_exploited_weakness, ewInfo, detail::getTickOnWoundingShotsLambda()));
+            ewDot->setTickOnRefresh(true);
+            abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(ewDot)));
         }
         return abl;
     }
@@ -112,7 +133,7 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         StatChanges sc;
         sc.flatMeleeRangeCritChance = 0.1;
         sc.flatForceTechCritChance = 0.1;
-        sc.multiplier+=0.05; // Nice Try (36)
+        sc.multiplier += 0.05; // Nice Try (36)
         ws->setStatChanges(sc);
         return ws;
     }
@@ -121,6 +142,7 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         info.coefficients[0].multiplier += 0.05; // Bombastic (40)
         auto sb = std::unique_ptr<DOT>(MakeOnAbilityHitDot(id, info, detail::getTickOnWoundingShotsLambda()));
         sb->setDoubleTickChance(0.1); // Gushing Wounds (64)
+        sb->setExtraTime(Second(5));
         info.coefficients[0].isAreaOfEffect = true;
         auto abl = detail::createDotAbility(info, std::move(sb));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(detail::getGenericDebuff(debuff_assailable)));
@@ -131,22 +153,23 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         info.nTicks += 2;
         auto dot = std::unique_ptr<DOT>(MakeOnAbilityHitDot(id, info, detail::getTickOnWoundingShotsLambda()));
         dot->setDoubleTickChance(0.1); // Mortal Wound (32)
+        dot->setExtraTime(Second(5));
         auto abl = detail::createDotAbility(std::move(dot));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(detail::getGenericDebuff(debuff_marked)));
         return abl;
     }
-    case gunslinger_speed_shot:{
+    case gunslinger_speed_shot: {
         auto ss = Gunslinger::getAbilityInternal(id);
         StatChanges sc;
-        sc.flatMeleeRangeCritChance+=0.1;
-        sc.flatForceTechCritChance+=0.1;
+        sc.flatMeleeRangeCritChance += 0.1;
+        sc.flatForceTechCritChance += 0.1;
         ss->setStatChanges(sc);
         return ss;
     }
     case dirty_fighting_hemorraghing_blast: {
         auto info = detail::getDefaultAbilityInfo(id);
         for (auto &c : info.coefficients) {
-            c.multiplier += 0.05;// Gushing Wounds (64)
+            c.multiplier += 0.05; // Gushing Wounds (64)
             c.multiplier += getExploitedWeakness() * 0.5;
         }
         auto abl = std::make_shared<Ability>(id, info);
@@ -173,7 +196,8 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         HemoDebuff->setDuration(Second(10));
         abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(HemoDebuff)));
         auto bloodyMayhemDebuff = std::make_unique<detail::BloodyMayhem>();
-        abl->addOnHitAction(std::make_shared<ConditionalApplyDebuff>(std::move(bloodyMayhemDebuff)));//Bloody Mayhem (68)
+        abl->addOnHitAction(
+            std::make_shared<ConditionalApplyDebuff>(std::move(bloodyMayhemDebuff))); // Bloody Mayhem (68)
         abl->setCooldown(Second(15));
         return abl;
     }
@@ -181,21 +205,23 @@ AbilityPtr DirtyFighting::getAbilityInternal(AbilityId id) {
         return Gunslinger::getAbilityInternal(id);
     }
 }
-std::vector<BuffPtr> DirtyFighting::getStaticBuffs(){
+std::vector<BuffPtr> DirtyFighting::getStaticBuffs() {
     auto ret = Gunslinger::getStaticBuffs();
-    //Black Market Equipment
-    ret.push_back(std::unique_ptr<Buff>(MakeConditionalBuff("Black Market Equipment", [](const Ability &ability, AllStatChanges &fstats, const TargetPtr &){
-        for(int ii = 0; ii< fstats.size();++ii){
-            const auto & c = ability.getCoefficients()[ii];
-            auto &s = fstats[ii];
-            if(c.isDamageOverTime){
-                s.flatForceTechCritChance+=0.05;
-                s.flatMeleeRangeCritChance+=0.05;
+    // Black Market Equipment
+    ret.push_back(std::unique_ptr<Buff>(MakeConditionalBuff(
+        "Black Market Equipment", [](const Ability &ability, AllStatChanges &fstats, const TargetPtr &) {
+            for (int ii = 0; ii < fstats.size(); ++ii) {
+                const auto &c = ability.getCoefficients()[ii];
+                auto &s = fstats[ii];
+                if (c.isDamageOverTime) {
+                    s.flatForceTechCritChance += 0.05;
+                    s.flatMeleeRangeCritChance += 0.05;
+                }
             }
-        }
-    })));
+        })));
     ret.push_back(std::make_unique<detail::ColdBlooded>());
     ret.push_back(std::make_unique<detail::DirtyShot>());
+    ret.push_back(std::make_unique<detail::FightingSpirit>());
     return ret;
 }
 } // namespace Simulator

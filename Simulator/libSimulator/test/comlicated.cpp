@@ -266,6 +266,25 @@ std::set<double> getDamageHits(const Target::TargetEvents &events, AbilityId id)
     return ret;
 }
 
+std::map<AbilityId, AbilityLogInformation> getEventInformation(const TargetPtr &target) {
+    std::map<AbilityId, AbilityLogInformation> ret;
+    for (auto &&event : target->getEvents()) {
+        if (event.type != Target::TargetEventType::Damage)
+            continue;
+        for (auto &&hit : *event.damage) {
+            auto &&info = ret[hit.id];
+            info.id = hit.id;
+            info.totalDamage += hit.dmg;
+            if (hit.crit)
+                info.critCount += 1;
+            else if (hit.miss)
+                info.missCount += 1;
+            else
+                info.hitCount += 1;
+        }
+    }
+    return ret;
+}
 void logParseInformation(const TargetPtr &target, Second duration) {
     auto abilities = getEventInformation(target);
     std::vector<AbilityLogInformation> informations;
@@ -349,7 +368,7 @@ TEST(Calculations, Rotation2WS_HighStats) {
              s.hp.getValue() / (deathTimes.front() - Second(1.5)).getValue());
 }
 
-TEST(Calculations, DotsEntrenchedOffence) {
+TEST(Calculations, DotsEntrenchedOffense) {
     RawStats rs;
     rs.master = Mastery(12138);
     rs.power = Power(9393);

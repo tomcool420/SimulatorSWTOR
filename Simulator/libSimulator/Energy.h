@@ -19,10 +19,10 @@ class Energy {
     SIMULATOR_SET_MACRO(MaxEnergy, int, 100);
     SIMULATOR_SET_MACRO(CurrentEnergy, double, 100.0);
     SIMULATOR_SET_MACRO(EnergyTickRate, Second, Second(1.0));
+    SIMULATOR_SET_MACRO(Verbose, bool, false);
 
   private:
     std::vector<std::pair<int, double>> _energyThresholds;
     std::optional<Second> _nextTickTime;
 };
-using EnergyPtr = std::shared_ptr<Energy>;
 } // namespace Simulator
