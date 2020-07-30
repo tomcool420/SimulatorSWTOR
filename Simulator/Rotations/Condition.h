@@ -8,6 +8,8 @@ class ConditionC {
   public:
     virtual bool check(const TargetPtr &, const TargetPtr &, const Second &, const Second &) = 0;
     virtual nlohmann::json serialize() = 0;
+    virtual ~ConditionC() = default;
+
 };
 
 constexpr char cooldown_condition[] = "cooldown_condition";
@@ -23,6 +25,7 @@ class CooldownCondition : public ConditionC {
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
+    virtual ~CooldownCondition() = default;
 
   private:
     AbilityId _id;
@@ -35,6 +38,7 @@ class EnergyCondition : public ConditionC {
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
+    virtual ~EnergyCondition() = default;
 
   private:
     double _energy{0};
@@ -48,6 +52,7 @@ class BuffCondition : public ConditionC {
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
+    virtual ~BuffCondition() = default;
 
   private:
     AbilityId _buffId;
@@ -60,10 +65,12 @@ class SubThirtyCondition : public ConditionC {
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
+    virtual ~SubThirtyCondition() = default;
+
 };
 
 using ConditionPtr = std::unique_ptr<ConditionC>;
 using Conditions = std::vector<ConditionPtr>;
-ConditionPtr getCooldownFinishedCondition(AbilityId id);
+Conditions getCooldownFinishedCondition(AbilityId id);
 
 } // namespace Simulator

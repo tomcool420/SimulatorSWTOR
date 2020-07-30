@@ -1,7 +1,10 @@
 #include "Condition.h"
 #include "Simulator/libSimulator/Energy.h"
 namespace Simulator {
-ConditionPtr getCooldownFinishedCondition(AbilityId id) { return std::make_unique<CooldownCondition>(id); }
+Conditions getCooldownFinishedCondition(AbilityId id) { Conditions cc;
+    cc.push_back(std::make_unique<CooldownCondition>(id));
+    return cc;
+}
 constexpr char condition_type_key[] = "type";
 constexpr char condition_amount_key[] = "amount";
 constexpr char condition_invert_key[] = "invert";

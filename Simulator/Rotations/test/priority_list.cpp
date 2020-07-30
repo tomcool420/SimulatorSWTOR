@@ -34,8 +34,9 @@ TestData getTestData() {
 TEST(PriorityList, Simple) {
     PriorityList p;
     auto &&[s, t, c] = getTestData();
-    p.addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-    p.addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+
+    p.addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+    p.addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
     p.addAbility(dirty_fighting_dirty_blast, {});
 
     auto rr = std::get<AbilityId>(p.getNextAbility(s, t, Second(0.0), Second(0.0)));
@@ -59,9 +60,8 @@ TEST(PriorityList, Simple) {
 
 TEST(PriorityList, serialization) {
     PriorityList p;
-    auto &&[s, t, c] = getTestData();
-    p.addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-    p.addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+    p.addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+    p.addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
     p.addAbility(dirty_fighting_dirty_blast, {});
     auto serialized = p.serialize();
     std::cout << std::setw(3) << serialized << std::endl;

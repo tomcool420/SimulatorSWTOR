@@ -154,9 +154,9 @@ TEST(FullRotation, DISABLED_WoundingShots2) {
         auto &&[s, t, c] = getTestData(alacrity, crit);
         auto d = new detail::LogDisabler;
         auto p = std::make_shared<PriorityList>();
-        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+        p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+        p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
         auto baseRotation = std::make_shared<StaticRotation>();
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(gunslinger_vital_shot);
@@ -286,9 +286,9 @@ TEST(FullRotation, WoundingShots3) {
         if (wireInEnergy)
             s->setEnergyModel(c->getEnergyModel());
         auto p = std::make_shared<PriorityList>();
-        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+        p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+        p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
         auto baseRotation = std::make_shared<StaticRotation>();
         baseRotation->addAbility(dirty_fighting_dirty_blast);
         baseRotation->addAbility(gunslinger_vital_shot);
@@ -443,9 +443,9 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         auto &&[s, t, c] = getTestData(alacrity, crit, true);
         auto d = new detail::LogDisabler;
         auto p = std::make_shared<PriorityList>();
-        p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+        p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+        p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
 
         auto baseRotation = std::make_shared<StaticRotation>();
         baseRotation->addAbility(dirty_fighting_dirty_blast);
@@ -461,9 +461,9 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         p->addPriorityList(baseRotation, {});
 
         // auto p = std::make_shared<PriorityList>();
-        // p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
-        // p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
-        // p->addAbility(gunslinger_illegal_mods, {getCooldownFinishedCondition(gunslinger_illegal_mods)});
+        // p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+        // p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+        // p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
         // auto baseRotation = std::make_shared<StaticRotation>();
         // baseRotation->addAbility(dirty_fighting_dirty_blast);
         // baseRotation->addAbility(gunslinger_vital_shot);
@@ -550,7 +550,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
             std::cout << "Alacrity: " << alacrity << "\n";
             double crit = std::max(0.0, totalStats - alacrity);
             std::vector<Second> times;
-            for (int ii = 0; ii < iterations; ++ii) {
+            for (int iit = 0; iit < iterations; ++iit) {
                 auto &&events = lambda(true, true, true, true, alacrity, crit, true);
                 auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
                 times.push_back(time);
@@ -567,7 +567,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
             std::cout << "Alacrity: " << alacrity << "\n";
             double crit = std::max(0.0, totalStats - alacrity);
             std::vector<Second> times;
-            for (int ii = 0; ii < iterations; ++ii) {
+            for (int iit = 0; iit < iterations; ++iit) {
                 auto &&events = lambda(true, true, true, true, alacrity, crit, false);
                 auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
                 times.push_back(time);
