@@ -31,5 +31,23 @@ void StaticRotation::log(std::ostream &s, int indent) const {
         }
     }
 }
-
+nlohmann::json StaticRotation::serialize() const {
+    nlohmann::json obj;
+    obj["type"] = 1;
+    nlohmann::json j_list = nlohmann::json::array();
+    for (auto &&p : _rotation) {
+        nlohmann::json ip;
+        if (auto aid = std::get_if<AbilityId>(&(p))) {
+            ip["ability"] = *aid;
+        } else if (auto s = std::get_if<Second>(&p)) {
+            ip["delay"] = s->getValue();
+        } else {
+            auto rpl = std::get<RotationalPriorityListPtr>(p);
+            ip["other"] = rpl->serialize();
+        }
+        j_list.push_back(ip);
+    }
+    obj["rotation"] = j_list;
+    return obj;
+}
 } // namespace Simulator

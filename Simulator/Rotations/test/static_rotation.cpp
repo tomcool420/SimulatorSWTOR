@@ -87,3 +87,20 @@ TEST(StaticRotation, PriorityList) {
     ASSERT_EQ(a, dirty_fighting_dirty_blast);
     ASSERT_NO_THROW(r.log(std::cout, 0));
 }
+
+TEST(StaticRotation, serialization) {
+    StaticRotation r;
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_speed_shot);
+    r.addAbility(gunslinger_vital_shot);
+    r.addAbility(dirty_fighting_shrap_bomb);
+    r.addDelay(Second(3));
+    auto p = std::make_shared<PriorityList>();
+    p->addAbility(gunslinger_smugglers_luck, {getCooldownFinishedCondition(gunslinger_smugglers_luck)});
+    p->addAbility(gunslinger_hunker_down, {getCooldownFinishedCondition(gunslinger_hunker_down)});
+    r.addPriorityList(p);
+    auto serialized = r.serialize();
+    std::cout << std::setw(3) << serialized << std::endl;
+}

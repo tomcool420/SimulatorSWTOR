@@ -1,7 +1,9 @@
 #pragma once
 #include "Condition.h"
 #include "Simulator/libSimulator/types.h"
+#include <nlohmann/json.hpp>
 #include <variant>
+
 namespace Simulator {
 
 using RotationalReturn = std::variant<AbilityId, Second>;
@@ -10,6 +12,7 @@ class RotationalPriorityList {
     virtual void log(std::ostream &stream, int indent) const = 0;
     [[nodiscard]] virtual RotationalReturn getNextAbility(const TargetPtr &source, const TargetPtr &target,
                                                           const Second &nextInstant, const Second &nextGCD) = 0;
+    nlohmann::json virtual serialize() const { return nlohmann::json(); }
     virtual ~RotationalPriorityList() = default;
 };
 using RotationalPriorityListPtr = std::shared_ptr<RotationalPriorityList>;
@@ -23,6 +26,8 @@ class PriorityList : public RotationalPriorityList {
         _priorites.push_back({rpl, std::move(conditions)});
     }
     void log(std::ostream &stream, int indent = 0) const override;
+    nlohmann::json serialize() const override;
+
     virtual ~PriorityList() = default;
 
   private:
