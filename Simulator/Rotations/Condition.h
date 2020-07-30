@@ -5,44 +5,65 @@
 
 namespace Simulator {
 class ConditionC {
-    virtual bool operator()(const AbilityId &id, const TargetPtr &, const TargetPtr &, const Second &, const Second &);
-    virtual nlohmann::json serialize();
+  public:
+    virtual bool check(const TargetPtr &, const TargetPtr &, const Second &, const Second &) = 0;
+    virtual nlohmann::json serialize() = 0;
 };
 
 constexpr char cooldown_condition[] = "cooldown_condition";
 constexpr char energy_condition[] = "energy_condition";
 constexpr char buff_condition[] = "buff_condition";
 constexpr char debuff_condition[] = "debuff_condition";
+constexpr char sub30_condition[] = "sub30_condition";
 
 class CooldownCondition : public ConditionC {
+  public:
+    CooldownCondition(AbilityId id) : _id(id) {}
     CooldownCondition(const nlohmann::json &json);
-    bool operator()(const AbilityId &id, const TargetPtr &, const TargetPtr &, const Second &, const Second &);
-    nlohmann::json serialize();
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
+
+  private:
+    AbilityId _id;
 };
 
-class EnergyCondition : ConditionC {
+class EnergyCondition : public ConditionC {
   public:
     EnergyCondition(const nlohmann::json &json);
-    bool operator()(const AbilityId &id, const TargetPtr &, const TargetPtr &, const Second &, const Second &);
-    nlohmann::json serialize();
+    EnergyCondition(double energy, bool above = true) : _energy(energy), _above(above) {}
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
 
   private:
     double _energy{0};
     bool _above{true};
 };
 
-class BuffCondition : ConditionC {
+class BuffCondition : public ConditionC {
   public:
     BuffCondition(const nlohmann::json &json);
-    bool operator()(const AbilityId &id, const TargetPtr &, const TargetPtr &, const Second &, const Second &);
-    nlohmann::json serialize();
+    BuffCondition(AbilityId id, Second timeRemaining) : _buffId(_buffId), _timeRemaing(timeRemaining) {}
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
 
   private:
     AbilityId _buffId;
-    Second _timeRemaing;
+    Second _timeRemaing{0.0};
 };
-using Condition = std::function<bool(const TargetPtr &, const TargetPtr &, const Second &, const Second &)>;
-using Conditions = std::vector<Condition>;
-Condition getCooldownFinishedCondition(AbilityId id);
+
+class SubThirtyCondition : public ConditionC {
+  public:
+    SubThirtyCondition(const nlohmann::json &json);
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
+};
+
+using ConditionPtr = std::unique_ptr<ConditionC>;
+using Conditions = std::vector<ConditionPtr>;
+ConditionPtr getCooldownFinishedCondition(AbilityId id);
 
 } // namespace Simulator

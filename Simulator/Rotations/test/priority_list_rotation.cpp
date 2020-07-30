@@ -22,7 +22,7 @@ TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers
     detail::LogDisabler d;
     RawStats rs;
     rs.master = Mastery{12138};
-    rs.power = Power{10049} - Power{500};
+    rs.power = Power{10049}; // - Power{500};
     rs.accuracyRating = AccuracyRating{1592};
     rs.criticalRating = CriticalRating{crit};
     rs.alacrityRating = AlacrityRating{alacrity};
@@ -34,8 +34,8 @@ TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers
     ret.source = Target::New(rs);
     if (amplifiers) {
         auto ab = std::make_unique<AmplifierBuff>();
-        // ab->setPeriodicIntensityBonus(0.2068);
-        ab->setPeriodicIntensityBonus(0.1496);
+        ab->setPeriodicIntensityBonus(0.2068);
+        // ab->setPeriodicIntensityBonus(0.1496);
 
         ret.source->addBuff(std::move(ab), Second(0.0));
     }
@@ -501,7 +501,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         // baseRotation->addAbility(dirty_fighting_dirty_blast);
         // baseRotation->addAbility(dirty_fighting_wounding_shots);
 
-        p->addPriorityList(baseRotation, {});
+        // p->addPriorityList(baseRotation, {});
 
         s->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge, Mastery{2892}, Power{0}, CriticalRating{0.0}),
                    Second(0.0));
@@ -528,7 +528,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         rot.setClass(c);
         rot.setPriorityList(p);
         rot.setMinTimeAfterInstant(Second(0.03));
-        rot.setDelayAfterChanneled(Second(0.1));
+        rot.setDelayAfterChanneled(Second(0.05));
         rot.doRotation();
         delete d;
         return t->getEvents();
@@ -585,4 +585,17 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         std::cout << vc.alacrity << "," << vc.crit << "," << vc.mean << "," << vc.stddev << "," << vp.mean << ","
                   << vp.stddev << "\n";
     }
+    detail::getLogger()->set_level(spdlog::level::info);
+    double alacrity = 3210;
+    double crit = std::max(0.0, totalStats - alacrity);
+    auto &&events = lambda(true, true, true, true, alacrity, crit, false);
+    auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+    logParseInformation(events, time);
+    auto &&[s, t, c] = getTestData(alacrity, crit, true);
+    auto abl = c->getAbility(smuggler_flurry_of_bolts);
+    auto afs = getAllFinalStats(*abl, s, t);
+    CHECK(afs[0].armorDebuff == false);
+    t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
+    afs = getAllFinalStats(*abl, s, t);
+    CHECK(afs[0].armorDebuff == true);
 }

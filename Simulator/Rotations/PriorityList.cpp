@@ -9,7 +9,7 @@ RotationalReturn PriorityList::getNextAbility(const TargetPtr &source, const Tar
     for (auto &&p : _priorites) {
         bool satisfiedConditions = true;
         for (auto &&c : p.conditions) {
-            if (!c(source, target, nextInstant, nextGCD)) {
+            if (!c->check(source, target, nextInstant, nextGCD)) {
                 satisfiedConditions = false;
                 break;
             }
