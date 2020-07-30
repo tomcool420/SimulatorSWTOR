@@ -8,8 +8,7 @@ constexpr char condition_invert_key[] = "invert";
 constexpr char condition_id_key[] = "id";
 constexpr char condition_remaining_time_key[] = "remaining_time";
 
-bool EnergyCondition::check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
-                            const Second &nextFreeGCD) {
+bool EnergyCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &) {
     auto em = source->getEnergyModel();
     if (!em)
         return true;
@@ -23,8 +22,7 @@ nlohmann::json EnergyCondition::serialize() {
     return j;
 }
 
-bool CooldownCondition::check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
-                              const Second &nextFreeGCD) {
+bool CooldownCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &nextFreeGCD) {
     if (auto cd = source->getAbilityCooldownEnd(_id)) {
         return *cd < nextFreeGCD;
     }
@@ -35,9 +33,7 @@ nlohmann::json CooldownCondition::serialize() {
     j[condition_type_key] = cooldown_condition;
     return j;
 }
-
-bool SubThirtyCondition::check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
-                               const Second &nextFreeGCD) {
+bool SubThirtyCondition::check(const TargetPtr &, const TargetPtr &target, const Second &, const Second &) {
     return target->getCurrentHealth() / target->getMaxHealth() < 0.3;
 }
 nlohmann::json SubThirtyCondition::serialize() {
@@ -46,7 +42,7 @@ nlohmann::json SubThirtyCondition::serialize() {
     return j;
 }
 
-bool BuffCondition::check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+bool BuffCondition::check(const TargetPtr &source, const TargetPtr &, const Second &,
                           const Second &nextFreeGCD) {
     if (auto b = source->getBuff<Buff>(_buffId)) {
         if (b->getEndTime() > nextFreeGCD + _timeRemaing)

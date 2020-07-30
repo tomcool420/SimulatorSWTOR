@@ -44,7 +44,7 @@ class EnergyCondition : public ConditionC {
 class BuffCondition : public ConditionC {
   public:
     BuffCondition(const nlohmann::json &json);
-    BuffCondition(AbilityId id, Second timeRemaining) : _buffId(_buffId), _timeRemaing(timeRemaining) {}
+    BuffCondition(AbilityId id, Second timeRemaining) : _buffId(id), _timeRemaing(timeRemaining) {}
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
