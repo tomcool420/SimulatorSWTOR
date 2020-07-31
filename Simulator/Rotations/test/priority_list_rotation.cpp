@@ -19,10 +19,10 @@ struct TestData {
     TargetPtr target;
     std::shared_ptr<DirtyFighting> df;
 };
-TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers = true) {
+TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers = true, bool masteryBonus=0) {
     detail::LogDisabler d;
     RawStats rs;
-    rs.master = Mastery{12138};
+    rs.master = Mastery{12138} +Mastery{masteryBonus};
     rs.power = Power{10049}; // - Power{500};
     rs.accuracyRating = AccuracyRating{1592};
     rs.criticalRating = CriticalRating{crit};
@@ -443,7 +443,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
 
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
                      double mastery = 0, bool critRelic = false) {
-        auto &&[s, t, c] = getTestData(alacrity, crit, true);
+        auto &&[s, t, c] = getTestData(alacrity, crit, true,mastery);
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
         p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
@@ -548,7 +548,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
     int count = static_cast<int>(totalStats / 40);
     int masteryLoops = 14;
     int totalCount = count * masteryLoops;
-    std::vector<info> infosCrit(count);
+    std::vector<info> infosCrit(totalCount);
     tbb::parallel_for(tbb::blocked_range<int>(0, count), [&](const tbb::blocked_range<int> &r) {
         for (int jj = 0; jj < masteryLoops; ++jj) {
             double mastery = 108 * jj;
@@ -568,7 +568,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
         }
     });
 
-    std::vector<info> infosPower(count);
+    std::vector<info> infosPower(totalCount);
     tbb::parallel_for(tbb::blocked_range<int>(0, count), [&](const tbb::blocked_range<int> &r) {
         for (int jj = 0; jj < masteryLoops; ++jj) {
             double mastery = 108 * jj;

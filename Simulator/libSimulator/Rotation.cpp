@@ -206,8 +206,8 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         }
         case AbilityCastType::Instant: {
             auto ablCastLambda = [target, ca = abl, this](const Second &t) {
-                auto afs = getAllFinalStats(*ca, getSource(), target);
-                auto hits = getHits(*ca, afs, target);
+                auto lafs = getAllFinalStats(*ca, getSource(), target);
+                auto hits = getHits(*ca, lafs, target);
                 applyDamageToTarget(hits, getSource(), target, t);
                 ca->onAbilityHitTarget(hits, getSource(), target, t);
                 ca->onAbilityEnd(getSource(), target, t);
