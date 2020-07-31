@@ -8,6 +8,7 @@
 #include "../PriorityListRotation.h"
 #include <Simulator/libSimulator/AbilityBuff.h>
 #include <Simulator/libSimulator/detail/names.h>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <tbb/parallel_for.h>
 
@@ -437,11 +438,12 @@ TEST(FullRotation, WoundingShots3) {
     });
 }
 
-TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {
+TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
+    auto d = new detail::LogDisabler;
+
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
-                     bool critRelic = false) {
+                     double mastery = 0, bool critRelic = false) {
         auto &&[s, t, c] = getTestData(alacrity, crit, true);
-        auto d = new detail::LogDisabler;
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
         p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
@@ -530,61 +532,74 @@ TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {
         rot.setMinTimeAfterInstant(Second(0.03));
         rot.setDelayAfterChanneled(Second(0.05));
         rot.doRotation();
-        delete d;
+
         return t->getEvents();
     };
     double totalStats = 2331.0 + 2095;
     struct info {
         double alacrity;
         double crit;
+        double mastery;
         double mean;
         double stddev;
     };
-    int iterations = 300;
+    int iterations = 1;
     int stepSize = 40;
     int count = static_cast<int>(totalStats / 40);
+    int masteryLoops = 14;
+    int totalCount = count * masteryLoops;
     std::vector<info> infosCrit(count);
     tbb::parallel_for(tbb::blocked_range<int>(0, count), [&](const tbb::blocked_range<int> &r) {
-        for (int ii = r.begin(); ii < r.end(); ++ii) {
-            double alacrity = ii * stepSize;
-            std::cout << "Alacrity: " << alacrity << "\n";
-            double crit = std::max(0.0, totalStats - alacrity);
-            std::vector<Second> times;
-            for (int iit = 0; iit < iterations; ++iit) {
-                auto &&events = lambda(true, true, true, true, alacrity, crit, true);
-                auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
-                times.push_back(time);
+        for (int jj = 0; jj < masteryLoops; ++jj) {
+            double mastery = 108 * jj;
+            for (int ii = r.begin(); ii < r.end(); ++ii) {
+                double alacrity = ii * stepSize;
+                std::cout << "Alacrity: " << alacrity << " Mastery: " << mastery << "\n";
+                double crit = std::max(0.0, totalStats - alacrity - mastery);
+                std::vector<Second> times;
+                for (int iit = 0; iit < iterations; ++iit) {
+                    auto &&events = lambda(true, true, true, true, alacrity, crit, mastery, true);
+                    auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+                    times.push_back(time);
+                }
+                auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+                infosCrit[ii + jj * count] = info{alacrity, crit, mastery, mean.getValue(), stddev};
             }
-            auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-            infosCrit[ii] = info{alacrity, crit, mean.getValue(), stddev};
         }
     });
 
     std::vector<info> infosPower(count);
     tbb::parallel_for(tbb::blocked_range<int>(0, count), [&](const tbb::blocked_range<int> &r) {
-        for (int ii = r.begin(); ii < r.end(); ++ii) {
-            double alacrity = ii * stepSize;
-            std::cout << "Alacrity: " << alacrity << "\n";
-            double crit = std::max(0.0, totalStats - alacrity);
-            std::vector<Second> times;
-            for (int iit = 0; iit < iterations; ++iit) {
-                auto &&events = lambda(true, true, true, true, alacrity, crit, false);
-                auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
-                times.push_back(time);
+        for (int jj = 0; jj < masteryLoops; ++jj) {
+            double mastery = 108 * jj;
+            for (int ii = r.begin(); ii < r.end(); ++ii) {
+                double alacrity = ii * stepSize;
+                std::cout << "Alacrity: " << alacrity << " Mastery: " << mastery << "\n";
+                double crit = std::max(0.0, totalStats - alacrity - mastery);
+                std::vector<Second> times;
+                for (int iit = 0; iit < iterations; ++iit) {
+                    auto &&events = lambda(true, true, true, true, alacrity, crit, mastery, true);
+                    auto time = getLastDamageEvent(events) - getFirstDamageEvent(events);
+                    times.push_back(time);
+                }
+                auto &&[mean, stddev, minV, maxV] = getStdDev(times);
+                infosPower[ii] = info{alacrity, crit, mean.getValue(), stddev};
             }
-            auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-            infosPower[ii] = info{alacrity, crit, mean.getValue(), stddev};
         }
     });
-    std::cout << "alacrity rating,critical rating,mean (crit relic),stddev (crit relic),mean (power relic),stddev "
-                 "(power relic)"
-              << "\n";
+    std::ofstream f("log.csv");
+    f << "alacrity rating,critical rating,mastery bonus,mean (crit relic),stddev (crit relic),mean (power "
+         "relic),stddev "
+         "(power relic)"
+      << "\n";
     for (int ii = 0; ii < infosCrit.size(); ++ii) {
         auto &&vc = infosCrit[ii];
         auto &&vp = infosPower[ii];
-        std::cout << vc.alacrity << "," << vc.crit << "," << vc.mean << "," << vc.stddev << "," << vp.mean << ","
-                  << vp.stddev << "\n";
+        f << vc.alacrity << "," << vc.crit << " , " << vc.mastery << "," << vc.mean << "," << vc.stddev << ","
+          << vp.mean << "," << vp.stddev << "\n";
     }
+    f.close();
+    delete d;
     detail::getLogger()->set_level(spdlog::level::info);
     double alacrity = 3210;
     double crit = std::max(0.0, totalStats - alacrity);

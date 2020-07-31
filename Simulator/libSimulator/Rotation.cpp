@@ -28,6 +28,13 @@ std::optional<Second> Rotation::getNextEventTime() {
 
     return std::nullopt;
 }
+std::optional<Second> Rotation::getNextFutureAction() {
+    if (_futureActions.empty())
+        return std::nullopt;
+    std::sort(_futureActions.begin(), _futureActions.end(),
+              [](const auto &a, const auto &b) { return a.first <= b.first; });
+    return _futureActions.front().first;
+}
 std::optional<Second> SetRotation::getNextEventTime() {
     auto time = Rotation::getNextEventTime();
     if (time)
@@ -50,6 +57,7 @@ enum class TargetType {
     Rotation,
     Target,
     Source,
+    FutureEvent,
 };
 struct NextEvent {
     TargetType type;
@@ -70,6 +78,9 @@ void Rotation::doRotation() {
         if (auto nextRotationEvent = getNextEventTime()) {
             events.push_back(NextEvent{TargetType::Rotation, *nextRotationEvent});
         }
+        if (auto nextFutureEvent = getNextFutureAction()) {
+            events.push_back(NextEvent{TargetType::FutureEvent, *nextFutureEvent});
+        }
         if (events.size() == 1 && events[0].type == TargetType::Source)
             return {}; // return nothing if the only even is a source event
         std::sort(events.begin(), events.end(), [](const NextEvent &a, const NextEvent &b) { return a.time < b.time; });
@@ -89,6 +100,10 @@ void Rotation::doRotation() {
             _target->applyEventsAtTime(event.time + Second(1e-7));
         } else if (event.type == TargetType::Rotation) {
             resolveEventsUpToTime(event.time + Second(1e-7), _target);
+        } else if (event.type == TargetType::FutureEvent) {
+            CHECK(!_futureActions.empty());
+            _futureActions.front().second(_futureActions.front().first);
+            _futureActions.pop_front();
         }
         ne = getEvents();
     }
@@ -101,16 +116,27 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         case AbilityCastType::Cast: {
             auto endCastTime = _abilityStartTime + _abilityCastTickTime;
             CHECK(endCastTime < time + Second(1e-5));
-            auto fs = getAllFinalStats(*_currentAbility, getSource(), target);
-            auto hits = getHits(*_currentAbility, fs, target);
+
+            auto ablCastLambda = [target, ca = _currentAbility, this](const Second &t) {
+                auto fs = getAllFinalStats(*ca, getSource(), target);
+                auto hits = getHits(*ca, fs, target);
+                applyDamageToTarget(hits, getSource(), target, t);
+                ca->onAbilityHitTarget(hits, getSource(), target, t);
+                ca->onAbilityEnd(getSource(), target, t);
+            };
+
             _source->spendEnergy(_currentAbility->getInfo().energyCost, endCastTime);
-            applyDamageToTarget(hits, getSource(), target, endCastTime);
+            auto d = _currentAbility->getTravelTime();
+            if (d > Second(0.05)) {
+                _futureActions.push_back({d + endCastTime, std::move(ablCastLambda)});
+            } else {
+                ablCastLambda(endCastTime);
+            }
             auto abilityCooldown = _currentAbility->getCooldownIsAffectedByAlacrity()
                                        ? _currentAbility->getCooldown() / (1.0 + _abilityAlacrityAmount)
                                        : _currentAbility->getCooldown();
             getSource()->setAbilityCooldown(_currentAbility->getId(), abilityCooldown + endCastTime);
-            _currentAbility->onAbilityHitTarget(hits, getSource(), target, endCastTime);
-            _currentAbility->onAbilityEnd(getSource(), target, endCastTime);
+
             _currentAbility = nullptr;
         } break;
         case AbilityCastType::Channeled: {
@@ -179,18 +205,30 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             break;
         }
         case AbilityCastType::Instant: {
-            auto hits = getHits(*abl, afs, target);
+            auto ablCastLambda = [target, ca = abl, this](const Second &t) {
+                auto afs = getAllFinalStats(*ca, getSource(), target);
+                auto hits = getHits(*ca, afs, target);
+                applyDamageToTarget(hits, getSource(), target, t);
+                ca->onAbilityHitTarget(hits, getSource(), target, t);
+                ca->onAbilityEnd(getSource(), target, t);
+            };
             _source->spendEnergy(abl->getInfo().energyCost, _nextFreeGCD);
-            applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
-            abl->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
-            abl->onAbilityEnd(getSource(), target, _nextFreeGCD);
+
             auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity()
                                        ? abl->getCooldown() / (1.0 + _abilityAlacrityAmount)
                                        : abl->getCooldown();
             getSource()->setAbilityCooldown(abl->getId(), abilityCooldown + _nextFreeGCD);
+
+            auto &&d = abl->getTravelTime();
+            if (d > Second(0.05)) {
+                _futureActions.push_back({d + _nextFreeGCD, std::move(ablCastLambda)});
+            } else {
+                ablCastLambda(_nextFreeGCD);
+            }
             _nextFreeGCDForInstant = _nextFreeGCD + _MinTimeAfterInstant;
             _nextFreeGCD =
                 _nextFreeGCD + Second(std::ceil(10 * Second(1.5).getValue() / (1 + _abilityAlacrityAmount)) / 10.0);
+
             break;
         }
         case AbilityCastType::OffGCD: {
