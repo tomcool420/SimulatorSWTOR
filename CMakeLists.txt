@@ -91,6 +91,18 @@ endif()
 
 include(${conanfile_path})
 conan_basic_setup(TARGETS)
+
+if(APPLE)
+  set(CMAKE_SKIP_RPATH 0)
+  set(CMAKE_INSTALL_RPATH "@executable_path/")
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+endif()
+
+if(Linux)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
+endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Qunused-arguments -Wno-missing-braces -Wno-conversion -Wunused-parameter -Wunused-variable -Wunused -Wshadow -Wno-deprecated -Werror")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
