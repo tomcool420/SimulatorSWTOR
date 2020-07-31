@@ -115,6 +115,8 @@ class Target : public std::enable_shared_from_this<Target> {
     void spendEnergy(int e, const Second &time);
     const std::shared_ptr<Energy> &getEnergyModel() const { return _energy; }
 
+    void setCurrentHealth(HealthPoints hp) { _health = hp; }
+
   protected:
     void addEvent(TargetEvent &&event);
 

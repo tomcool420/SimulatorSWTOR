@@ -437,7 +437,7 @@ TEST(FullRotation, WoundingShots3) {
     });
 }
 
-TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
+TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
                      bool critRelic = false) {
         auto &&[s, t, c] = getTestData(alacrity, crit, true);

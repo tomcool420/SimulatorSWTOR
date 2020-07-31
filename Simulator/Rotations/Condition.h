@@ -9,7 +9,6 @@ class ConditionC {
     virtual bool check(const TargetPtr &, const TargetPtr &, const Second &, const Second &) = 0;
     virtual nlohmann::json serialize() = 0;
     virtual ~ConditionC() = default;
-
 };
 
 constexpr char cooldown_condition[] = "cooldown_condition";
@@ -21,7 +20,7 @@ constexpr char sub30_condition[] = "sub30_condition";
 class CooldownCondition : public ConditionC {
   public:
     CooldownCondition(AbilityId id) : _id(id) {}
-    CooldownCondition(const nlohmann::json &json);
+    explicit CooldownCondition(const nlohmann::json &json);
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
@@ -33,7 +32,7 @@ class CooldownCondition : public ConditionC {
 
 class EnergyCondition : public ConditionC {
   public:
-    EnergyCondition(const nlohmann::json &json);
+    explicit EnergyCondition(const nlohmann::json &json);
     EnergyCondition(double energy, bool above = true) : _energy(energy), _above(above) {}
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
@@ -47,8 +46,9 @@ class EnergyCondition : public ConditionC {
 
 class BuffCondition : public ConditionC {
   public:
-    BuffCondition(const nlohmann::json &json);
-    BuffCondition(AbilityId id, Second timeRemaining) : _buffId(id), _timeRemaing(timeRemaining) {}
+    explicit BuffCondition(const nlohmann::json &json);
+    BuffCondition(AbilityId id, Second timeRemaining, bool invert = false)
+        : _buffId(id), _timeRemaing(timeRemaining), _invert(invert) {}
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
@@ -57,20 +57,41 @@ class BuffCondition : public ConditionC {
   private:
     AbilityId _buffId;
     Second _timeRemaing{0.0};
+    bool _invert{false};
+};
+
+class DebuffCondition : public ConditionC {
+  public:
+    explicit DebuffCondition(const nlohmann::json &json);
+    DebuffCondition(AbilityId id, Second timeRemaining, bool invert = false)
+        : _buffId(id), _timeRemaing(timeRemaining), _invert(invert) {}
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
+    virtual ~DebuffCondition() = default;
+
+  private:
+    AbilityId _buffId;
+    Second _timeRemaing{0.0};
+    bool _invert{false};
 };
 
 class SubThirtyCondition : public ConditionC {
   public:
-    SubThirtyCondition(const nlohmann::json &json);
+    SubThirtyCondition() = default;
+    explicit SubThirtyCondition(const nlohmann::json &json);
     bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
                const Second &nextFreeGCD) override;
     nlohmann::json serialize() override;
     virtual ~SubThirtyCondition() = default;
-
 };
 
 using ConditionPtr = std::unique_ptr<ConditionC>;
 using Conditions = std::vector<ConditionPtr>;
 Conditions getCooldownFinishedCondition(AbilityId id);
+ConditionPtr getDeserializedCondition(const nlohmann::json &condition);
+
+nlohmann::json serializeConditions(const Conditions &conditions);
+Conditions deserializeConditions(const nlohmann::json &j);
 
 } // namespace Simulator

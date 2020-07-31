@@ -27,7 +27,7 @@ class Debuff : public TimedStatusEffect {
     }
     virtual void modifyStats(const Ability & /*ability*/, AllStatChanges & /*fstats*/,
                              const std::shared_ptr<const Target> & /*target*/) const {}
-    [[nodiscard]] virtual Debuff *clone() const = 0;
+    [[nodiscard]] virtual Debuff *clone() const { return new Debuff(*this); }
     void setSource(TargetPtr source) { _source = std::move(source); }
     virtual void apply(const FinalStats &, const Second &time) { refresh(time); }
     virtual void refresh(const Second &time) { setStartTime(time); }
