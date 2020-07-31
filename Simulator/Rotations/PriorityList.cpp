@@ -64,7 +64,6 @@ nlohmann::json PriorityList::serialize() const {
 
 std::shared_ptr<PriorityList> PriorityList::deserialize(const nlohmann::json &j) {
     CHECK(j.contains(key_type));
-    auto v = getValue<int>(j, key_type);
     CHECK(getValue<int>(j, key_type) == 0);
     auto rot = j.at(key_priority);
     CHECK(rot.is_array());
