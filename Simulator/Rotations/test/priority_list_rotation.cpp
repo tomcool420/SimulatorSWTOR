@@ -599,7 +599,6 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
           << vp.mean << "," << vp.stddev << "\n";
     }
     f.close();
-    delete d;
     detail::getLogger()->set_level(spdlog::level::info);
     double alacrity = 3210;
     double crit = std::max(0.0, totalStats - alacrity);
@@ -613,4 +612,6 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
     t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
     afs = getAllFinalStats(*abl, s, t);
     CHECK(afs[0].armorDebuff == true);
+        delete d;
+
 }
