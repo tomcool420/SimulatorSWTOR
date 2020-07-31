@@ -24,3 +24,8 @@ boost:without_graph_parallel=True
 boost:without_python=True
 boost:without_thread=True
 boost:without_coroutine=True
+
+[imports]
+bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin
+lib, *.so* -> ./bin

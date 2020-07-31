@@ -27,7 +27,7 @@ class Buff : public TimedStatusEffect {
     virtual ~Buff() = default;
     AbilityId getId() const { return _id; }
     void setId(AbilityId id) { _id = id; }
-    [[nodiscard]] virtual Buff *clone() const = 0;
+    [[nodiscard]] virtual Buff *clone() const { return new Buff(*this); }
 
   private:
     AbilityId _id{0};

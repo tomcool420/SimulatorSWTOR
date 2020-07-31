@@ -36,6 +36,17 @@ DamageHits ShatteredDebuff::onAbilityHit(DamageHits &hits, const Second & /*time
     return {};
 }
 
+BuffPtr getGenericBuff(AbilityId id) {
+    switch (id) {
+    case supercharged_celerity: {
+        StatChanges sc;
+        sc.flatAlacrityBonus = 0.1;
+        return nullptr;
+    }
+    }
+    return nullptr;
+}
+
 DebuffPtr getGenericDebuff(AbilityId id) {
     switch (id) {
     case debuff_assailable: {

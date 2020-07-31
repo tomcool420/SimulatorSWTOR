@@ -54,7 +54,7 @@ constexpr uint64_t tactics_high_energy_cell{3963924101726208};
 constexpr uint64_t relic_mastery_surge{4293365273198592};
 constexpr uint64_t relic_power_surge{42929443664035840};
 constexpr uint64_t relic_critical_surge{4289220629757952};
-
+constexpr uint64_t supercharged_celerity{3413304999411712};
 constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};
 
