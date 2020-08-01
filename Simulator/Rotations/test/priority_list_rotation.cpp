@@ -438,7 +438,7 @@ TEST(FullRotation, WoundingShots3) {
     });
 }
 
-TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
+TEST(FullRotation, DISABLED_WoundingShots2AlacrityRangeCritRelic) {
     auto d = new detail::LogDisabler;
 
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
