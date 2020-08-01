@@ -19,10 +19,10 @@ struct TestData {
     TargetPtr target;
     std::shared_ptr<DirtyFighting> df;
 };
-TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers = true, bool masteryBonus=0) {
+TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers = true, bool masteryBonus = 0) {
     detail::LogDisabler d;
     RawStats rs;
-    rs.master = Mastery{12138} +Mastery{masteryBonus};
+    rs.master = Mastery{12138} + Mastery{masteryBonus};
     rs.power = Power{10049}; // - Power{500};
     rs.accuracyRating = AccuracyRating{1592};
     rs.criticalRating = CriticalRating{crit};
@@ -443,7 +443,7 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
 
     auto lambda = [](bool ef, bool ll, bool ew, bool shattered, double alacrity = 2331.0, double crit = 2095,
                      double mastery = 0, bool critRelic = false) {
-        auto &&[s, t, c] = getTestData(alacrity, crit, true,mastery);
+        auto &&[s, t, c] = getTestData(alacrity, crit, true, mastery);
         auto p = std::make_shared<PriorityList>();
         p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
         p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
@@ -537,13 +537,13 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
     };
     double totalStats = 2331.0 + 2095;
     struct info {
-        double alacrity;
-        double crit;
-        double mastery;
+        AlacrityRating alacrity;
+        CriticalRating crit;
+        Mastery mastery;
         double mean;
         double stddev;
     };
-    int iterations = 1;
+    int iterations = 100;
     int stepSize = 40;
     int count = static_cast<int>(totalStats / 40);
     int masteryLoops = 14;
@@ -563,7 +563,8 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
                     times.push_back(time);
                 }
                 auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-                infosCrit[ii + jj * count] = info{alacrity, crit, mastery, mean.getValue(), stddev};
+                infosCrit[ii + jj * count] =
+                    info{AlacrityRating(alacrity), CriticalRating(crit), Mastery(mastery), mean.getValue(), stddev};
             }
         }
     });
@@ -583,7 +584,8 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
                     times.push_back(time);
                 }
                 auto &&[mean, stddev, minV, maxV] = getStdDev(times);
-                infosPower[ii] = info{alacrity, crit, mean.getValue(), stddev};
+                infosPower[ii + jj * count] =
+                    info{AlacrityRating(alacrity), CriticalRating(crit), Mastery(mastery), mean.getValue(), stddev};
             }
         }
     });
@@ -595,8 +597,8 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
     for (int ii = 0; ii < infosCrit.size(); ++ii) {
         auto &&vc = infosCrit[ii];
         auto &&vp = infosPower[ii];
-        f << vc.alacrity << "," << vc.crit << " , " << vc.mastery << "," << vc.mean << "," << vc.stddev << ","
-          << vp.mean << "," << vp.stddev << "\n";
+        f << vc.alacrity.getValue() << "," << vc.crit.getValue() << " , " << vc.mastery.getValue() << "," << vc.mean
+          << "," << vc.stddev << "," << vp.mean << "," << vp.stddev << "\n";
     }
     f.close();
     detail::getLogger()->set_level(spdlog::level::info);
@@ -612,6 +614,19 @@ TEST(FullRotation, WoundingShots2AlacrityRangeCritRelic) {
     t->addDebuff(detail::getGenericDebuff(debuff_shattered), s, Second(0.0));
     afs = getAllFinalStats(*abl, s, t);
     CHECK(afs[0].armorDebuff == true);
-        delete d;
+    delete d;
 
+    /* can be ploted using the following python code
+    import numpy as np
+    import matplotlib.pyplot as plt
+    a,c,m,mc,stdc,mp,stdp = np.loadtxt('log.csv',delimiter=',',unpack=True,skiprows=1)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111,projection='3d')
+    ax1.set_xlabel("alacrity rating")
+    ax1.set_ylabel("bonus matery")
+    ax1.set_zlabel("TTK")
+    ax1.scatter(a,m,mc)
+    ax1.scatter(a,m,mp)
+    fig.show()
+    */
 }
