@@ -137,6 +137,13 @@ void Ability::onAbilityEnd(const TargetPtr &source, const TargetPtr &target, con
         oha(source, target, time);
     }
 }
+Second Ability::getTravelTime() const {
+    if (_info.travelTime > Second(0.01))
+        return _info.travelTime;
+    if (_info.travelSpeed > 0.001)
+        return Second(0.15);
+    return Second(0.0);
+}
 
 void applyDamageToTarget(DamageHits hits, const TargetPtr &source, const TargetPtr &target, const Second &time) {
     DamageHits currentHits = hits;

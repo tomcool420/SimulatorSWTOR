@@ -59,6 +59,7 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
         AbilityCoefficients coeffInternalHit{0.5, 0.05, 0.05, 0.0, DamageType::Internal, false};
         AbilityInfo info{{coeffsMH, coeffOH, coeffInternalHit}, AbilityCastType::Cast};
         info.energyCost = 15;
+        info.travelSpeed = 10;
         return info;
     }
     case dirty_fighting_shrap_bomb: {

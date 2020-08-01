@@ -1,6 +1,7 @@
 #pragma once
 #include "types.h"
 #include "utility.h"
+#include <deque>
 #include <optional>
 namespace Simulator {
 class Rotation {
@@ -8,6 +9,7 @@ class Rotation {
     Rotation(TargetPtr source) : _source(source) {}
 
     virtual std::optional<Second> getNextEventTime();
+    std::optional<Second> getNextFutureAction();
     virtual void resolveEventsUpToTime(const Second &time, const TargetPtr &);
 
     const TargetPtr &getSource() const { return _source; }
@@ -38,6 +40,8 @@ class Rotation {
     double _abilityAlacrityAmount{0.0};
     Second _abilityCastTickTime{0.0};
     Second _abilityStartTime{-1000.0};
+    using DelayedAction = std::function<void(const Second &)>;
+    std::deque<std::pair<Second, DelayedAction>> _futureActions;
 };
 
 class SetRotation : public Rotation {

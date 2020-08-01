@@ -32,6 +32,8 @@ struct AbilityInfo {
     Second cooldownTime{Second(0.0)};
     bool ignoresAlacrity{false};
     int energyCost{0};
+    Second travelTime{Second(0.0)};
+    double travelSpeed{0.0};
 };
 
 using OnEndAction = std::function<void(const TargetPtr &, const TargetPtr &, const Second &)>;
@@ -71,6 +73,7 @@ class Ability {
     void setStatChanges(const StatChanges &statChanges) {
         _allStatChanges = AllStatChanges(_info.coefficients.size(), statChanges);
     }
+    Second getTravelTime() const;
     const AllStatChanges &getStatChanges() const { return _allStatChanges; }
     SIMULATOR_SET_MACRO(Cooldown, Second, Second(0.0));
     SIMULATOR_SET_MACRO(CooldownIsAffectedByAlacrity, bool, true);

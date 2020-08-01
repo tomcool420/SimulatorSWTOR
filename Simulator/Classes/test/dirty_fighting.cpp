@@ -153,7 +153,21 @@ TEST(DirtyFighting, DotRefresh) {
     rot.setRepeats(1);
     rot.doRotation();
 }
-
+namespace {
+int countHits(const AbilityId &id, const Target::TargetEvents &events) {
+    int count = 0;
+    for (auto e : events) {
+        if (e.type == Target::TargetEventType::Damage) {
+            auto &&hits = *e.damage;
+            for (auto &&hit : hits) {
+                if (hit.id == id)
+                    ++count;
+            }
+        }
+    }
+    return count;
+}
+} // namespace
 TEST(DirtyFighting, WeakDots) {
     auto &&[player, target, df] = getTestData();
     df->setExploitedWeakness(true);
@@ -175,4 +189,58 @@ TEST(DirtyFighting, WeakDots) {
     rot.setStart(Second(0.0));
     rot.setRepeats(1);
     rot.doRotation();
+}
+
+TEST(DirtyFighting, HitCount) {
+    {
+        auto &&[player, target, df] = getTestData();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+
+        AbilityIds ids{dirty_fighting_hemorraghing_blast};
+
+        SetRotation rot(player, ids);
+        rot.setClass(df);
+        rot.setTarget(target);
+        rot.setStart(Second(0.0));
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto h = countHits(dirty_fighting_hemorraghing_blast, target->getEvents());
+        ASSERT_EQ(h, 2);
+    }
+    {
+        auto &&[player, target, df] = getTestData();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+
+        AbilityIds ids{dirty_fighting_hemorraghing_blast, dirty_fighting_dirty_blast};
+
+        SetRotation rot(player, ids);
+        rot.setClass(df);
+        rot.setTarget(target);
+        rot.setStart(Second(0.0));
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto h = countHits(dirty_fighting_hemorraghing_blast, target->getEvents());
+        ASSERT_EQ(h, 4);
+    }
+    {
+        auto &&[player, target, df] = getTestData();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+
+        AbilityIds ids{dirty_fighting_dirty_blast, dirty_fighting_hemorraghing_blast, dirty_fighting_dirty_blast};
+
+        SetRotation rot(player, ids);
+        rot.setClass(df);
+        rot.setTarget(target);
+        rot.setStart(Second(0.0));
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto h = countHits(dirty_fighting_hemorraghing_blast, target->getEvents());
+        ASSERT_EQ(h, 6);
+    }
 }
