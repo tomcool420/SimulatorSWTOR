@@ -1,5 +1,5 @@
 #include "PriorityList.h"
-#include "Simulator/libSimulator/types.h"
+#include "Simulator/SimulatorBase/types.h"
 #include <vector>
 
 namespace Simulator {

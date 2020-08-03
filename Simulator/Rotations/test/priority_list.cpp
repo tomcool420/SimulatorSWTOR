@@ -1,10 +1,10 @@
+#include "Simulator/SimulatorBase/Rotation.h"
+#include "Simulator/SimulatorBase/Target.h"
+#include "Simulator/SimulatorBase/detail/log.h"
 #include "../../Classes/DirtyFighting.h"
 #include "../../Classes/detail/shared.h"
 #include "../../Rotations/Condition.h"
 #include "../../Rotations/PriorityList.h"
-#include "../../libSimulator/Rotation.h"
-#include "../../libSimulator/Target.h"
-#include "../../libSimulator/detail/log.h"
 #include <gtest/gtest.h>
 
 using namespace Simulator;

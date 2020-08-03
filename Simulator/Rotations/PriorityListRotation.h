@@ -1,9 +1,9 @@
 #pragma once
 #include "PriorityList.h"
 #include "StaticRotation.h"
-#include <Simulator/libSimulator/Class.h>
-#include <Simulator/libSimulator/Rotation.h>
-#include <Simulator/libSimulator/types.h>
+#include <Simulator/SimulatorBase/Class.h>
+#include <Simulator/SimulatorBase/Rotation.h>
+#include <Simulator/SimulatorBase/types.h>
 
 namespace Simulator {
 class PriorityListRotation : public Rotation {

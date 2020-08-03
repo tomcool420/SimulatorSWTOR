@@ -70,14 +70,14 @@ void AmplifierBuff::apply(const Ability &ability, AllStatChanges &fstats, const 
         auto &s = fstats[ii];
         const auto &c = ac[ii];
         if (c.isDamageOverTime) {
-            s.multiplier += getPeriodicIntensityBonus();
+            s.multiplier += _amps.periodicIntensity;
         }
         if (c.damageType == DamageType::Weapon) {
-            s.multiplier += getWeaponExpertiseBonus();
+            s.multiplier += _amps.weaponExpertise;
         } else {
-            s.multiplier += getForcecTechWizardryBonus();
+            s.multiplier += std::max(_amps.forceSensitivity, _amps.techWizardry);
         }
-        s.armorPen += getArmorPenBonus();
+        s.armorPen += _amps.armorPenetration;
     }
 }
 

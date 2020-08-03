@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <spdlog/fmt/fmt.h>
 namespace Simulator {
 #define CHECK(condition, ...)                                                                                          \
@@ -31,4 +32,10 @@ inline void checkFailed(const std::string &condition, const std::string &descrip
     throw std::runtime_error(errorString);
 }
 
+template <class T> void load_to_if(const nlohmann::json &j, const std::string_view &k, T &value) {
+    auto it = j.find(k);
+    if (it == j.end())
+        return;
+    value = it->get<T>();
+}
 } // namespace Simulator

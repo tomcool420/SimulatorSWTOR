@@ -1,7 +1,7 @@
 #pragma once
-#include "../libSimulator/Class.h"
-#include "../libSimulator/utility.h"
-#include <Simulator/libSimulator/Energy.h>
+#include "Simulator/SimulatorBase/Class.h"
+#include "Simulator/SimulatorBase/utility.h"
+#include <Simulator/SimulatorBase/Energy.h>
 namespace Simulator {
 
 class Gunslinger : public Class {
@@ -19,6 +19,7 @@ class Gunslinger : public Class {
         }
         return _energy;
     }
+    void loadOptions(const nlohmann::json &j);
 
   protected:
     EnergyPtr _energy{nullptr};

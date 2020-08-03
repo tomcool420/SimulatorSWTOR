@@ -3,6 +3,7 @@
 #include <cmath>
 #include <gsl/gsl>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <numeric>
 
 namespace Simulator {
@@ -91,7 +92,9 @@ template <class T, class Category> class UnitBase : public boost::multiplicative
         constexpr name(const UnitBase<U, cat> &other) : UnitBase<name, cat>(other.getValue() * (U::scale / scale)) {   \
             static_assert(U::scale == U::scale && scale == scale);                                                     \
         }                                                                                                              \
-    };
+    };                                                                                                                 \
+    inline void from_json(const nlohmann::json &j, name &v) { v = name(j.get<double>()); }                             \
+    inline void to_json(nlohmann::json &j, const name &v) { j = v.getValue(); }
 
 struct MasteryCategory {};
 DEFINE_UNIT(Mastery, MasteryCategory, 1.0);

@@ -1,9 +1,9 @@
 #include "DirtyFighting.h"
+#include "Simulator/SimulatorBase/AbilityBuff.h"
+#include "Simulator/SimulatorBase/ConditionalApplyDebuff.h"
+#include "Simulator/SimulatorBase/abilities.h"
 #include "detail/Gunslinger.h"
 #include "detail/shared.h"
-#include "../libSimulator/AbilityBuff.h"
-#include "../libSimulator/ConditionalApplyDebuff.h"
-#include "../libSimulator/abilities.h"
 
 namespace Simulator {
 namespace detail {

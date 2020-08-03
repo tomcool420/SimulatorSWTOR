@@ -1,9 +1,9 @@
 #include "Gunslinger.h"
+#include "Simulator/SimulatorBase/AbilityBuff.h"
+#include "Simulator/SimulatorBase/ConditionalApplyDebuff.h"
+#include "Simulator/SimulatorBase/abilities.h"
 #include "detail/Gunslinger.h"
 #include "detail/shared.h"
-#include "../libSimulator/AbilityBuff.h"
-#include "../libSimulator/ConditionalApplyDebuff.h"
-#include "../libSimulator/abilities.h"
 namespace Simulator {
 
 AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
@@ -74,4 +74,12 @@ std::vector<BuffPtr> Gunslinger::getStaticBuffs() {
     std::vector<BuffPtr> ret;
     return ret;
 }
+
+void Gunslinger::loadOptions(const nlohmann::json &j) {
+    Class::loadOptions(j);
+    load_to_if(j, key_established_foothold, _EstablishedFoothold);
+    load_to_if(j, key_exploited_weakness, _ExploitedWeakness);
+    load_to_if(j, key_lay_low, _LayLowPassive);
+}
+
 } // namespace Simulator

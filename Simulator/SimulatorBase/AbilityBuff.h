@@ -57,11 +57,18 @@ class DamageTypeBuff : public Buff {
 class AmplifierBuff : public Buff {
   public:
     AmplifierBuff() = default;
+    AmplifierBuff(Amplifiers amp) : _amps(amp){};
     void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const final;
-    SIMULATOR_SET_MACRO(PeriodicIntensityBonus, double, 0.0);
-    SIMULATOR_SET_MACRO(WeaponExpertiseBonus, double, 0.0);
-    SIMULATOR_SET_MACRO(ForcecTechWizardryBonus, double, 0.0);
-    SIMULATOR_SET_MACRO(ArmorPenBonus, double, 0.0);
+    void setPeriodicIntensityBonus(double bonus) { _amps.periodicIntensity = bonus; }
+    void setWeaponExpertiseBonus(double bonus) { _amps.weaponExpertise = bonus; }
+    void setTechWizardryBonus(double bonus) { _amps.techWizardry = bonus; }
+    void setForceSensitivityBonus(double bonus) { _amps.forceSensitivity = bonus; }
+    void setArmorPenetrationBonus(double bonus) { _amps.armorPenetration = bonus; }
+    void setAoeMultiplier(double bonus) { _amps.aoe = bonus; }
+    const Amplifiers &getAmplifiers() const { return _amps; }
+
+  private:
+    Amplifiers _amps;
     [[nodiscard]] Buff *clone() const override { return new AmplifierBuff(*this); }
 };
 
@@ -83,19 +90,17 @@ template <class Lambda> OnAbilityHitBuff<Lambda> *MakeOnAbilityHitBuff(std::stri
     return new OnAbilityHitBuff<Lambda>(name, std::forward<Lambda>(t));
 }
 
-template<class Lambda>
-class ConditionalBuff : public Buff{
-public:
-    ConditionalBuff(const std::string & buffname,  Lambda && l) : _name(buffname),_l(std::forward<Lambda>(l)){}
-    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override{
-        _l(ability,fstats,target);
+template <class Lambda> class ConditionalBuff : public Buff {
+  public:
+    ConditionalBuff(const std::string &buffname, Lambda &&l) : _name(buffname), _l(std::forward<Lambda>(l)) {}
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override {
+        _l(ability, fstats, target);
     }
     [[nodiscard]] Buff *clone() const override { return new ConditionalBuff(*this); }
 
-private:
+  private:
     std::string _name;
     Lambda _l;
-
 };
 template <class Lambda> Buff *MakeConditionalBuff(std::string name, Lambda &&t) {
     return new ConditionalBuff<Lambda>(name, std::forward<Lambda>(t));

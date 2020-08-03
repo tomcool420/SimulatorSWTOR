@@ -15,6 +15,7 @@ class Class {
     //    [[nodiscard]] virtual std::optional<Second> getNextEventTime()=0;
     //    [[nodiscard]] virtual std::vector<BuffPtr> getBuffs()=0;
     virtual EnergyPtr getEnergyModel() { return nullptr; }
+    virtual void loadOptions(const nlohmann::json &j){};
     void onAbilityWasCast(const Ability &abl);
     virtual ~Class() = default;
 
