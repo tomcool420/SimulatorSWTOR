@@ -224,4 +224,10 @@ std::vector<BuffPtr> DirtyFighting::getStaticBuffs() {
     ret.push_back(std::make_unique<detail::FightingSpirit>());
     return ret;
 }
+nlohmann::json DirtyFighting::serialize() {
+    auto j = Gunslinger::serialize();
+    j[key_class] = key_class_dirty_fighting;
+    return j;
+}
+
 } // namespace Simulator

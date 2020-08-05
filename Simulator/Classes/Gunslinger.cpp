@@ -82,4 +82,12 @@ void Gunslinger::loadOptions(const nlohmann::json &j) {
     load_to_if(j, key_lay_low, _LayLowPassive);
 }
 
+nlohmann::json Gunslinger::serialize() {
+    nlohmann::json j;
+    j[key_established_foothold] = _EstablishedFoothold;
+    j[key_exploited_weakness] = _ExploitedWeakness;
+    j[key_lay_low] = _LayLowPassive;
+    return j;
+}
+
 } // namespace Simulator

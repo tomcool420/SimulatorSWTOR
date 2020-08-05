@@ -20,6 +20,7 @@ class Gunslinger : public Class {
         return _energy;
     }
     void loadOptions(const nlohmann::json &j);
+    nlohmann::json serialize() override;
 
   protected:
     EnergyPtr _energy{nullptr};

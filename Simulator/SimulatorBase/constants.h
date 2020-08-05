@@ -59,6 +59,7 @@ constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};
 
 // keys
+constexpr char key_base_stats[] = "key_base_stats";
 constexpr char key_mastery[] = "mastery";
 constexpr char key_alacrity_rating[] = "alacrity_rating";
 constexpr char key_critical_rating[] = "critical_rating";
@@ -70,6 +71,8 @@ constexpr char key_offhand_damage[] = "offhand_damage";
 constexpr char key_armor[] = "armor";
 constexpr char key_health[] = "health";
 constexpr char key_has_offhand[] = "has_offhand";
+
+constexpr char key_amplifiers[] = "amplifiers";
 constexpr char key_periodic_damage[] = "periodic_intensity";
 constexpr char key_tech_wizardry[] = "tech_wizardry";
 constexpr char key_force_sensitivity[] = "force_sensitivity";
