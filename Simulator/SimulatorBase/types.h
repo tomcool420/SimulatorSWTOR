@@ -15,6 +15,7 @@ class Debuff;
 using DebuffPtr = std::unique_ptr<Debuff>;
 class Buff;
 using BuffPtr = std::unique_ptr<Buff>;
+using BuffPtrs = std::vector<BuffPtr>;
 class Class;
 using ClassPtr = std::shared_ptr<Class>;
 class Energy;

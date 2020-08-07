@@ -59,6 +59,9 @@ constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};
 
 // keys
+constexpr char key_relic_1[] = "relic1";
+constexpr char key_relic_2[] = "relic2";
+constexpr char key_class_buffs[] = "class_buffs";
 constexpr char key_base_stats[] = "key_base_stats";
 constexpr char key_mastery[] = "mastery";
 constexpr char key_alacrity_rating[] = "alacrity_rating";
@@ -85,4 +88,5 @@ constexpr char key_lay_low[] = "lay_low";
 constexpr char key_established_foothold[] = "established_foothold";
 constexpr char key_exploited_weakness[] = "exploited_weakness";
 
+constexpr char key_main_rotation[] = "main_rotation";
 } // namespace Simulator

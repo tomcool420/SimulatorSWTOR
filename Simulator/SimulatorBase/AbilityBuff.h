@@ -24,7 +24,9 @@ class RawSheetBuff : public Buff {
 class RelicProcBuff : public Buff {
   public:
     RelicProcBuff(AbilityId procId, Mastery mastery, Power power, CriticalRating crit)
-        : _procId(procId), _mastery(mastery), _power(power), _criticalRating(crit) {}
+        : _procId(procId), _mastery(mastery), _power(power), _criticalRating(crit) {
+        setId(procId);
+    }
     [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
                                           const TargetPtr & /*target*/) override;
 

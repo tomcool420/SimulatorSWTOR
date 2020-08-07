@@ -70,10 +70,7 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
     }
     return nullptr;
 }
-std::vector<BuffPtr> Gunslinger::getStaticBuffs() {
-    std::vector<BuffPtr> ret;
-    return ret;
-}
+std::vector<BuffPtr> Gunslinger::getStaticBuffs() { return Class::getStaticBuffs(); }
 
 void Gunslinger::loadOptions(const nlohmann::json &j) {
     Class::loadOptions(j);
@@ -83,7 +80,7 @@ void Gunslinger::loadOptions(const nlohmann::json &j) {
 }
 
 nlohmann::json Gunslinger::serialize() {
-    nlohmann::json j;
+    nlohmann::json j = Class::serialize();
     j[key_established_foothold] = _EstablishedFoothold;
     j[key_exploited_weakness] = _ExploitedWeakness;
     j[key_lay_low] = _LayLowPassive;

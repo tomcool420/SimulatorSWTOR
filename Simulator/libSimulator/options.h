@@ -7,8 +7,11 @@ namespace Simulator {
 struct Options {
     nlohmann::json gear;
     nlohmann::json rotation;
-    int iterations{1};
-    bool verbose;
+    int iterations{200};
+    bool verbose{false};
+    bool varying{true};
+    int varyingStepSize{40};
+    boost::filesystem::path output{"log.csv"};
 };
 void populateOptions(boost::program_options::options_description &desc);
 Options parseOptions(const boost::program_options::variables_map &cmdLineArgs);

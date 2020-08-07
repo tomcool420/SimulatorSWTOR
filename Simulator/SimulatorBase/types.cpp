@@ -102,6 +102,8 @@ void to_json(nlohmann::json &j, const RawStats &s) {
     j[key_mainhand_damage] = s.weaponDamageMH;
     j[key_offhand_damage] = s.weaponDamageOH;
     j[key_health] = s.hp.getValue();
+    j[key_armor] = s.armor;
+    j[key_has_offhand] = s.hasOffhand;
 }
 void from_json(const nlohmann::json &j, RawStats &s) {
     s.master = j.at(key_mastery);

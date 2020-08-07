@@ -9,25 +9,30 @@
     },
     "class": {
         "class": "dirty_fighting",
-        "established_foothold": false,
-        "exploited_weakness": false,
-        "lay_low": true
+        "class_buffs": true,
+        "established_foothold": true,
+        "exploited_weakness": true,
+        "lay_low": true,
+        "relic1": 4293365273198592,
+        "relic2": 42929443664035840
     },
     "key_base_stats": {
-        "alacrity_rating": 0.0,
-        "critical_rating": 313.0,
+        "alacrity_rating": 2331.0,
+        "critical_rating": 2095.0,
         "force_power": 7008.0,
         "health": 6500000.0,
         "mainhand_damage": [
             1376.0,
             2556.0
         ],
-        "mastery": 4953.0,
+        "mastery": 12138.0,
         "offhand_damage": [
             412.8,
             766.8
         ],
-        "power": 2100.0,
-        "tech_power": 7008.0
+        "power": 10049.0,
+        "tech_power": 7008.0,
+        "armor": 14535.0,
+        "has_offhand": true
     }
 }
