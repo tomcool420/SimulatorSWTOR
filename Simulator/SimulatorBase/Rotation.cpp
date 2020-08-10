@@ -174,6 +174,8 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         if (afs.size()) {
             _abilityAlacrityAmount = afs[0].alacrity;
             _abilityCastTickTime = info.time / (1 + _abilityAlacrityAmount);
+            if (_DelayAfterChanneled < Second(0) && info.type == AbilityCastType::Channeled)
+                _abilityCastTickTime = _abilityCastTickTime - _DelayAfterChanneled / (info.nTicks - 1); // clip dots
         }
         _abilityStartTime = _nextFreeGCD;
         switch (info.type) {
