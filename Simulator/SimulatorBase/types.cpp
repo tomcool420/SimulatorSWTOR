@@ -112,7 +112,7 @@ void from_json(const nlohmann::json &j, RawStats &s) {
     s.power = j.at(key_power);
     FTPower fp = j.at(key_force_power);
     FTPower pp = j.at(key_tech_power);
-    s.forceTechPower = std::max(fp, fp);
+    s.forceTechPower = std::max(fp, pp);
     s.weaponDamageMH = j.at(key_mainhand_damage);
     s.weaponDamageOH = j.at(key_offhand_damage);
     s.hp = j.at(key_health);
