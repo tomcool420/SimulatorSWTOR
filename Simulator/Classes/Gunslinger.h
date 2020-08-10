@@ -19,7 +19,7 @@ class Gunslinger : public ClassBase {
         }
         return _energy;
     }
-    void loadOptions(const nlohmann::json &j);
+    void loadOptions(const nlohmann::json &j) override;
     nlohmann::json serialize() override;
 
   protected:

@@ -32,7 +32,7 @@ int run(int argc, char **argv) {
     }
     try {
         Options o = parseOptions(vm);
-        if (o.varying) {
+        if (o.opts.varyingAlacrity) {
             runVarying(o);
         } else {
             runRotation(o);
@@ -72,9 +72,10 @@ stats getStdDev(const std::vector<Second> &times) {
 int runRotation(const Options &o) {
     auto ic = getClassFromGearJSON(o.gear);
     auto rs = getRawStatsFromGearJSON(o.gear);
-    for (int ii = 0; ii < o.iterations; ++ii) {
+    auto &&ro = o.opts;
+    for (int ii = 0; ii < ro.iterations; ++ii) {
         detail::LogDisabler *d{nullptr};
-        if (!o.verbose)
+        if (!ro.verbose)
             d = new detail::LogDisabler;
         auto s = Target::New(rs);
         auto amps = getAmplifiersFromGearJSON(o.gear);
@@ -95,6 +96,8 @@ int runRotation(const Options &o) {
         rot.setTarget(t);
         rot.setClass(ic);
         rot.setPriorityList(rotation);
+        rot.setDelayAfterChanneled(ro.delayAfterChanneling);
+        rot.setMinTimeAfterInstant(ro.delayAfterInstant);
         rot.doRotation();
         auto &&events = t->getEvents();
         if (d) {
@@ -127,6 +130,8 @@ int runVarying(const Options &opts) {
         rot.setNextFreeGCD(Second(0.0));
         rot.setTarget(t);
         rot.setClass(ic);
+        rot.setDelayAfterChanneled(o.opts.delayAfterChanneling);
+        rot.setMinTimeAfterInstant(o.opts.delayAfterInstant);
         rot.setPriorityList(rotation);
         rot.doRotation();
         return std::move(t);
@@ -138,8 +143,8 @@ int runVarying(const Options &opts) {
         double stddev;
     };
     auto rs = getRawStatsFromGearJSON(opts.gear);
-    int iterations = opts.iterations;
-    int stepSize = opts.varyingStepSize;
+    int iterations = opts.opts.iterations;
+    int stepSize = opts.opts.varyingStepSize;
     double totalVaryingStats = rs.criticalRating.getValue() + rs.alacrityRating.getValue();
     int count = static_cast<int>(totalVaryingStats / stepSize);
     std::vector<info> infos(count);
