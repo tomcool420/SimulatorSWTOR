@@ -11,16 +11,12 @@ class Class {
     [[nodiscard]] const AbilityPtr &getAbility(AbilityId id) {
         return _cache.getFromCacheIfNotIn(id, [&]() { return getAbilityInternal(id); });
     }
-    virtual std::vector<BuffPtr> getStaticBuffs();
+    virtual std::vector<BuffPtr> getStaticBuffs() = 0;
     virtual EnergyPtr getEnergyModel() { return nullptr; }
-    virtual void loadOptions(const nlohmann::json &j);
+    virtual void loadOptions(const nlohmann::json &j) = 0;
     virtual nlohmann::json serialize() = 0;
     void onAbilityWasCast(const Ability &abl);
     virtual ~Class() = default;
-
-    SIMULATOR_SET_MACRO(Relic1, AbilityId, 0);
-    SIMULATOR_SET_MACRO(Relic2, AbilityId, 0);
-    SIMULATOR_SET_MACRO(ClassBuffs, bool, false);
 
   protected:
     [[nodiscard]] virtual AbilityPtr getAbilityInternal(AbilityId id) = 0;

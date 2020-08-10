@@ -1,10 +1,10 @@
 #pragma once
-#include "Simulator/SimulatorBase/Class.h"
+#include "ClassBase.h"
 #include "Simulator/SimulatorBase/utility.h"
 #include <Simulator/SimulatorBase/Energy.h>
 namespace Simulator {
 
-class Gunslinger : public Class {
+class Gunslinger : public ClassBase {
   public:
     virtual ~Gunslinger() = default;
     EnergyPtr getEnergyModel() override {
