@@ -134,7 +134,7 @@ int runVarying(const Options &opts) {
         rot.setMinTimeAfterInstant(o.opts.delayAfterInstant);
         rot.setPriorityList(rotation);
         rot.doRotation();
-        return std::move(t);
+        return t;
     };
     struct info {
         AlacrityRating alacrity;
@@ -149,7 +149,7 @@ int runVarying(const Options &opts) {
     int count = static_cast<int>(totalVaryingStats / stepSize);
     std::vector<info> infos(count);
     auto ld = new detail::LogDisabler;
-    tbb::parallel_for(tbb::blocked_range<int>(0, count), [&](const tbb::blocked_range<int> &r) {
+    auto ll =[&](const tbb::blocked_range<int> &r) {
         for (int ii = r.begin(); ii < r.end(); ++ii) {
             double alacrity = ii * stepSize;
             std::cout << "Alacrity: " << alacrity << "\n";
@@ -164,7 +164,9 @@ int runVarying(const Options &opts) {
             auto &&[mean, stddev, minV, maxV] = getStdDev(times);
             infos[ii] = info{AlacrityRating(alacrity), CriticalRating(crit), mean.getValue(), stddev};
         }
-    });
+    };
+    tbb::parallel_for(tbb::blocked_range<int>(0, count), ll);
+//    ll(tbb::blocked_range<int>(0,count));
     delete ld;
     std::ofstream f(opts.output.string());
     f << "alacrity rating,critical rating,mean,stddev"

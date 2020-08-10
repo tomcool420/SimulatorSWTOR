@@ -154,7 +154,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             if (_currentTick == info.nTicks) {
                 _currentAbility->onAbilityEnd(getSource(), target, currentTickTime);
                 _currentAbility = nullptr;
-                _nextFreeGCD = currentTickTime + Second(1e-6) + getDelayAfterChanneled();
+                _nextFreeGCD = currentTickTime + Second(1e-6) + std::min(Second(0.0),getDelayAfterChanneled());
                 _currentTick = 0;
                 break;
             }
@@ -175,7 +175,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             _abilityAlacrityAmount = afs[0].alacrity;
             _abilityCastTickTime = info.time / (1 + _abilityAlacrityAmount);
             if (_DelayAfterChanneled < Second(0) && info.type == AbilityCastType::Channeled)
-                _abilityCastTickTime = _abilityCastTickTime - _DelayAfterChanneled / (info.nTicks - 1); // clip dots
+                _abilityCastTickTime = _abilityCastTickTime + _DelayAfterChanneled / (info.nTicks - 1); // clip dots
         }
         _abilityStartTime = _nextFreeGCD;
         switch (info.type) {
