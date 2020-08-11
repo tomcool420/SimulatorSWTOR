@@ -1,0 +1,38 @@
+{
+    "amplifiers": {
+        "aoe": 0.0,
+        "armorPenetration": 0.0,
+        "forceSensitivity": 0.0,
+        "periodicIntensity": 0.2068,
+        "techWizardry": 0.0,
+        "weaponExpertise": 0.0
+    },
+    "class": {
+        "class": "dirty_fighting",
+        "class_buffs": true,
+        "established_foothold": true,
+        "exploited_weakness": true,
+        "lay_low": true,
+        "relic1": 4293365273198592,
+        "relic2": 42929443664035840
+    },
+    "key_base_stats": {
+        "alacrity_rating": 2200,
+        "critical_rating": 2226,
+        "force_power": 7008.0,
+        "health": 6500000.0,
+        "mainhand_damage": [
+            1376.0,
+            2556.0
+        ],
+        "mastery": 12138.0,
+        "offhand_damage": [
+            412.8,
+            766.8
+        ],
+        "power": 10049.0,
+        "tech_power": 7008.0,
+        "armor": 14535.0,
+        "has_offhand": true
+    }
+}

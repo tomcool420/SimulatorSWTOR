@@ -1,5 +1,5 @@
 #pragma once
-#include "../../libSimulator/types.h"
+#include "Simulator/SimulatorBase/types.h"
 
 namespace Simulator::detail {
 DebuffPtr getGenericDebuff(AbilityId id);

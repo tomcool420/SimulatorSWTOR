@@ -1,5 +1,5 @@
 #include "Condition.h"
-#include "Simulator/libSimulator/Energy.h"
+#include "Simulator/SimulatorBase/Energy.h"
 namespace Simulator {
 Conditions getCooldownFinishedCondition(AbilityId id) {
     Conditions cc;

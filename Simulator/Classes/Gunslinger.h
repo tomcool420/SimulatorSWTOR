@@ -1,10 +1,10 @@
 #pragma once
-#include "../libSimulator/Class.h"
-#include "../libSimulator/utility.h"
-#include <Simulator/libSimulator/Energy.h>
+#include "ClassBase.h"
+#include "Simulator/SimulatorBase/utility.h"
+#include <Simulator/SimulatorBase/Energy.h>
 namespace Simulator {
 
-class Gunslinger : public Class {
+class Gunslinger : public ClassBase {
   public:
     virtual ~Gunslinger() = default;
     EnergyPtr getEnergyModel() override {
@@ -19,6 +19,8 @@ class Gunslinger : public Class {
         }
         return _energy;
     }
+    void loadOptions(const nlohmann::json &j) override;
+    nlohmann::json serialize() override;
 
   protected:
     EnergyPtr _energy{nullptr};

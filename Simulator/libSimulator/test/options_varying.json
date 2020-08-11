@@ -1,0 +1,8 @@
+{
+    "delayAfterChanneling": 0.0,
+    "delayAfterInstant": 0.0,
+    "iterations": 1,
+    "varyingAlacrity": true,
+    "varyingStepSize": 1000,
+    "verbose": false
+}

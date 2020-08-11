@@ -58,4 +58,35 @@ constexpr uint64_t supercharged_celerity{3413304999411712};
 constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};
 
+// keys
+constexpr char key_relic_1[] = "relic1";
+constexpr char key_relic_2[] = "relic2";
+constexpr char key_class_buffs[] = "class_buffs";
+constexpr char key_base_stats[] = "key_base_stats";
+constexpr char key_mastery[] = "mastery";
+constexpr char key_alacrity_rating[] = "alacrity_rating";
+constexpr char key_critical_rating[] = "critical_rating";
+constexpr char key_power[] = "power";
+constexpr char key_tech_power[] = "tech_power";
+constexpr char key_force_power[] = "force_power";
+constexpr char key_mainhand_damage[] = "mainhand_damage";
+constexpr char key_offhand_damage[] = "offhand_damage";
+constexpr char key_armor[] = "armor";
+constexpr char key_health[] = "health";
+constexpr char key_has_offhand[] = "has_offhand";
+
+constexpr char key_amplifiers[] = "amplifiers";
+constexpr char key_periodic_damage[] = "periodic_intensity";
+constexpr char key_tech_wizardry[] = "tech_wizardry";
+constexpr char key_force_sensitivity[] = "force_sensitivity";
+constexpr char key_armor_pen[] = "armor_pen";
+
+constexpr char key_class[] = "class";
+constexpr char key_class_dirty_fighting[] = "dirty_fighting";
+
+constexpr char key_lay_low[] = "lay_low";
+constexpr char key_established_foothold[] = "established_foothold";
+constexpr char key_exploited_weakness[] = "exploited_weakness";
+
+constexpr char key_main_rotation[] = "main_rotation";
 } // namespace Simulator

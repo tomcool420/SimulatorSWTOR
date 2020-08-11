@@ -3,12 +3,12 @@
 
 namespace Simulator {
 class DirtyFighting : public Gunslinger {
-public:
+  public:
     std::vector<BuffPtr> getStaticBuffs() override;
     virtual ~DirtyFighting() = default;
+    nlohmann::json serialize() override;
+
   protected:
     AbilityPtr getAbilityInternal(AbilityId id) override;
-    
-
 };
 } // namespace Simulator

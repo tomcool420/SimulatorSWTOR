@@ -2,6 +2,8 @@
 #include "constants.h"
 #include "detail/units.h"
 #include <boost/container/small_vector.hpp>
+#include <nlohmann/detail/macro_scope.hpp>
+#include <nlohmann/json.hpp>
 #include <vector>
 namespace Simulator {
 class Target;
@@ -13,6 +15,7 @@ class Debuff;
 using DebuffPtr = std::unique_ptr<Debuff>;
 class Buff;
 using BuffPtr = std::unique_ptr<Buff>;
+using BuffPtrs = std::vector<BuffPtr>;
 class Class;
 using ClassPtr = std::shared_ptr<Class>;
 class Energy;
@@ -37,6 +40,20 @@ struct RawStats {
     bool hasOffhand{false};
     double armorPen{0.0};
 };
+
+void to_json(nlohmann::json &j, const RawStats &s);
+void from_json(const nlohmann::json &j, RawStats &s);
+
+struct Amplifiers {
+    double periodicIntensity{0.0};
+    double armorPenetration{0.0};
+    double aoe{0.0};
+    double techWizardry{0.0};
+    double forceSensitivity{0.0};
+    double weaponExpertise{0.0};
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Amplifiers, periodicIntensity, armorPenetration, aoe, techWizardry, forceSensitivity,
+                                   weaponExpertise);
 struct StatChanges {
     double masteryMultiplierBonus{0.0};
     Mastery masteryBonus{0.0};

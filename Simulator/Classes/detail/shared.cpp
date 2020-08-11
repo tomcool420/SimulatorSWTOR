@@ -1,9 +1,9 @@
 #include "shared.h"
-#include "../../libSimulator/Ability.h"
-#include "../../libSimulator/AbilityDebuff.h"
-#include "../../libSimulator/Debuff.h"
-#include "../../libSimulator/StatBuff.h"
-#include "../../libSimulator/constants.h"
+#include "Simulator/SimulatorBase/Ability.h"
+#include "Simulator/SimulatorBase/AbilityDebuff.h"
+#include "Simulator/SimulatorBase/Debuff.h"
+#include "Simulator/SimulatorBase/StatBuff.h"
+#include "Simulator/SimulatorBase/constants.h"
 namespace Simulator::detail {
 class ShatteredDebuff : public Debuff {
   public:

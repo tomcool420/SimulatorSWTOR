@@ -1,0 +1,72 @@
+{
+    "main_rotation": {
+        "priority": [
+            {
+                "ability": 962811408678912,
+                "conditions": [
+                    {
+                        "id": 962811408678912,
+                        "type": "cooldown_condition"
+                    }
+                ]
+            },
+            {
+                "ability": 2044808159821824,
+                "conditions": [
+                    {
+                        "id": 2044808159821824,
+                        "type": "cooldown_condition"
+                    }
+                ]
+            },
+            {
+                "ability": 760484089298944,
+                "conditions": [
+                    {
+                        "id": 760484089298944,
+                        "type": "cooldown_condition"
+                    }
+                ]
+            },
+            {
+                "conditions": [],
+                "other": {
+                    "rotation": [
+                        {
+                            "ability": 3404611985604608
+                        },
+                        {
+                            "ability": 2115340112756736
+                        },
+                        {
+                            "ability": 807698664783872
+                        },
+                        {
+                            "ability": 3404620575539200
+                        },
+                        {
+                            "ability": 807711549685760
+                        },
+                        {
+                            "ability": 3404611985604608
+                        },
+                        {
+                            "ability": 3404611985604608
+                        },
+                        {
+                            "ability": 3404611985604608
+                        },
+                        {
+                            "ability": 3404611985604608
+                        },
+                        {
+                            "ability": 807711549685760
+                        }
+                    ],
+                    "type": 1
+                }
+            }
+        ],
+        "type": 0
+    }
+}

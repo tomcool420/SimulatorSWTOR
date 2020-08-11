@@ -1,9 +1,9 @@
 #include "DirtyFighting.h"
+#include "Simulator/SimulatorBase/AbilityBuff.h"
+#include "Simulator/SimulatorBase/ConditionalApplyDebuff.h"
+#include "Simulator/SimulatorBase/abilities.h"
 #include "detail/Gunslinger.h"
 #include "detail/shared.h"
-#include "../libSimulator/AbilityBuff.h"
-#include "../libSimulator/ConditionalApplyDebuff.h"
-#include "../libSimulator/abilities.h"
 
 namespace Simulator {
 namespace detail {
@@ -224,4 +224,10 @@ std::vector<BuffPtr> DirtyFighting::getStaticBuffs() {
     ret.push_back(std::make_unique<detail::FightingSpirit>());
     return ret;
 }
+nlohmann::json DirtyFighting::serialize() {
+    auto j = Gunslinger::serialize();
+    j[key_class] = key_class_dirty_fighting;
+    return j;
+}
+
 } // namespace Simulator

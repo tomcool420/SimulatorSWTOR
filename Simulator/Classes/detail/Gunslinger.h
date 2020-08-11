@@ -1,9 +1,9 @@
 #pragma once
-#include "../../libSimulator/Ability.h"
-#include "../../libSimulator/ConditionalApplyDebuff.h"
-#include "../../libSimulator/DOT.h"
-#include "../../libSimulator/Target.h"
-#include "../../libSimulator/constants.h"
+#include "Simulator/SimulatorBase/Ability.h"
+#include "Simulator/SimulatorBase/ConditionalApplyDebuff.h"
+#include "Simulator/SimulatorBase/DOT.h"
+#include "Simulator/SimulatorBase/Target.h"
+#include "Simulator/SimulatorBase/constants.h"
 
 namespace Simulator::detail {
 class GunslingerEntrencedOffenseBuff : public Buff {

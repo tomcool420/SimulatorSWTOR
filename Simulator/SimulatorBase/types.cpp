@@ -92,4 +92,31 @@ AllFinalStats getAllFinalStats(const Ability &ability, const TargetPtr &source, 
     return ret;
 }
 
+void to_json(nlohmann::json &j, const RawStats &s) {
+    j[key_mastery] = s.master.getValue();
+    j[key_alacrity_rating] = s.alacrityRating.getValue();
+    j[key_critical_rating] = s.criticalRating.getValue();
+    j[key_power] = s.power.getValue();
+    j[key_tech_power] = s.forceTechPower.getValue();
+    j[key_force_power] = s.forceTechPower.getValue();
+    j[key_mainhand_damage] = s.weaponDamageMH;
+    j[key_offhand_damage] = s.weaponDamageOH;
+    j[key_health] = s.hp.getValue();
+    j[key_armor] = s.armor;
+    j[key_has_offhand] = s.hasOffhand;
+}
+void from_json(const nlohmann::json &j, RawStats &s) {
+    s.master = j.at(key_mastery);
+    s.alacrityRating = j.at(key_alacrity_rating);
+    s.criticalRating = j.at(key_critical_rating);
+    s.power = j.at(key_power);
+    FTPower fp = j.at(key_force_power);
+    FTPower pp = j.at(key_tech_power);
+    s.forceTechPower = std::max(fp, pp);
+    s.weaponDamageMH = j.at(key_mainhand_damage);
+    s.weaponDamageOH = j.at(key_offhand_damage);
+    s.hp = j.at(key_health);
+    s.armor = j.at(key_armor);
+    s.hasOffhand = j.at(key_has_offhand);
+}
 } // namespace Simulator

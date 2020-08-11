@@ -1,6 +1,6 @@
 #pragma once
-#include "Simulator/libSimulator/Target.h"
-#include "Simulator/libSimulator/types.h"
+#include "Simulator/SimulatorBase/Target.h"
+#include "Simulator/SimulatorBase/types.h"
 #include <nlohmann/json.hpp>
 
 namespace Simulator {

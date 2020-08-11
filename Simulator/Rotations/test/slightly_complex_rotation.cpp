@@ -1,9 +1,9 @@
 #include "../PriorityList.h"
 #include "../StaticRotation.h"
 #include <Simulator/Classes/DirtyFighting.h>
-#include <Simulator/libSimulator/constants.h>
-#include <Simulator/libSimulator/detail/log.h>
-#include <Simulator/libSimulator/detail/names.h>
+#include <Simulator/SimulatorBase/constants.h>
+#include <Simulator/SimulatorBase/detail/log.h>
+#include <Simulator/SimulatorBase/detail/names.h>
 #include <gtest/gtest.h>
 
 using namespace Simulator;

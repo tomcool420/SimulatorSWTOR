@@ -2,11 +2,11 @@
 #include "../../Classes/detail/shared.h"
 #include "../../Rotations/Condition.h"
 #include "../../Rotations/PriorityList.h"
-#include "../../libSimulator/Buff.h"
-#include "../../libSimulator/Debuff.h"
-#include "../../libSimulator/Rotation.h"
-#include "../../libSimulator/Target.h"
-#include "../../libSimulator/detail/log.h"
+#include "Simulator/SimulatorBase/Buff.h"
+#include "Simulator/SimulatorBase/Debuff.h"
+#include "Simulator/SimulatorBase/Rotation.h"
+#include "Simulator/SimulatorBase/Target.h"
+#include "Simulator/SimulatorBase/detail/log.h"
 #include <gtest/gtest.h>
 
 using namespace Simulator;

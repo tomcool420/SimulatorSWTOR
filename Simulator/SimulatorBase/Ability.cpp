@@ -3,7 +3,7 @@
 #include "constants.h"
 #include "detail/calculations.h"
 #include "utility.h"
-#include <Simulator/libSimulator/detail/log.h>
+#include <Simulator/SimulatorBase/detail/log.h>
 #include <random>
 
 namespace Simulator {

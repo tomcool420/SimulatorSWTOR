@@ -1,6 +1,6 @@
-#include "../../libSimulator/Rotation.h"
-#include "../../libSimulator/Target.h"
-#include "../../libSimulator/detail/log.h"
+#include "Simulator/SimulatorBase/Rotation.h"
+#include "Simulator/SimulatorBase/Target.h"
+#include "Simulator/SimulatorBase/detail/log.h"
 #include "../DirtyFighting.h"
 #include "../detail/shared.h"
 #include <gtest/gtest.h>

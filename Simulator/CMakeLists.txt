@@ -1,4 +1,5 @@
-add_subdirectory(libSimulator)
+add_subdirectory(SimulatorBase)
 add_subdirectory(Classes)
-add_subdirectory(Simulator)
 add_subdirectory(Rotations)
+add_subdirectory(libSimulator)
+add_subdirectory(Simulator)

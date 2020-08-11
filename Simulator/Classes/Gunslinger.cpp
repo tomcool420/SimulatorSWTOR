@@ -1,9 +1,9 @@
 #include "Gunslinger.h"
+#include "Simulator/SimulatorBase/AbilityBuff.h"
+#include "Simulator/SimulatorBase/ConditionalApplyDebuff.h"
+#include "Simulator/SimulatorBase/abilities.h"
 #include "detail/Gunslinger.h"
 #include "detail/shared.h"
-#include "../libSimulator/AbilityBuff.h"
-#include "../libSimulator/ConditionalApplyDebuff.h"
-#include "../libSimulator/abilities.h"
 namespace Simulator {
 
 AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
@@ -70,8 +70,21 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
     }
     return nullptr;
 }
-std::vector<BuffPtr> Gunslinger::getStaticBuffs() {
-    std::vector<BuffPtr> ret;
-    return ret;
+std::vector<BuffPtr> Gunslinger::getStaticBuffs() { return ClassBase::getStaticBuffs(); }
+
+void Gunslinger::loadOptions(const nlohmann::json &j) {
+    ClassBase::loadOptions(j);
+    load_to_if(j, key_established_foothold, _EstablishedFoothold);
+    load_to_if(j, key_exploited_weakness, _ExploitedWeakness);
+    load_to_if(j, key_lay_low, _LayLowPassive);
 }
+
+nlohmann::json Gunslinger::serialize() {
+    nlohmann::json j = ClassBase::serialize();
+    j[key_established_foothold] = _EstablishedFoothold;
+    j[key_exploited_weakness] = _ExploitedWeakness;
+    j[key_lay_low] = _LayLowPassive;
+    return j;
+}
+
 } // namespace Simulator

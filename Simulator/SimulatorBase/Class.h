@@ -12,9 +12,9 @@ class Class {
         return _cache.getFromCacheIfNotIn(id, [&]() { return getAbilityInternal(id); });
     }
     virtual std::vector<BuffPtr> getStaticBuffs() = 0;
-    //    [[nodiscard]] virtual std::optional<Second> getNextEventTime()=0;
-    //    [[nodiscard]] virtual std::vector<BuffPtr> getBuffs()=0;
     virtual EnergyPtr getEnergyModel() { return nullptr; }
+    virtual void loadOptions(const nlohmann::json &j) = 0;
+    virtual nlohmann::json serialize() = 0;
     void onAbilityWasCast(const Ability &abl);
     virtual ~Class() = default;
 
