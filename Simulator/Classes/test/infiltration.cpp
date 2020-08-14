@@ -115,6 +115,20 @@ TEST(Infiltration, abilities) {
         EXPECT_NEAR(std::round(r[0].dmg.first), 2491 * 3, 1.0);
         EXPECT_NEAR(std::round(r[0].dmg.second), 2961 * 3, 1.0);
     }
+    {
+        auto &&[player, target, c] = getTestData();
+        addBuffs(player, c->getStaticBuffs(), Second(0.0));
+        auto abl = c->getAbility(shadow_shadow_strike);
+        CHECK(abl);
+        auto b = player->getBuff<Buff>(infiltration_infiltration_tactics);
+        b->setCurrentStacks(1, Second(0));
+
+        auto afs = getAllFinalStats(*abl, player, target);
+        auto r = calculateDamageRange(*abl, afs);
+        ASSERT_EQ(r.size(), 1);
+        EXPECT_NEAR(std::round(r[0].dmg.first), 9443, 1.0);
+        EXPECT_NEAR(std::round(r[0].dmg.second), 11199, 1.0);
+    }
 }
 TEST(Infiltration, BasicTest) {
     auto &&[player, target, c] = getTestData();
@@ -125,6 +139,7 @@ TEST(Infiltration, BasicTest) {
                    infiltration_psychokinetic_blast,
                    infiltration_psychokinetic_blast,
                    infiltration_force_breach,
+                   shadow_shadow_strike,
                    shadow_shadow_strike};
     SetRotation rot(player, ids);
     rot.setClass(c);
