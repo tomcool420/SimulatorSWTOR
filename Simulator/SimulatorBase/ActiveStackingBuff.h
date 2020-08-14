@@ -6,7 +6,7 @@ class ActiveStackingBuff : public Buff {
   public:
     void activate(const Second &time) override;
     [[nodiscard]] std::optional<Second> getNextEventTime() const override;
-    [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &);
+    [[nodiscard]] DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) override;
 
     SIMULATOR_SET_MACRO(ChargeCooldown, std::optional<Second>, Second(30));
     SIMULATOR_SET_MACRO(StacksOnActivation, int, 4);
