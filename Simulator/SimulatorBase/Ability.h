@@ -20,6 +20,7 @@ struct AbilityCoefficients {
     double multiplier{0.00};
     bool isOffhandHit{false};
     bool isBleedDamage{false};
+    bool isDirectDamage{true};
 };
 using AllAbilityCoefficient = std::vector<AbilityCoefficients>;
 enum class AbilityCastType { Instant, Cast, Channeled, OffGCD };
@@ -59,6 +60,7 @@ class Ability {
         _allStatChanges.resize(_info.coefficients.size());
         _Cooldown = _info.cooldownTime;
     }
+    Ability() = default;
 
     const AbilityId &getId() const { return _id; };
     const AllAbilityCoefficient &getCoefficients() const { return _info.coefficients; }
@@ -79,7 +81,7 @@ class Ability {
     SIMULATOR_SET_MACRO(CooldownIsAffectedByAlacrity, bool, true);
 
   private:
-    AbilityId _id;
+    AbilityId _id{0};
     AbilityInfo _info;
     OnHitActionPtrs _onHitActions;
     OnEndActions _onEndActions;

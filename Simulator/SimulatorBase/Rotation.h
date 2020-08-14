@@ -28,6 +28,7 @@ class Rotation {
     }
     SIMULATOR_SET_MACRO(DelayAfterChanneled, Second, Second{0.0})
     SIMULATOR_SET_MACRO(MinTimeAfterInstant, Second, Second{0.1})
+    SIMULATOR_SET_MACRO(ContinueEvenIfOnlySource, bool, false);
 
   private:
     TargetPtr _source;

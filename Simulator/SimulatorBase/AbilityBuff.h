@@ -15,6 +15,11 @@ class RawSheetBuff : public Buff {
     virtual ~RawSheetBuff() = default;
     [[nodiscard]] Buff *clone() const override { return new RawSheetBuff(*this); }
 
+  protected:
+    RawSheetBuff() = default;
+    void setIds(AbilityIds ids) { _ids = std::move(ids); }
+    void setStatChanges(StatChanges sc) { _statChanges = std::move(sc); }
+
   private:
     AbilityIds _ids;
     StatChanges _statChanges;
@@ -25,7 +30,7 @@ class RelicProcBuff : public Buff {
   public:
     RelicProcBuff(AbilityId procId, Mastery mastery, Power power, CriticalRating crit)
         : _procId(procId), _mastery(mastery), _power(power), _criticalRating(crit) {
-//        setId(procId);
+        //        setId(procId);
     }
     [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
                                           const TargetPtr & /*target*/) override;

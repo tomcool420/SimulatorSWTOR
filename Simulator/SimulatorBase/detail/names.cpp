@@ -55,6 +55,38 @@ std::string getAbilityName(const AbilityId &id) {
         return "Test Buff";
     case test_debuff:
         return "Test Debuff";
+    case consular_double_strike:
+        return "Double Strike";
+    case consular_saber_strike:
+        return "Saber Strike";
+    case shadow_shadow_strike:
+        return "Shadow Strike";
+    case shadow_spinning_strike:
+        return "Spinning Strike";
+    case shadow_whirling_blow:
+        return "Whirling Blow";
+    case infiltration_vaulting_slash:
+        return "Vaulting Slash";
+    case infiltration_clairvoyant_strike:
+        return "Clairvoyant Strike";
+    case infiltration_force_breach:
+        return "Force Breach";
+    case infiltration_psychokinetic_blast:
+        return "Psychokinetic Blast";
+    case infiltration_psychokinetic_blast_upheaval:
+        return "Psychokinetic Blast (Upheaval)";
+    case infiltration_shadow_technique:
+        return "Shadow Technique";
+    case infiltration_clairvoyance:
+        return "Clairvoyance";
+    case infiltration_deep_impact:
+        return "Deep Impact";
+    case infiltration_judgement:
+        return "Judgement";
+    case infiltration_whirling_edge:
+        return "Whirling Edge";
+    case infiltration_infiltration_tactics:
+        return "Infiltration Tactics";
     default:
         return "";
     }

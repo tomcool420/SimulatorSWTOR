@@ -28,6 +28,8 @@ DamageRanges calculateDamageRange(const Ability &iAbility, const AllFinalStats &
                          (1.0 + stats.multiplier + ability.multiplier);
             ret.push_back({iAbility.getId(), stats.weaponDamageTypeMH, {min, max}, ability.isOffhandHit});
             ret.back().aoe = ability.isAreaOfEffect;
+            ret.back().weapon = true;
+            ret.back().direct = ability.isDirectDamage;
         } break;
         case DamageType::Energy:
         case DamageType::Kinetic:
@@ -41,6 +43,7 @@ DamageRanges calculateDamageRange(const Ability &iAbility, const AllFinalStats &
                 (1.0 + stats.multiplier + ability.multiplier);
             ret.push_back({iAbility.getId(), ability.damageType, {min, max}, false});
             ret.back().aoe = ability.isAreaOfEffect;
+            ret.back().direct = ability.isDirectDamage;
         }
         }
     }
@@ -64,6 +67,8 @@ DamageHits adjustForHitsAndCrits(const DamageRanges &ranges, const AllFinalStats
         DamageHit hit{range.id, range.dt, range.dmg.first + (range.dmg.second - range.dmg.first) * distrib(gen),
                       range.offhand};
         hit.aoe = range.aoe;
+        hit.weapon = range.weapon;
+        hit.direct = range.direct;
         double accuracy = stats.accuracy - t->getDefenseChance() - (hit.offhand ? 0.3 : 0.0);
         if (accuracy < 1.0 && distrib(gen) > accuracy) {
             hit.miss = true;
