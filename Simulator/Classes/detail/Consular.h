@@ -12,8 +12,8 @@ class ForcePotency : public ActiveStackingBuff {
         setCurrentCharges(stacks);
     }
 
-    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
-                                          const TargetPtr &target) override {
+    [[nodiscard]] DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &,
+                                          const TargetPtr &) override {
 
         auto sc = getCurrentStacks();
         if (!sc)
@@ -26,7 +26,7 @@ class ForcePotency : public ActiveStackingBuff {
         return {};
     }
 
-    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override {
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &) const override {
         if (!getCurrentStacks())
             return;
         for (int ii = 0; ii < fstats.size(); ++ii) {

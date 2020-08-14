@@ -52,8 +52,7 @@ class Clairvoyance : public Buff {
         setStackDuration(Second(10));
         setMaxStacks(2);
     }
-    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
-                            const TargetPtr &target) override {
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player, const TargetPtr &) override {
         for (auto &&hit : hits) {
             if (hit.id == infiltration_clairvoyant_strike && !hit.miss) {
                 setCurrentStacks(getCurrentStacks() + 1, time);
@@ -76,8 +75,7 @@ class InfiltrationTactics : public Buff {
         setStackDuration(Second(20));
         setId(infiltration_infiltration_tactics);
     }
-    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player,
-                            const TargetPtr &target) override {
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &player, const TargetPtr &) override {
         for (auto &&hit : hits) {
             if (getCurrentStacks() > 0 && hit.id == shadow_shadow_strike && !hit.miss) {
                 setCurrentStacks(0, time);
@@ -131,7 +129,7 @@ class DeepImpact : public RawSheetBuff {
 class WhirlingEdge : public Buff {
   public:
     WhirlingEdge() { setId(infiltration_whirling_edge); }
-    void apply(const Ability &abl, AllStatChanges &fstats, const TargetPtr &target) const override {
+    void apply(const Ability &abl, AllStatChanges &fstats, const TargetPtr &) const override {
         for (auto &fs : fstats) {
             fs.armorPen += 0.1;
         }

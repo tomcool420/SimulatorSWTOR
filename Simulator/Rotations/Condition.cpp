@@ -90,9 +90,9 @@ StackCondition::StackCondition(const nlohmann::json &j) {
 bool StackCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &nextFreeGCD) {
     if (auto b = source->getBuff<Buff>(_buffId)) {
         if (_stackCount < 0) {
-            return (b->getMaxStacks() == b->getCurrentStacks()) * !_invert;
+            return (b->getMaxStacks() == b->getCurrentStacks()) && !_invert;
         } else {
-            return (b->getCurrentStacks() >= _stackCount) * !_invert;
+            return (b->getCurrentStacks() >= _stackCount) && !_invert;
         }
     }
     return false;

@@ -5,7 +5,7 @@ namespace Simulator {
 class Shadow : public ClassBase {
   public:
     EnergyPtr getEnergyModel() override { return nullptr; }
-    void loadOptions(const nlohmann::json &j) override {}
+    void loadOptions(const nlohmann::json &) override {}
     nlohmann::json serialize() override { return {}; }
     std::vector<BuffPtr> getStaticBuffs() override;
 
