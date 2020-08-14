@@ -11,6 +11,7 @@ class ForceSynergy : public Buff {
     ForceSynergy() {
         setMaxStacks(1);
         setStackDuration(Second(10));
+        setId(shadow_force_synergy);
     }
 
     void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override {
@@ -26,8 +27,8 @@ class ForceSynergy : public Buff {
     DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr & /*player*/,
                             const TargetPtr & /*target*/) override {
         for (auto &&hit : hits) {
-            if (!hit.weapon)
-                activate(time);
+            if (!hit.weapon && hit.crit)
+                setCurrentStacks(1, time);
         }
         return {};
     }

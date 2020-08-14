@@ -44,6 +44,7 @@ constexpr uint64_t infiltration_psychokinetic_blast{3401425119870976};
 constexpr uint64_t infiltration_psychokinetic_blast_upheaval{3401425119871281};
 constexpr uint64_t infiltration_shadow_technique{979819479171072};
 
+constexpr uint64_t shadow_force_synergy{3496713264300032};
 constexpr uint64_t infiltration_infiltration_tactics{813037309132800};
 constexpr uint64_t infiltration_clairvoyance{812947114819584};
 constexpr uint64_t infiltration_deep_impact{1776553092448256};

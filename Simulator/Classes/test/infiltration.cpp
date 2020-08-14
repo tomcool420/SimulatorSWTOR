@@ -16,7 +16,7 @@ TestData getTestData() {
     rs.master = Mastery{2907};
     rs.power = Power{1592};
     rs.accuracyRating = AccuracyRating{539};
-    rs.criticalRating = CriticalRating{190};
+    rs.criticalRating = CriticalRating{6000};
     rs.alacrityRating = AlacrityRating{431};
     rs.weaponDamageMH = {1887.0, 2831.0};
     rs.hasOffhand = false;
@@ -119,8 +119,13 @@ TEST(Infiltration, abilities) {
 TEST(Infiltration, BasicTest) {
     auto &&[player, target, c] = getTestData();
     addBuffs(player, c->getStaticBuffs(), Second(0.0));
-    AbilityIds ids{infiltration_clairvoyant_strike,  infiltration_clairvoyant_strike,  infiltration_vaulting_slash,
-                   infiltration_psychokinetic_blast, infiltration_psychokinetic_blast, infiltration_force_breach};
+    AbilityIds ids{infiltration_clairvoyant_strike,
+                   infiltration_clairvoyant_strike,
+                   infiltration_vaulting_slash,
+                   infiltration_psychokinetic_blast,
+                   infiltration_psychokinetic_blast,
+                   infiltration_force_breach,
+                   shadow_shadow_strike};
     SetRotation rot(player, ids);
     rot.setClass(c);
     rot.setTarget(target);

@@ -87,6 +87,8 @@ std::string getAbilityName(const AbilityId &id) {
         return "Whirling Edge";
     case infiltration_infiltration_tactics:
         return "Infiltration Tactics";
+    case shadow_force_synergy:
+        return "Force Synergy";
     default:
         return "";
     }
