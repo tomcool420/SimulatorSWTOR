@@ -87,7 +87,7 @@ StackCondition::StackCondition(const nlohmann::json &j) {
     _stackCount = getValue<int>(j, condition_stacks_key);
     _invert = getValue<bool>(j, condition_invert_key);
 }
-bool StackCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &nextFreeGCD) {
+bool StackCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &) {
     if (auto b = source->getBuff<Buff>(_buffId)) {
         if (_stackCount < 0) {
             return (b->getMaxStacks() == b->getCurrentStacks()) && !_invert;

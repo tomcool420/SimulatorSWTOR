@@ -14,7 +14,7 @@ class ForceSynergy : public Buff {
         setId(shadow_force_synergy);
     }
 
-    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override {
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &) const override {
         if (getCurrentStacks() == 0)
             return;
         for (int ii = 0; ii < fstats.size(); ++ii) {
@@ -35,7 +35,7 @@ class ForceSynergy : public Buff {
 };
 
 class AppliedForce : public Buff {
-    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override {
+    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &) const override {
         auto id = ability.getId();
         if (id == consular_double_strike || id == infiltration_clairvoyant_strike) {
             for (int ii = 0; ii < fstats.size(); ++ii) {
