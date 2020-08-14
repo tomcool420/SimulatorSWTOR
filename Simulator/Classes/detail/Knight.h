@@ -12,7 +12,7 @@ class ForceClarityBuff : public ActiveStackingBuff {
         setId(force_clarity);
         setChargeCooldown(Second(30));
     }
-    void activate(const Second &time);
+    void activate(const Second &time) override;
     [[nodiscard]] std::optional<Second> getNextEventTime() const override;
     void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const override;
 };
