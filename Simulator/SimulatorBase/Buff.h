@@ -16,12 +16,10 @@ class Buff : public TimedStatusEffect {
                                                   const TargetPtr & /*player*/, const TargetPtr & /*target*/) {
         return {};
     }
-    [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &) {
-        if (time > getEndTime()) {
-            return {{DebuffEventType::Remove}};
-        }
-        return {};
-    }
+    [[nodiscard]] virtual DebuffEvents resolveEventsUpToTime(const Second &time, const TargetPtr &);
+    [[nodiscard]] std::optional<Second> getNextEventTime() const override;
+    // a hook to allow some buffs to have an on activation state (force clarity and smugglers luck)
+    virtual void activate(const Second & /*time*/) {}
     virtual void onAbilityEnd(const Ability & /*ability*/, const Second & /*time*/, const TargetPtr & /*player*/) {}
     virtual void apply(const Ability & /*ability*/, AllStatChanges & /*fstats*/, const TargetPtr & /*target*/) const {}
     virtual ~Buff() = default;
@@ -29,8 +27,15 @@ class Buff : public TimedStatusEffect {
     void setId(AbilityId id) { _id = id; }
     [[nodiscard]] virtual Buff *clone() const { return new Buff(*this); }
 
+    void setCurrentStacks(int currentStacks, const Second &time);
+
+    SIMULATOR_SET_MACRO(MaxStacks, int, 0);
+    SIMULATOR_GET_ONLY_MACRO(CurrentStacks, int, 0);
+    SIMULATOR_SET_MACRO(StackDuration, std::optional<Second>, std::nullopt);
+
   private:
     AbilityId _id{0};
+    std::optional<Second> _stackExpiration = std::nullopt;
 };
 
 } // namespace Simulator

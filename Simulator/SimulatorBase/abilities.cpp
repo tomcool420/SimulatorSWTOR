@@ -173,18 +173,23 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
     }
 
     case consular_double_strike: {
-        return AbilityInfo{{{0.72, 0.072, 0.072, -0.52, DamageType::Weapon}}};
+        return AbilityInfo{
+            {{0.72, 0.072, 0.072, -0.52, DamageType::Weapon}, {0.72, 0.072, 0.072, -0.52, DamageType::Weapon}}};
     }
-    case shadow_clairvoyant_strike: {
-        return AbilityInfo{{{0.75, 0.075, 0.075, -0.5, DamageType::Weapon}}};
+    case infiltration_clairvoyant_strike: {
+        return AbilityInfo{
+            {{0.75, 0.075, 0.075, -0.5, DamageType::Weapon}, {0.75, 0.075, 0.075, -0.5, DamageType::Weapon}}};
     }
-    case shadow_infiltration_force_breach: {
+    case infiltration_force_breach: {
         return AbilityInfo{{{0.73, 0.053, 0.093, 0.0, DamageType::Internal}}};
     }
-    case shadow_psychokinetic_blast: {
+    case infiltration_psychokinetic_blast: {
         return AbilityInfo{{{1.84, 0.164, 0.204, 0.0, DamageType::Kinetic}}};
     }
-    case shadow_technique: {
+    case infiltration_psychokinetic_blast_upheaval: {
+        return AbilityInfo{{{0.92, 0.072, 0.112, 0.0, DamageType::Kinetic}}};
+    }
+    case infiltration_shadow_technique: {
         return AbilityInfo{{{0.585, 0.0585, 0.0585, 0.0, DamageType::Internal}}};
     }
     case shadow_shadow_strike: {
@@ -194,10 +199,10 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
         return AbilityInfo{{{2.54, 0.254, 0.254, 0.7, DamageType::Weapon}}};
     }
     case consular_saber_strike: {
-        return AbilityInfo{{{1.0, 1.0, 5.0, -1.0, DamageType::Weapon}}};
+        return AbilityInfo{{{0.33, 0.0, 0.0, -0.66, DamageType::Weapon}, {0.66, 0.0, 0.0, -0.33, DamageType::Weapon}}};
     }
-    case shadow_vaulting_slash: {
-        return AbilityInfo{{{2.75, .0275, 0.275, 0.83, DamageType::Weapon}}};
+    case infiltration_vaulting_slash: {
+        return AbilityInfo{{{2.75, .275, 0.275, 0.83, DamageType::Weapon}}};
     }
     }
     CHECK(false, "Coefficients for ability {} are not implemented yet", id);

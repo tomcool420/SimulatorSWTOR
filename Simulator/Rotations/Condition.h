@@ -16,6 +16,7 @@ constexpr char energy_condition[] = "energy_condition";
 constexpr char buff_condition[] = "buff_condition";
 constexpr char debuff_condition[] = "debuff_condition";
 constexpr char sub30_condition[] = "sub30_condition";
+constexpr char stack_condition[] = "stack_condition";
 
 class CooldownCondition : public ConditionC {
   public:
@@ -57,6 +58,22 @@ class BuffCondition : public ConditionC {
   private:
     AbilityId _buffId;
     Second _timeRemaing{0.0};
+    bool _invert{false};
+};
+
+class StackCondition : public ConditionC {
+  public:
+    explicit StackCondition(const nlohmann::json &json);
+    StackCondition(AbilityId id, int stackCount = -1, bool invert = false)
+        : _buffId(id), _stackCount(stackCount), _invert(invert) {}
+    bool check(const TargetPtr &source, const TargetPtr &target, const Second &nextFreeInstant,
+               const Second &nextFreeGCD) override;
+    nlohmann::json serialize() override;
+    virtual ~StackCondition() = default;
+
+  private:
+    AbilityId _buffId;
+    int _stackCount;
     bool _invert{false};
 };
 

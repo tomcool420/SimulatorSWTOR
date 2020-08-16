@@ -117,6 +117,8 @@ struct DamageRange {
     std::pair<double, double> dmg;
     bool offhand{false};
     bool aoe{false};
+    bool weapon{false};
+    bool direct{true};
 };
 using DamageRanges = std::vector<DamageRange>;
 struct DamageHit {
@@ -127,6 +129,8 @@ struct DamageHit {
     bool crit{false};
     bool miss{false};
     bool aoe{false};
+    bool weapon{false};
+    bool direct{true};
 };
 using DamageHits = boost::container::small_vector<DamageHit, 3>;
 

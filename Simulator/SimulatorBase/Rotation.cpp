@@ -81,8 +81,9 @@ void Rotation::doRotation() {
         if (auto nextFutureEvent = getNextFutureAction()) {
             events.push_back(NextEvent{TargetType::FutureEvent, *nextFutureEvent});
         }
-        if (events.size() == 1 && events[0].type == TargetType::Source)
-            return {}; // return nothing if the only even is a source event
+        if (!getContinueEvenIfOnlySource())
+            if (events.size() == 1 && events[0].type == TargetType::Source)
+                return {}; // return nothing if the only even is a source event
         std::sort(events.begin(), events.end(), [](const NextEvent &a, const NextEvent &b) { return a.time < b.time; });
         return events;
     };
@@ -154,7 +155,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             if (_currentTick == info.nTicks) {
                 _currentAbility->onAbilityEnd(getSource(), target, currentTickTime);
                 _currentAbility = nullptr;
-                _nextFreeGCD = currentTickTime + Second(1e-6) + std::min(Second(0.0),getDelayAfterChanneled());
+                _nextFreeGCD = currentTickTime + Second(1e-6) + std::min(Second(0.0), getDelayAfterChanneled());
                 _currentTick = 0;
                 break;
             }

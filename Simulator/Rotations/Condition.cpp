@@ -11,6 +11,8 @@ constexpr char condition_amount_key[] = "amount";
 constexpr char condition_invert_key[] = "invert";
 constexpr char condition_id_key[] = "id";
 constexpr char condition_remaining_time_key[] = "remaining_time";
+constexpr char condition_stacks_key[] = "stacks";
+
 namespace {
 template <class T> T getValue(const nlohmann::json &j, const std::string &key) {
     CHECK(j.contains(key));
@@ -80,6 +82,30 @@ nlohmann::json BuffCondition::serialize() {
     return j;
 }
 
+StackCondition::StackCondition(const nlohmann::json &j) {
+    _buffId = getValue<AbilityId>(j, condition_id_key);
+    _stackCount = getValue<int>(j, condition_stacks_key);
+    _invert = getValue<bool>(j, condition_invert_key);
+}
+bool StackCondition::check(const TargetPtr &source, const TargetPtr &, const Second &, const Second &) {
+    if (auto b = source->getBuff<Buff>(_buffId)) {
+        if (_stackCount < 0) {
+            return (b->getMaxStacks() == b->getCurrentStacks()) && !_invert;
+        } else {
+            return (b->getCurrentStacks() >= _stackCount) && !_invert;
+        }
+    }
+    return false;
+}
+nlohmann::json StackCondition::serialize() {
+    nlohmann::json j;
+    j[condition_type_key] = stack_condition;
+    j[condition_id_key] = _buffId;
+    j[condition_stacks_key] = _stackCount;
+    j[condition_invert_key] = _invert;
+    return j;
+}
+
 DebuffCondition::DebuffCondition(const nlohmann::json &j) {
     _buffId = getValue<AbilityId>(j, condition_id_key);
     _timeRemaing = Second(getValue<double>(j, condition_remaining_time_key));
@@ -115,6 +141,8 @@ ConditionPtr getDeserializedCondition(const nlohmann::json &j) {
         return std::make_unique<DebuffCondition>(j);
     } else if (k == sub30_condition) {
         return std::make_unique<SubThirtyCondition>(j);
+    } else if (k == stack_condition) {
+        return std::make_unique<StackCondition>(j);
     }
     return nullptr;
 }

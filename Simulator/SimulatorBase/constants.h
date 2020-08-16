@@ -35,13 +35,21 @@ constexpr uint64_t consular_double_strike{812728071487488};
 constexpr uint64_t consular_saber_strike{947486965366784};
 constexpr uint64_t shadow_shadow_strike{812839740637184};
 constexpr uint64_t shadow_spinning_strike{2295904832847872};
-constexpr uint64_t shadow_vaulting_slash{3915738863632384};
+constexpr uint64_t shadow_whirling_blow{979716399955968};
 
-constexpr uint64_t shadow_clairvoyant_strike{980042817470464};
-constexpr uint64_t shadow_infiltration_force_breach{4056665330548736};
-constexpr uint64_t shadow_psychokinetic_blast{3401425119870976};
-constexpr uint64_t shadow_technique{979819479171072};
+constexpr uint64_t infiltration_vaulting_slash{3915738863632384};
+constexpr uint64_t infiltration_clairvoyant_strike{980042817470464};
+constexpr uint64_t infiltration_force_breach{4056665330548736};
+constexpr uint64_t infiltration_psychokinetic_blast{3401425119870976};
+constexpr uint64_t infiltration_psychokinetic_blast_upheaval{3401425119871281};
+constexpr uint64_t infiltration_shadow_technique{979819479171072};
 
+constexpr uint64_t shadow_force_synergy{3496713264300032};
+constexpr uint64_t infiltration_infiltration_tactics{813037309132800};
+constexpr uint64_t infiltration_clairvoyance{812947114819584};
+constexpr uint64_t infiltration_deep_impact{1776553092448256};
+constexpr uint64_t infiltration_judgement{3218554002341888};
+constexpr uint64_t infiltration_whirling_edge{3218528232538112};
 // dots
 constexpr uint64_t tactics_gut_dot{2029878853501184};
 
@@ -57,6 +65,11 @@ constexpr uint64_t relic_critical_surge{4289220629757952};
 constexpr uint64_t supercharged_celerity{3413304999411712};
 constexpr uint64_t test_buff{9999999999999999};
 constexpr uint64_t test_debuff{9999999999999998};
+
+// knight
+constexpr uint64_t force_clarity{4328931897376768};
+// sentinel stuff
+constexpr uint64_t centering{2528580391141376};
 
 // keys
 constexpr char key_relic_1[] = "relic1";
