@@ -116,5 +116,6 @@ struct HealthCategory {};
 DEFINE_UNIT(HealthPoints, HealthCategory, 1.0);
 struct ArmorCatergory {};
 DEFINE_UNIT(Armor, ArmorCatergory, 1.0);
-
+struct EnergyCategory {};
+DEFINE_UNIT(EnergyCost, EnergyCategory, 1.0);
 } // namespace Simulator

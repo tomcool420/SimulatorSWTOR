@@ -30,6 +30,9 @@ constexpr uint64_t gunslinger_illegal_mods{760484089298944};
 constexpr uint64_t gunslinger_xs_freighter_flyby{2524220999335936};
 constexpr uint64_t gunslinger_speed_shot{807264873086976};
 constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
+constexpr uint64_t gunslinger_snap_shot{3404302747959296};
+constexpr uint64_t gunslinger_charged_burst{807157498904576};
+constexpr uint64_t gunslinger_take_cover{807024354918400};
 
 constexpr uint64_t consular_double_strike{812728071487488};
 constexpr uint64_t consular_saber_strike{947486965366784};

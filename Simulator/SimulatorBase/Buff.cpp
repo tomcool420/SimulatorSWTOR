@@ -41,4 +41,5 @@ DebuffEvents Buff::resolveEventsUpToTime(const Second &time, const TargetPtr &) 
     }
     return ret;
 }
+void Buff::adjustEnergyAndCastTime(const Ability &, EnergyCost &, Second &, bool &) {}
 } // namespace Simulator

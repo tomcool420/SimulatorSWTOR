@@ -22,6 +22,7 @@ class Buff : public TimedStatusEffect {
     virtual void activate(const Second & /*time*/) {}
     virtual void onAbilityEnd(const Ability & /*ability*/, const Second & /*time*/, const TargetPtr & /*player*/) {}
     virtual void apply(const Ability & /*ability*/, AllStatChanges & /*fstats*/, const TargetPtr & /*target*/) const {}
+    virtual void adjustEnergyAndCastTime(const Ability &abl, EnergyCost &energyCost, Second &castTime, bool &instant);
     virtual ~Buff() = default;
     AbilityId getId() const { return _id; }
     void setId(AbilityId id) { _id = id; }
