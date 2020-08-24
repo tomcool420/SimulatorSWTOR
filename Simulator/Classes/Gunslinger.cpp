@@ -6,6 +6,37 @@
 #include "detail/shared.h"
 namespace Simulator {
 
+class SnapShot : public Buff {
+  public:
+    SnapShot() : Buff() {
+        setId(gunslinger_snap_shot);
+        setStackDuration(Second(10));
+        setMaxStacks(1);
+    }
+    DamageHits onAbilityHit(DamageHits &hits, const Second &time, const TargetPtr &, const TargetPtr &) override {
+        if (!_madeInstant)
+            return {};
+        for (auto &&hit : hits) {
+            if ((hit.id == dirty_fighting_dirty_blast || hit.id == gunslinger_charged_burst) && !hit.miss) {
+                setCurrentStacks(0, time);
+                _madeInstant = false;
+                break;
+            }
+        }
+        return {};
+    }
+    void adjustEnergyAndCastTime(const Ability &abl, EnergyCost &, Second &, bool &instant) override {
+        if (getCurrentStacks() == 1 &&
+            (abl.getId() == dirty_fighting_dirty_blast || abl.getId() == gunslinger_charged_burst)) {
+            instant = true;
+            _madeInstant = true;
+        }
+    }
+
+  private:
+    bool _madeInstant{false};
+};
+
 AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
 
     switch (id) {
@@ -67,10 +98,26 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
         auto abl = std::make_shared<Ability>(id, info);
         return abl;
     }
+    case gunslinger_take_cover: {
+        AbilityInfo info;
+        info.cooldownTime = Second(6);
+        info.ignoresAlacrity = true;
+        info.type = AbilityCastType::OffGCD;
+        auto abl = std::make_shared<Ability>(id, info);
+        abl->addOnEndAction([](const TargetPtr &s, const TargetPtr &, const Second &t) {
+            auto b = s->getBuff<Buff>(gunslinger_snap_shot);
+            b->setCurrentStacks(1, t);
+        });
+        return abl;
+    }
     }
     return nullptr;
 }
-std::vector<BuffPtr> Gunslinger::getStaticBuffs() { return ClassBase::getStaticBuffs(); }
+std::vector<BuffPtr> Gunslinger::getStaticBuffs() {
+    auto b = ClassBase::getStaticBuffs();
+    b.push_back(std::make_unique<SnapShot>());
+    return b;
+}
 
 void Gunslinger::loadOptions(const nlohmann::json &j) {
     ClassBase::loadOptions(j);

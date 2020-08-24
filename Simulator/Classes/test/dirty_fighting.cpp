@@ -3,6 +3,7 @@
 #include "Simulator/SimulatorBase/detail/log.h"
 #include "../DirtyFighting.h"
 #include "../detail/shared.h"
+#include <Simulator/SimulatorBase/parseHelpers.h>
 #include <gtest/gtest.h>
 
 using namespace Simulator;
@@ -19,6 +20,22 @@ TestData getTestData() {
     rs.accuracyRating = AccuracyRating{1557};
     rs.criticalRating = CriticalRating{313};
     rs.alacrityRating = AlacrityRating{0};
+    rs.weaponDamageMH = {1376.0, 2556.0};
+    rs.weaponDamageOH = {1376.0 * 0.3, 2556.0 * 0.3};
+    rs.forceTechPower = FTPower{7008};
+    TestData ret;
+    ret.source = Target::New(rs);
+    ret.target = Target::New(rs);
+    ret.df = std::make_shared<DirtyFighting>();
+    return ret;
+}
+TestData getTestDataHA() {
+    RawStats rs;
+    rs.master = Mastery{12138};
+    rs.power = Power{10049};
+    rs.accuracyRating = AccuracyRating{1590};
+    rs.criticalRating = CriticalRating{2800};
+    rs.alacrityRating = AlacrityRating{1500};
     rs.weaponDamageMH = {1376.0, 2556.0};
     rs.weaponDamageOH = {1376.0 * 0.3, 2556.0 * 0.3};
     rs.forceTechPower = FTPower{7008};
@@ -242,5 +259,72 @@ TEST(DirtyFighting, HitCount) {
         rot.doRotation();
         auto h = countHits(dirty_fighting_hemorraghing_blast, target->getEvents());
         ASSERT_EQ(h, 6);
+    }
+}
+
+TEST(DirtyFighting, Instant) {
+    auto &&[player, target, df] = getTestDataHA();
+    df->setExploitedWeakness(false);
+    addBuffs(player, df->getStaticBuffs(), Second(0.0));
+    player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+    // AbilityIds ids{dirty_fighting_dirty_blast,        gunslinger_vital_shot,         dirty_fighting_shrap_bomb,
+    //                dirty_fighting_hemorraghing_blast, dirty_fighting_wounding_shots, dirty_fighting_dirty_blast,
+    //                dirty_fighting_dirty_blast,        dirty_fighting_dirty_blast,    gunslinger_take_cover,
+    //                dirty_fighting_dirty_blast,        dirty_fighting_wounding_shots};
+    AbilityIds ids{dirty_fighting_dirty_blast, dirty_fighting_dirty_blast, gunslinger_take_cover,
+                   dirty_fighting_dirty_blast};
+    SetRotation rot(player, ids);
+    rot.setClass(df);
+    rot.setTarget(target);
+    rot.setStart(Second(0.0));
+    rot.setDelayAfterChanneled(Second(0.0));
+    rot.setMinTimeAfterInstant(Second(0.0));
+    rot.setRepeats(1);
+    rot.doRotation();
+    auto &&e = target->getEvents();
+    logParseInformation(e, getLastDamageEvent(e) - getFirstDamageEvent(e));
+}
+TEST(DirtyFighting, Clip) {
+    {
+        auto &&[player, target, df] = getTestDataHA();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+        AbilityIds ids{dirty_fighting_dirty_blast,        gunslinger_vital_shot,         dirty_fighting_shrap_bomb,
+                       dirty_fighting_hemorraghing_blast, dirty_fighting_wounding_shots, dirty_fighting_dirty_blast,
+                       dirty_fighting_dirty_blast,        dirty_fighting_dirty_blast,    dirty_fighting_dirty_blast,
+                       dirty_fighting_wounding_shots};
+        // AbilityIds ids{dirty_fighting_dirty_blast, dirty_fighting_wounding_shots, dirty_fighting_dirty_blast};
+        SetRotation rot(player, ids);
+        rot.setClass(df);
+        rot.setTarget(target);
+        rot.setStart(Second(-0.1));
+        rot.setDelayAfterChanneled(Second(0.0));
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto &&e = target->getEvents();
+        logParseInformation(e, getLastDamageEvent(e) - getFirstDamageEvent(e));
+    }
+    {
+        auto &&[player, target, df] = getTestDataHA();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+        AbilityIds ids{dirty_fighting_dirty_blast,        gunslinger_vital_shot,         dirty_fighting_shrap_bomb,
+                       dirty_fighting_hemorraghing_blast, dirty_fighting_wounding_shots, dirty_fighting_dirty_blast,
+                       dirty_fighting_dirty_blast,        dirty_fighting_dirty_blast,    dirty_fighting_dirty_blast,
+                       dirty_fighting_wounding_shots};
+        // AbilityIds ids{dirty_fighting_dirty_blast, dirty_fighting_wounding_shots, dirty_fighting_dirty_blast};
+        SetRotation rot(player, ids);
+        rot.setClass(df);
+        rot.setTarget(target);
+        rot.setStart(Second(0.0));
+        rot.setDelayAfterChanneled(Second(0.0));
+        rot.setMinTimeAfterInstant(Second(0.0));
+        rot.setRepeats(1);
+        rot.doRotation();
+        auto &&e = target->getEvents();
+        logParseInformation(e, getLastDamageEvent(e) - getFirstDamageEvent(e));
     }
 }

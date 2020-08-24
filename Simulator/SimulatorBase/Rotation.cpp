@@ -155,7 +155,7 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             if (_currentTick == info.nTicks) {
                 _currentAbility->onAbilityEnd(getSource(), target, currentTickTime);
                 _currentAbility = nullptr;
-                _nextFreeGCD = currentTickTime + Second(1e-6) + std::min(Second(0.0), getDelayAfterChanneled());
+                _nextFreeGCD = currentTickTime + Second(1e-6) + std::max(Second(0.0), getDelayAfterChanneled());
                 _currentTick = 0;
                 break;
             }
@@ -167,19 +167,36 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
     } else {
         auto abl = getNextAbility();
         CHECK(abl);
+        auto ablCD = _target->getAbilityCooldownEnd(abl->getId());
+        if (ablCD) {
+            if (*ablCD > _nextFreeGCD)
+                _nextFreeGCD = *ablCD;
+            if (*ablCD > _nextFreeGCDForInstant)
+                _nextFreeGCDForInstant = *ablCD;
+        }
         auto id = abl->getId();
         CHECK(abl);
         auto &&info = abl->getInfo();
         SIM_INFO("[ROTATION] Time : {}, Casting ability [{} : {}]", time.getValue(), detail::getAbilityName(id), id);
         auto afs = getAllFinalStats(*abl, getSource(), target);
+        Second castTime(info.time);
+        EnergyCost ec(info.energyCost);
+        auto ct = info.type;
+        auto &bs = getSource()->getBuffs();
+        bool instant{false};
+        for (auto &&[bid, b] : bs) {
+            b->adjustEnergyAndCastTime(*abl, ec, castTime, instant);
+        }
+        if (instant) {
+            ct = AbilityCastType::Instant;
+        }
+
         if (afs.size()) {
-            _abilityAlacrityAmount = afs[0].alacrity;
-            _abilityCastTickTime = info.time / (1 + _abilityAlacrityAmount);
-            if (_DelayAfterChanneled < Second(0) && info.type == AbilityCastType::Channeled)
-                _abilityCastTickTime = _abilityCastTickTime + _DelayAfterChanneled / (info.nTicks - 1); // clip dots
+            _abilityAlacrityAmount = afs[0].alacrity * (1.0 + static_cast<int>(instant));
+            _abilityCastTickTime = castTime / (1 + _abilityAlacrityAmount);
         }
         _abilityStartTime = _nextFreeGCD;
-        switch (info.type) {
+        switch (ct) {
         case AbilityCastType::Cast:
             _currentAbility = abl;
             _nextFreeGCD +=
@@ -194,6 +211,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
             applyDamageToTarget(hits, getSource(), target, _nextFreeGCD);
             _currentAbility->onAbilityHitTarget(hits, getSource(), target, _nextFreeGCD);
             double duration = (info.nTicks - 1) * info.time.getValue() / (1.0 + _abilityAlacrityAmount);
+
+            if (_DelayAfterChanneled < Second(0))
+                duration += _DelayAfterChanneled.getValue();
             duration = std::ceil(10.0 * duration) / 10.0;
             _abilityCastTickTime = Second(duration / (info.nTicks - 1.0));
             _currentTick = 1;
@@ -210,7 +230,9 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         case AbilityCastType::Instant: {
             auto ablCastLambda = [target, ca = abl, this](const Second &t) {
                 auto lafs = getAllFinalStats(*ca, getSource(), target);
-                auto hits = getHits(*ca, lafs, target);
+                DamageHits hits;
+                if (ca->getCoefficients().size())
+                    hits = getHits(*ca, lafs, target);
                 applyDamageToTarget(hits, getSource(), target, t);
                 ca->onAbilityHitTarget(hits, getSource(), target, t);
                 ca->onAbilityEnd(getSource(), target, t);
@@ -236,16 +258,16 @@ void Rotation::resolveEventsUpToTime(const Second &time, const TargetPtr &target
         }
         case AbilityCastType::OffGCD: {
             DamageHits hits = abl->getCoefficients().empty() ? DamageHits{} : getHits(*abl, afs, target);
-            auto castTime = std::max(time, _nextFreeGCDForInstant);
-            _source->spendEnergy(abl->getInfo().energyCost, castTime);
-            applyDamageToTarget(hits, getSource(), target, castTime);
-            abl->onAbilityHitTarget(hits, getSource(), target, castTime);
-            abl->onAbilityEnd(getSource(), target, castTime);
+            auto tcastTime = std::max(time, _nextFreeGCDForInstant);
+            _source->spendEnergy(abl->getInfo().energyCost, tcastTime);
+            applyDamageToTarget(hits, getSource(), target, tcastTime);
+            abl->onAbilityHitTarget(hits, getSource(), target, tcastTime);
+            abl->onAbilityEnd(getSource(), target, tcastTime);
             auto abilityCooldown = abl->getCooldownIsAffectedByAlacrity()
                                        ? abl->getCooldown() / (1.0 + _abilityAlacrityAmount)
                                        : abl->getCooldown();
-            getSource()->setAbilityCooldown(abl->getId(), abilityCooldown + castTime);
-            _nextFreeGCDForInstant = castTime + _MinTimeAfterInstant;
+            getSource()->setAbilityCooldown(abl->getId(), abilityCooldown + tcastTime);
+            _nextFreeGCDForInstant = tcastTime + _MinTimeAfterInstant;
             _nextFreeGCD = std::max(_nextFreeGCD, _nextFreeGCDForInstant);
         }
         default:

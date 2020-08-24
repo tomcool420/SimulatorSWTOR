@@ -572,3 +572,101 @@ TEST(Serialize, WS2) {
     p->addPriorityList(baseRotation, {});
     std::cout << std::setw(0) << p->serialize() << std::endl;
 }
+
+TEST(Serialize, WS3) {
+    auto p = std::make_shared<PriorityList>();
+    p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+    p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+    p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
+
+    auto baseRotation = std::make_shared<StaticRotation>();
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(gunslinger_vital_shot);
+    baseRotation->addAbility(dirty_fighting_shrap_bomb);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_quickdraw);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_vital_shot);
+    baseRotation->addAbility(dirty_fighting_shrap_bomb);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_quickdraw);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    p->addPriorityList(baseRotation, {});
+    std::cout << std::setw(0) << p->serialize() << std::endl;
+}
+TEST(Serialize, WS3Snapshot) {
+    auto p = std::make_shared<PriorityList>();
+    p->addAbility(gunslinger_smugglers_luck, getCooldownFinishedCondition(gunslinger_smugglers_luck));
+    p->addAbility(gunslinger_hunker_down, getCooldownFinishedCondition(gunslinger_hunker_down));
+    p->addAbility(gunslinger_illegal_mods, getCooldownFinishedCondition(gunslinger_illegal_mods));
+
+    auto baseRotation = std::make_shared<StaticRotation>();
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(gunslinger_vital_shot);
+    baseRotation->addAbility(dirty_fighting_shrap_bomb);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(gunslinger_take_cover);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_quickdraw);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_vital_shot);
+    baseRotation->addAbility(dirty_fighting_shrap_bomb);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(gunslinger_take_cover);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(gunslinger_quickdraw);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_hemorraghing_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(gunslinger_take_cover);
+    baseRotation->addAbility(dirty_fighting_dirty_blast);
+    baseRotation->addAbility(dirty_fighting_wounding_shots);
+
+    p->addPriorityList(baseRotation, {});
+    std::cout << std::setw(0) << p->serialize() << std::endl;
+}
