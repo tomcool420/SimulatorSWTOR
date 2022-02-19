@@ -4,7 +4,7 @@
 #include <string>
 namespace Simulator {
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 constexpr char kInputGearFlag[] = "gear";
 constexpr char kInputRotationFlag[] = "rotation";
 constexpr char kInputRotationOptionsFlag[] = "options";

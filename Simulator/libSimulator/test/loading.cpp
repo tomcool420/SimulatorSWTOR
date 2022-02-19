@@ -3,7 +3,7 @@
 #include <Simulator/Classes/factory.h>
 #include <Simulator/SimulatorBase/Target.h>
 #include <Simulator/SimulatorBase/types.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <gtest/gtest.h>
 using namespace Simulator;
 
@@ -62,18 +62,18 @@ TEST(Saving, Stats) {
 TEST(Run, Normal) {
     char arg0[] = "testrun";
     char arg1[] = "--gear";
-    std::string str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
+    std::string str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg2(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg3[] = "--rotation";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
     std::cout << str << std::endl;
 
     std::vector<char> arg4(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg5[] = "--options";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_non_varying.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_non_varying.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg6(str.c_str(), str.c_str() + str.size() + 1);
 
@@ -85,18 +85,18 @@ TEST(Run, Normal) {
 TEST(Run, Varying) {
     char arg0[] = "testrun";
     char arg1[] = "--gear";
-    std::string str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
+    std::string str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg2(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg3[] = "--rotation";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
     std::cout << str << std::endl;
 
     std::vector<char> arg4(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg5[] = "--options";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_varying.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_varying.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg6(str.c_str(), str.c_str() + str.size() + 1);
 
@@ -108,18 +108,18 @@ TEST(Run, Varying) {
 TEST(Run, NegativeDelay) {
     char arg0[] = "testrun";
     char arg1[] = "--gear";
-    std::string str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
+    std::string str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/gear.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg2(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg3[] = "--rotation";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/rotation.json").string();
     std::cout << str << std::endl;
 
     std::vector<char> arg4(str.c_str(), str.c_str() + str.size() + 1);
 
     char arg5[] = "--options";
-    str = (boost::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_negative_delay.json").string();
+    str = (std::filesystem::path(SIM_TEST_SOURCE_DIR) / "test/options_negative_delay.json").string();
     std::cout << str << std::endl;
     std::vector<char> arg6(str.c_str(), str.c_str() + str.size() + 1);
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <Simulator/SimulatorBase/detail/units.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 
@@ -18,7 +18,7 @@ struct Options {
     nlohmann::json gear;
     nlohmann::json rotation;
     RotationOptions opts;
-    boost::filesystem::path output{"log.csv"};
+    std::filesystem::path output{"log.csv"};
 };
 
 void populateOptions(boost::program_options::options_description &desc);

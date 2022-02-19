@@ -1,10 +1,10 @@
 [requires]
-boost/1.71.0@conan/stable
-spdlog/1.4.2@bincrafters/stable
+boost/1.78.0
+spdlog/1.4.2
 ms-gsl/3.0.1
 gtest/1.10.0
 nlohmann_json/3.9.0
-tbb/2020.1
+onetbb/2021.3.0
 
 [options]
 boost:without_log=True
@@ -24,8 +24,14 @@ boost:without_graph_parallel=True
 boost:without_python=True
 boost:without_thread=True
 boost:without_coroutine=True
-nlohmann_json:multiple_headers=True
-
+boost:without_graph=True
+boost:without_type_erasure=True
+boost:without_context=True
+boost:without_fiber=True
+boost:without_filesystem=True
+boost:without_iostreams=True
+boost:without_locale=True
+boost:without_nowide=True
 [imports]
 bin, *.dll -> ./bin
 lib, *.dylib* -> ./bin
