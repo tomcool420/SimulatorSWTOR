@@ -64,21 +64,6 @@ DamageHits RelicProcBuff::onAbilityHit(DamageHits &hits, const Second &time, con
     }
     return {};
 }
-void AmplifierBuff::apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr & /*target*/) const {
-    auto &&ac = ability.getCoefficients();
-    for (int ii = 0; ii < fstats.size(); ++ii) {
-        auto &s = fstats[ii];
-        const auto &c = ac[ii];
-        if (c.isDamageOverTime) {
-            s.multiplier += _amps.periodicIntensity;
-        }
-        if (c.damageType == DamageType::Weapon) {
-            s.multiplier += _amps.weaponExpertise;
-        } else {
-            s.multiplier += std::max(_amps.forceSensitivity, _amps.techWizardry);
-        }
-        s.armorPen += _amps.armorPenetration;
-    }
-}
+
 
 } // namespace Simulator

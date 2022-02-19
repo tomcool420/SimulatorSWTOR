@@ -61,23 +61,7 @@ class DamageTypeBuff : public Buff {
     StatChanges _statChanges;
     std::string _name;
 };
-class AmplifierBuff : public Buff {
-  public:
-    AmplifierBuff() = default;
-    AmplifierBuff(Amplifiers amp) : _amps(amp){};
-    void apply(const Ability &ability, AllStatChanges &fstats, const TargetPtr &target) const final;
-    void setPeriodicIntensityBonus(double bonus) { _amps.periodicIntensity = bonus; }
-    void setWeaponExpertiseBonus(double bonus) { _amps.weaponExpertise = bonus; }
-    void setTechWizardryBonus(double bonus) { _amps.techWizardry = bonus; }
-    void setForceSensitivityBonus(double bonus) { _amps.forceSensitivity = bonus; }
-    void setArmorPenetrationBonus(double bonus) { _amps.armorPenetration = bonus; }
-    void setAoeMultiplier(double bonus) { _amps.aoe = bonus; }
-    const Amplifiers &getAmplifiers() const { return _amps; }
 
-  private:
-    Amplifiers _amps;
-    [[nodiscard]] Buff *clone() const override { return new AmplifierBuff(*this); }
-};
 
 template <class T> class OnAbilityHitBuff : public Buff {
   public:

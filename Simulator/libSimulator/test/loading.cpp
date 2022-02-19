@@ -50,12 +50,9 @@ TEST(Loading, JSON) {
 
 TEST(Saving, Stats) {
     auto &&[s, t, c, rs] = getTestData();
-    Amplifiers amp;
-    amp.periodicIntensity = 0.2068;
     nlohmann::json gj;
     gj[key_class] = c->serialize();
     gj[key_base_stats] = rs;
-    gj[key_amplifiers] = amp;
     std::cout << std::setw(1) << gj << std::setw(0) << std::endl;
 }
 

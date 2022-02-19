@@ -20,7 +20,7 @@ struct TestData {
     TargetPtr target;
     std::shared_ptr<DirtyFighting> df;
 };
-TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers = true, bool masteryBonus = 0) {
+TestData getTestData(double alacrity = 2331, double crit = 2095, bool /*unused*/=true, bool masteryBonus = 0) {
     detail::LogDisabler d;
     RawStats rs;
     rs.master = Mastery{12138} + Mastery{masteryBonus};
@@ -34,13 +34,6 @@ TestData getTestData(double alacrity = 2331, double crit = 2095, bool amplifiers
     rs.hp = HealthPoints(6.5e6);
     TestData ret;
     ret.source = Target::New(rs);
-    if (amplifiers) {
-        auto ab = std::make_unique<AmplifierBuff>();
-        ab->setPeriodicIntensityBonus(0.2068);
-        // ab->setPeriodicIntensityBonus(0.1496);
-
-        ret.source->addBuff(std::move(ab), Second(0.0));
-    }
     ret.target = Target::New(rs);
     ret.df = std::make_shared<DirtyFighting>();
     return ret;

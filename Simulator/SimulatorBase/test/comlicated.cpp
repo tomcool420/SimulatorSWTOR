@@ -322,11 +322,8 @@ TEST(Calculations, Rotation2WS_HighStats) {
     s.hp = HealthPoints(3.25e6);
     auto player = Target::New(rs);
     player->addBuff(getDefaultStatsBuffPtr(false, false), Second(0.0));
-    auto ab = std::make_unique<AmplifierBuff>();
-    ab->setPeriodicIntensityBonus(0.022 * 9 + 0.0088);
-    //    ab->setArmorPenBonus(0.025*9);
-    //    ab->setForcecTechWizardryBonus(0.09);
-    player->addBuff(std::move(ab), Second(0.0));
+
+
     auto cb = std::make_unique<ColdBloodedBuff>();
     player->addBuff(std::move(cb), Second(0.0));
     //    player->addBuff(std::make_unique<RelicProcBuff>(relic_mastery_surge,Mastery{2892},Power{0},CriticalRating{0.0}),Second(0.0));
@@ -383,9 +380,6 @@ TEST(Calculations, DotsEntrenchedOffense) {
     s.hp = HealthPoints(3.25e6);
     auto player = Target::New(rs);
     player->addBuff(getDefaultStatsBuffPtr(false, false), Second(0.0));
-    auto ab = std::make_unique<AmplifierBuff>();
-    ab->setPeriodicIntensityBonus(0.022 * 9 + 0.0088);
-    player->addBuff(std::move(ab), Second(0.0));
     auto cb = std::make_unique<ColdBloodedBuff>();
     player->addBuff(std::move(cb), Second(0.0));
 

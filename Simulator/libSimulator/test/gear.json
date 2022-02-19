@@ -1,12 +1,4 @@
 {
-    "amplifiers": {
-        "aoe": 0.0,
-        "armorPenetration": 0.0,
-        "forceSensitivity": 0.0,
-        "periodicIntensity": 0.2068,
-        "techWizardry": 0.0,
-        "weaponExpertise": 0.0
-    },
     "class": {
         "class": "dirty_fighting",
         "class_buffs": true,

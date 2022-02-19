@@ -91,7 +91,6 @@ constexpr char key_armor[] = "armor";
 constexpr char key_health[] = "health";
 constexpr char key_has_offhand[] = "has_offhand";
 
-constexpr char key_amplifiers[] = "amplifiers";
 constexpr char key_periodic_damage[] = "periodic_intensity";
 constexpr char key_tech_wizardry[] = "tech_wizardry";
 constexpr char key_force_sensitivity[] = "force_sensitivity";

@@ -78,9 +78,6 @@ int runRotation(const Options &o) {
         if (!ro.verbose)
             d = new detail::LogDisabler;
         auto s = Target::New(rs);
-        auto amps = getAmplifiersFromGearJSON(o.gear);
-        auto buff = std::make_unique<AmplifierBuff>(amps);
-        s->addBuff(std::move(buff), Second(0.0));
         s->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
         addBuffs(s, ic->getStaticBuffs(), Second(0.0));
         RawStats trs;
@@ -116,9 +113,6 @@ int runVarying(const Options &opts) {
         rs.alacrityRating = ala;
         rs.criticalRating = crit;
         auto s = Target::New(rs);
-        auto amps = getAmplifiersFromGearJSON(o.gear);
-        auto buff = std::make_unique<AmplifierBuff>(amps);
-        s->addBuff(std::move(buff), Second(0.0));
         addBuffs(s, ic->getStaticBuffs(), Second(0.0));
         RawStats trs;
         trs.hp = HealthPoints(6500000);

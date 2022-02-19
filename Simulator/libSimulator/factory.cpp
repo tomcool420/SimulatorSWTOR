@@ -7,6 +7,5 @@ ClassPtr getClassFromGearJSON(const nlohmann::json &j) {
     return createClassFromJson(cj);
 }
 RawStats getRawStatsFromGearJSON(const nlohmann::json &j) { return j.at(key_base_stats).get<RawStats>(); }
-Amplifiers getAmplifiersFromGearJSON(const nlohmann::json &j) { return j.at(key_amplifiers).get<Amplifiers>(); }
 
 } // namespace Simulator
