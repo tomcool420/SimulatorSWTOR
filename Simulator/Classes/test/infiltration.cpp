@@ -52,7 +52,7 @@ int countHits(const AbilityId &id, const Target::TargetEvents &events) {
     return count;
 }
 } // namespace
-TEST(Infiltration, abilities) {
+TEST(DISABLED_Infiltration, abilities) {
     {
         auto r = getDamageRanges(consular_double_strike);
         ASSERT_EQ(r.size(), 2);
