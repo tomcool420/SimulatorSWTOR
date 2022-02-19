@@ -10,13 +10,14 @@
 
 using namespace Simulator;
 TEST(calculations, initial) {
-    EXPECT_NEAR(0.071438, detail::getAlacrity(AlacrityRating(1213)), 1e-6);
-    EXPECT_NEAR(0.153708, detail::getCriticalChance(CriticalRating(2388)), 1e-6);
-    EXPECT_NEAR(0.1537083, detail::getCriticalMultiplier(CriticalRating(2388)), 1e-6);
-    EXPECT_NEAR(2400.12, detail::getBonusDamage(Mastery(12000)), 1e-6);
+    EXPECT_NEAR(0.0724, detail::getAlacrity(AlacrityRating(2086)), 1e-4);
+    EXPECT_NEAR(0.1019, detail::getCriticalChance(CriticalRating(2360)), 1e-4);
+    EXPECT_NEAR(0.1019, detail::getCriticalMultiplier(CriticalRating(2360)), 1e-4);
+    EXPECT_NEAR(2805.2, detail::getBonusDamage(Mastery(14026)), 1e-6);
     EXPECT_NEAR(2760, detail::getBonusDamage(Power(12000)), 1e-6);
     EXPECT_NEAR(2760, detail::getFTBonusDamage(FTPower(12000)), 1e-6);
-    EXPECT_NEAR(0.124451, detail::getCriticalChance(Mastery(12000)), 1e-6);
+    EXPECT_NEAR(0.1002, detail::getCriticalChance(Mastery(14026)), 1e-4);
+    std::cout<<detail::getBonusDamage(Mastery(14026))<<" "<<detail::getBonusDamage(Power(12000))<<" "<<detail::getFTBonusDamage(FTPower(12000));
 }
 
 TEST(StatBuff, basic) {

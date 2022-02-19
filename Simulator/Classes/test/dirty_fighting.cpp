@@ -15,14 +15,14 @@ struct TestData {
 };
 TestData getTestData() {
     RawStats rs;
-    rs.master = Mastery{4953};
-    rs.power = Power{2100};
-    rs.accuracyRating = AccuracyRating{1557};
-    rs.criticalRating = CriticalRating{313};
-    rs.alacrityRating = AlacrityRating{0};
-    rs.weaponDamageMH = {1376.0, 2556.0};
-    rs.weaponDamageOH = {1376.0 * 0.3, 2556.0 * 0.3};
-    rs.forceTechPower = FTPower{7008};
+    rs.master = Mastery{11795};
+    rs.power = Power{8108};
+    rs.accuracyRating = AccuracyRating{3329};
+    rs.criticalRating = CriticalRating{1590};
+    rs.alacrityRating = AlacrityRating{1019};
+    rs.weaponDamageMH = {1596, 2964};
+    rs.weaponDamageOH = {1376.0 * 0.25, 2556.0 * 0.25};
+    rs.forceTechPower = FTPower{7568};
     TestData ret;
     ret.source = Target::New(rs);
     ret.target = Target::New(rs);
@@ -55,10 +55,10 @@ TEST(DirtyFighting, DirtyBlast) {
     auto afs = getAllFinalStats(*dirtyBlast, player, target);
     auto DamageRange = calculateDamageRange(*dirtyBlast, afs);
     ASSERT_EQ(DamageRange.size(), 3);
-    ASSERT_NEAR(std::round(DamageRange[0].dmg.first + DamageRange[1].dmg.first), 4829, 1.0);
-    ASSERT_NEAR(std::round(DamageRange[0].dmg.second + DamageRange[1].dmg.second), 6095, 1.0);
-    ASSERT_NEAR(std::round(DamageRange[2].dmg.second), 2428, 1.0);
-    ASSERT_NEAR(std::round(DamageRange[2].dmg.first), 2428, 1.0);
+    EXPECT_NEAR(std::round(DamageRange[0].dmg.first + DamageRange[1].dmg.first), 9446, 1.0);
+    EXPECT_NEAR(std::round(DamageRange[0].dmg.second + DamageRange[1].dmg.second), 10818, 1.0);
+    EXPECT_NEAR(std::round(DamageRange[2].dmg.second), 4508, 1.0);
+    EXPECT_NEAR(std::round(DamageRange[2].dmg.first), 4508, 1.0);
 }
 TEST(DirtyFighting, VitalShot) {
     detail::LogDisabler d;
@@ -69,9 +69,9 @@ TEST(DirtyFighting, VitalShot) {
     auto afs = getAllFinalStats(*abl, player, target);
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 1);
-    ASSERT_NEAR(std::round(DamageRange[0].dmg.first * 7), 9502,
+    ASSERT_NEAR(std::round(DamageRange[0].dmg.first * 7), 17642,
                 1.0); // Only 7 ticks on tooltip (there are actually 9 in parse)
-    ASSERT_NEAR(std::round(DamageRange[0].dmg.second * 7), 9502, 1.0);
+    ASSERT_NEAR(std::round(DamageRange[0].dmg.second * 7), 17642, 1.0);
 }
 TEST(DirtyFighting, SpeedShot) {
     detail::LogDisabler d;
@@ -83,8 +83,8 @@ TEST(DirtyFighting, SpeedShot) {
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 2);
     auto info = abl->getInfo();
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first) * info.nTicks), 15289, 1.0);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second) * info.nTicks), 19284, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first) * info.nTicks), 29927, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second) * info.nTicks), 34257, 1.0);
 }
 TEST(DirtyFighting, WoundingShots) {
     detail::LogDisabler d;
@@ -96,9 +96,9 @@ TEST(DirtyFighting, WoundingShots) {
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 2);
     auto info = abl->getInfo();
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 2020,
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 3949,
                 1.0); // Damage is per tick on tooltip
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 2552, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 4525, 1.0);
 }
 TEST(DirtyFighting, ShrapBomb) {
     detail::LogDisabler d;
@@ -110,11 +110,11 @@ TEST(DirtyFighting, ShrapBomb) {
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 1);
     auto info = abl->getInfo();
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first)), 1251, 1.0); // Damage for first tick
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second)), 1251, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first)), 2324, 1.0); // Damage for first tick
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second)), 2324, 1.0);
 
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first) * info.nTicks), 10011, 1.0);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second) * info.nTicks), 10011, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first) * info.nTicks), 18589, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second) * info.nTicks), 18589, 1.0);
 }
 TEST(DirtyFighting, QuickDraw) {
     detail::LogDisabler d;
@@ -125,21 +125,35 @@ TEST(DirtyFighting, QuickDraw) {
     auto afs = getAllFinalStats(*abl, player, target);
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 2);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 9819, 1.0);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 12381, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 19225, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 22002, 1.0);
 }
 TEST(DirtyFighting, HemoBlast) {
     detail::LogDisabler d;
-    auto &&[player, target, df] = getTestData();
-    df->setExploitedWeakness(true);
-    addBuffs(player, df->getStaticBuffs(), Second(0.0));
-    player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
-    auto abl = df->getAbility(dirty_fighting_hemorraghing_blast);
-    auto afs = getAllFinalStats(*abl, player, target);
-    auto DamageRange = calculateDamageRange(*abl, afs);
-    ASSERT_EQ(DamageRange.size(), 2);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 1022, 1.0);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 1284, 1.0);
+    {
+        auto &&[player, target, df] = getTestData();
+        df->setExploitedWeakness(false);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+        auto abl = df->getAbility(dirty_fighting_hemorraghing_blast);
+        auto afs = getAllFinalStats(*abl, player, target);
+        auto DamageRange = calculateDamageRange(*abl, afs);
+        ASSERT_EQ(DamageRange.size(), 2);
+        ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 1361, 1.0);
+        ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 1553, 1.0);
+    }
+    {
+        auto &&[player, target, df] = getTestData();
+        df->setExploitedWeakness(true);
+        addBuffs(player, df->getStaticBuffs(), Second(0.0));
+        player->addBuff(detail::getDefaultStatsBuffPtr(false, false), Second(0.0));
+        auto abl = df->getAbility(dirty_fighting_hemorraghing_blast);
+        auto afs = getAllFinalStats(*abl, player, target);
+        auto DamageRange = calculateDamageRange(*abl, afs);
+        ASSERT_EQ(DamageRange.size(), 2);
+        ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 2009, 1.0);
+        ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 2292, 1.0);
+    }
 }
 
 TEST(DirtyFighting, FlurryOfBolts) {
@@ -152,8 +166,8 @@ TEST(DirtyFighting, FlurryOfBolts) {
     auto afs = getAllFinalStats(*abl, player, target);
     auto DamageRange = calculateDamageRange(*abl, afs);
     ASSERT_EQ(DamageRange.size(), 2);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 3336, 1.0);
-    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 4870, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.first + DamageRange[1].dmg.first)), 6375, 1.0);
+    ASSERT_NEAR(std::round((DamageRange[0].dmg.second + DamageRange[1].dmg.second)), 8038, 1.0);
 }
 
 TEST(DirtyFighting, DotRefresh) {

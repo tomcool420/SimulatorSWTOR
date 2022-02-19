@@ -2,8 +2,8 @@
 #include <cstdint>
 
 namespace Simulator {
-constexpr double StandardHealth{11745};
-constexpr double BossArmor{14535};
+constexpr double StandardHealth{19335};
+constexpr double BossArmor{32000};
 
 // cast abilities
 
@@ -33,6 +33,9 @@ constexpr uint64_t smuggler_flurry_of_bolts{947955116802048};
 constexpr uint64_t gunslinger_snap_shot{3404302747959296};
 constexpr uint64_t gunslinger_charged_burst{807157498904576};
 constexpr uint64_t gunslinger_take_cover{807024354918400};
+constexpr uint64_t sharpshooter_trickshot{2301861952487424};
+constexpr uint64_t sharpshooter_aimed_shot{1112293450448896};
+constexpr uint64_t sharpshooter_penetrating_blasts{3394699201085440};
 
 constexpr uint64_t consular_double_strike{812728071487488};
 constexpr uint64_t consular_saber_strike{947486965366784};
@@ -98,6 +101,7 @@ constexpr char key_armor_pen[] = "armor_pen";
 
 constexpr char key_class[] = "class";
 constexpr char key_class_dirty_fighting[] = "dirty_fighting";
+constexpr char key_class_sharpshooter[] = "sharpshooter";
 
 constexpr char key_lay_low[] = "lay_low";
 constexpr char key_established_foothold[] = "established_foothold";

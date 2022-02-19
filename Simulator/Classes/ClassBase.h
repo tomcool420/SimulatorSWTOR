@@ -11,5 +11,6 @@ class ClassBase : public Class {
     SIMULATOR_SET_MACRO(Relic1, AbilityId, 0);
     SIMULATOR_SET_MACRO(Relic2, AbilityId, 0);
     SIMULATOR_SET_MACRO(ClassBuffs, bool, false);
+    SIMULATOR_SET_MACRO(Talents, std::array<uint8_t, 8>, {1, 1, 1, 1, 1, 1, 1, 1});
 };
 } // namespace Simulator
