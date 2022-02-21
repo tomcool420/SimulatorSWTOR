@@ -17,7 +17,7 @@ namespace Simulator {
 using TargetId = boost::uuids::uuid;
 class Target : public std::enable_shared_from_this<Target> {
   public:
-    enum class EventClass { Dot, Buff, Debuff, Energy };
+    enum class EventClass { Dot, Buff, Debuff, Energy, Cooldown };
     struct Event {
         Second Time{0.0};
         EventClass eClass;
@@ -42,6 +42,12 @@ class Target : public std::enable_shared_from_this<Target> {
         std::optional<DamageHits> damage;
         std::optional<AbilityId> id;
         std::optional<double> amount;
+    };
+    struct CooldownInfo {
+        int maxCharges{1};
+        int availableCharges{1};
+        Second cooldownDuration;
+        std::optional<Second> nextCharge;
     };
     using TargetEvents = std::vector<TargetEvent>;
 
@@ -110,6 +116,16 @@ class Target : public std::enable_shared_from_this<Target> {
     std::optional<Second> getAbilityCooldownEnd(const AbilityId &id) const;
     void finishCooldown(const AbilityId &abl, const Second &time);
 
+    void putAbilityOnCooldown(const AbilityId &info, const Second &nominalCD, const Second &currentTime,
+                              int maxCharges = 1);
+    void reduceAbilityCooldown(const AbilityId &info, const Second &reductionTime);
+    std::optional<Second> getAbilityUsableCharge();
+    std::optional<Second> getAbilityCooldownNextCharge(const AbilityId &id);
+
+    void setAbilityCooldown(const AbilityInfo &info, const Second &duration);
+    std::optional<Second> getAbilityCooldownEnd(const AbilityInfo &id) const;
+    void finishCooldown(const AbilityInfo &abl, const Second &time);
+
     void setEnergyModel(EnergyPtr e);
     void addEnergy(int e, const Second &time);
     void spendEnergy(int e, const Second &time);
@@ -131,6 +147,7 @@ class Target : public std::enable_shared_from_this<Target> {
     TargetEvents _events;
     TargetId _tag;
     std::optional<Second> _deathTime;
+    std::map<AbilityId, CooldownInfo> _abilityCooldowns;
     std::map<AbilityId, Second> _abilityCooldownEnd;
     EnergyPtr _energy;
     bool _logEvents{true};

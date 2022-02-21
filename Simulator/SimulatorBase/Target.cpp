@@ -30,6 +30,9 @@ std::optional<Second> Target::getNextEventTime() {
             events.push_back({*ne, EventClass::Energy, {}, getId()});
         }
     }
+    for (auto &&[k, v] : _abilityCooldowns) {
+        events.push_back({*v.nextCharge, EventClass::Cooldown, k, getId()});
+    }
 
     std::sort(events.begin(), events.end(), [](const Event &a, const Event &b) { return a.Time < b.Time; });
     _upcomingEvents = std::move(events);
@@ -166,6 +169,15 @@ void Target::applyEventsAtTime(const Second &time) {
             auto e = _energy->resolveEventsUpToTime(time, shared_from_this());
             addEvent(
                 {TargetEventType::GainEnergy, time, std::nullopt, std::nullopt, static_cast<double>(e.gainedEnergy)});
+        } else if (event.eClass == Target::EventClass::Cooldown) {
+            auto &cd = _abilityCooldowns[event.aId];
+            cd.availableCharges += 1;
+            CHECK(cd.availableCharges <= cd.maxCharges);
+            if (cd.availableCharges == cd.maxCharges) {
+                cd.nextCharge = std::nullopt;
+            } else {
+                cd.nextCharge = time + cd.cooldownDuration;
+            }
         }
         getNextEventTime();
     }
@@ -261,15 +273,42 @@ void Target::addEvent(TargetEvent &&event) {
     _events.push_back(std::move(event));
 }
 
-void Target::setAbilityCooldown(const AbilityId &id, const Second &time) { _abilityCooldownEnd[id] = time; }
+void Target::putAbilityOnCooldown(const AbilityId &id, const Second &nominalCD, const Second &currentTime,
+                                  int maxCharges) {
+    auto &v = _abilityCooldowns[id];
+    if (maxCharges != v.maxCharges) {
+        v.maxCharges = maxCharges;
+        v.availableCharges = maxCharges;
+    }
+    CHECK(v.availableCharges > 0, "Can't put and ability on CD that had no charges available, id: {}", id);
+    if (v.availableCharges < v.maxCharges) {
+        --v.availableCharges;
+    } else {
+        v.cooldownDuration = nominalCD;
+        --v.availableCharges;
+        v.nextCharge = currentTime + v.cooldownDuration;
+    }
+}
 
+void Target::reduceAbilityCooldown(const AbilityId &id, const Second &reductionTime) {
+    auto &v = _abilityCooldowns[id];
+    if (v.availableCharges == v.maxCharges)
+        return;
+    v.nextCharge = *v.nextCharge - reductionTime;
+}
+std::optional<Second> Target::getAbilityCooldownNextCharge(const AbilityId &id) {
+    auto &v = _abilityCooldowns[id];
+    if (v.availableCharges > 0)
+        return std::nullopt;
+    return v.nextCharge;
+}
+void Target::setAbilityCooldown(const AbilityId &id, const Second &time) { _abilityCooldownEnd[id] = time; }
 std::optional<Second> Target::getAbilityCooldownEnd(const AbilityId &id) const {
     auto it = _abilityCooldownEnd.find(id);
     if (it == _abilityCooldownEnd.end())
         return std::nullopt;
     return it->second;
 }
-
 void Target::finishCooldown(const AbilityId &id, const Second &time) { _abilityCooldownEnd[id] = time; }
 void Target::setEnergyModel(EnergyPtr e) { _energy = e; }
 void Target::addEnergy(int e, const Second &time) {

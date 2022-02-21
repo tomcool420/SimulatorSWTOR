@@ -119,6 +119,35 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
         info.cooldownTime = Second(12);
         return info;
     }
+    case sharpshooter_trickshot: {
+        AbilityCoefficients coeffMH{1.917, 0.192, 0.192, 0.28};
+        AbilityCoefficients coeffOH{0.0, 0.0, 0.0, 0.28};
+        coeffOH.isOffhandHit = true;
+        auto info = AbilityInfo{{coeffMH, coeffOH}};
+        info.energyCost = 5;
+        info.cooldownTime = Second(9);
+        return info;
+    }
+    case sharpshooter_aimed_shot: {
+        AbilityCoefficients coeffMH{3.684, 0.37, 0.37, 1.36};
+        AbilityCoefficients coeffOH{0.0, 0.0, 0.0, 1.36};
+        coeffOH.isOffhandHit = true;
+        auto info = AbilityInfo{{coeffMH, coeffOH}};
+        info.energyCost = 15;
+        info.cooldownTime = Second(12);
+        return info;
+    }
+    case sharpshooter_penetrating_blasts: {
+        AbilityCoefficients coeffsMH{0.8, 0.08, 0.08, -0.47};
+        AbilityCoefficients coeffOH{0.0, 0.0, 0.0, -0.47};
+        coeffOH.isOffhandHit = true;
+        auto info = AbilityInfo{{coeffsMH, coeffOH}, AbilityCastType::Channeled, Second(1.0), 4};
+        info.energyCost = 6;
+        info.nTicks = 5;
+        info.time = Second(0.4);
+        info.cooldownTime = Second(15);
+        return info;
+    }
     case gunslinger_speed_shot: {
         AbilityCoefficients coeffMH{0.93, 0.093, 0.093, -0.38};
         AbilityCoefficients coeffOH{0.0, 0.0, 0.0, -0.38};
@@ -128,6 +157,15 @@ AbilityInfo getDefaultAbilityInfo(AbilityId id) {
         info.nTicks = 4;
         info.time = Second(1.0);
         info.energyCost = 5;
+        return info;
+    }
+    case gunslinger_charged_burst: {
+        AbilityCoefficients coeffMH{1.74, 0.174, 0.174, 0.16, DamageType::Weapon};
+        AbilityCoefficients coeffOH{0.0, 0.0, 0.0, 0.16, DamageType::Weapon};
+        coeffOH.isOffhandHit = true;
+        auto info = AbilityInfo{{coeffMH, coeffOH}};
+        info.energyCost = 20;
+        info.cooldownTime = Second(0);
         return info;
     }
     case gunslinger_xs_freighter_flyby: {

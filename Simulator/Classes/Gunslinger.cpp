@@ -110,6 +110,10 @@ AbilityPtr Gunslinger::getAbilityInternal(AbilityId id) {
         });
         return abl;
     }
+    case gunslinger_charged_burst: {
+        auto info = detail::getDefaultAbilityInfo(id);
+        return std::make_shared<Ability>(id, info);
+    }
     }
     return nullptr;
 }
